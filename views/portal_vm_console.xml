@@ -1,0 +1,10 @@
+<odoo>
+  <template id="portal_vm_console" name="VM Console">
+    <t t-call="portal.portal_layout">
+      <div class="container">
+        <h2 class="mb-3">Console: <t t-esc="vm.name"/></h2>
+        <iframe t-att-src="console_url" width="100%" height="600" frameborder="0" allowfullscreen></iframe>
+      </div>
+    </t>
+  </template>
+</odoo>
