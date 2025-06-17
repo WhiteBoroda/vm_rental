@@ -1,1 +1,3 @@
-from . import portal_vm, vm_api
+from . import settings_api
+from . import vm_api
+from . import portal_vm 
