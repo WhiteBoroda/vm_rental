@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="view_hypervisor_server_tree" model="ir.ui.view">
+        <field name="name">hypervisor.server.tree</field>
+        <field name="model">hypervisor.server</field>
+        <field name="arch" type="xml">
+            <tree string="Hypervisor Servers">
+                <field name="name"/>
+                <field name="hypervisor_type"/>
+                <field name="host"/>
+                <field name="status"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hypervisor_server_form" model="ir.ui.view">
+        <field name="name">hypervisor.server.form</field>
+        <field name="model">hypervisor.server</field>
+        <field name="arch" type="xml">
+            <form string="Hypervisor Server">
+                <header>
+                    <button name="test_and_fetch_resources" type="object" string="Test &amp; Fetch Resources" class="oe_highlight"/>
+                    <field name="status" widget="statusbar" statusbar_visible="not_tested,connected,failed"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="My Production Server"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="hypervisor_type"/>
+                            <field name="host"/>
+                        </group>
+                        <group>
+                            <field name="verify_ssl"/>
+                        </group>
+                    </group>
+                    
+                    <group string="Proxmox Credentials" attrs="{'invisible': [('hypervisor_type', '!=', 'proxmox')]}">
+                        <field name="user" placeholder="e.g., root@pam"/>
+                        <field name="token_name"/>
+                        <field name="token_value" password="True"/>
+                    </group>
+                    
+                    <group string="vCenter Credentials" attrs="{'invisible': [('hypervisor_type', '!=', 'vmware')]}">
+                        <field name="vmware_user" placeholder="e.g., administrator@vsphere.local"/>
+                        <field name="vmware_password" password="True"/>
+                    </group>
+                    
+                    <notebook>
+                        <page string="Connection Details">
+                           <group>
+                               <field name="status_message" readonly="1"/>
+                           </group>
+                        </page>
+                        <page string="Nodes / Clusters">
+                            <field name="node_ids" readonly="1"/>
+                        </page>
+                        <page string="Storages / Datastores">
+                            <field name="storage_ids" readonly="1"/>
+                        </page>
+                        <page string="Templates">
+                            <field name="template_ids" readonly="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_hypervisor_server" model="ir.actions.act_window">
+        <field name="name">Hypervisor Servers</field>
+        <field name="res_model">hypervisor.server</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    
+</odoo>

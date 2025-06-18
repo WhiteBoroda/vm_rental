@@ -1,0 +1,48 @@
+<odoo>
+  <template id="portal_vm_snapshots_template" name="VM Snapshots">
+    <t t-call="portal.portal_layout">
+      <div class="container" id="vm_snapshots_manager" t-att-data-vm-id="vm.id">
+        <h3 class="mb-4">Snapshots for <t t-esc="vm.name"/></h3>
+
+        <div class="card bg-light mb-4">
+          <div class="card-body">
+            <h5 class="card-title">Create New Snapshot</h5>
+            <form id="create_snapshot_form">
+              <div class="form-group">
+                <label for="snapshot_name">Snapshot Name</label>
+                <input type="text" class="form-control" id="snapshot_name" required="1" placeholder="e.g., Before update"/>
+              </div>
+              <div class="form-group">
+                <label for="snapshot_desc">Description</label>
+                <textarea class="form-control" id="snapshot_desc" rows="2"></textarea>
+              </div>
+              <button type="submit" class="btn btn-primary">
+                <i class="fa fa-spinner fa-spin d-none mr-1"/>Create Snapshot
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <h4>Existing Snapshots</h4>
+        <div class="list-group" id="snapshot_list">
+            <t t-if="not snapshots">
+                <div class="list-group-item text-muted">No snapshots found.</div>
+            </t>
+            <t t-foreach="snapshots" t-as="snap">
+                <div class="list-group-item" t-att-data-proxmox-name="snap.proxmox_name">
+                    <div class="d-flex w-100 justify-content-between">
+                        <h5 class="mb-1"><t t-esc="snap.name"/></h5>
+                        <small><t t-esc="snap.create_date" t-options='{"widget": "date"}'/></small>
+                    </div>
+                    <p class="mb-1"><t t-esc="snap.description"/></p>
+                    <div class="text-right">
+                        <button class="btn btn-sm btn-info rollback-snapshot">Rollback</button>
+                        <button class="btn btn-sm btn-danger delete-snapshot">Delete</button>
+                    </div>
+                </div>
+            </t>
+        </div>
+      </div>
+    </t>
+  </template>
+</odoo>

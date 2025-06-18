@@ -1,35 +1,94 @@
 odoo.define('vm_rental.vm_actions', function (require) {
+  'use strict';
+
   var publicWidget = require('web.public.widget');
   var ajax = require('web.ajax');
+  var core = require('web.core');
+  var _t = core._t;
 
   publicWidget.registry.VmButtons = publicWidget.Widget.extend({
-    selector: '.vm-list',
-    events: {
-      'click .start-vm': '_onStartVm',
-      'click .stop-vm': '_onStopVm',
-      'click .reboot-vm': '_onRebootVm',
-      'click .extend-vm': '_onExtendVm',
-    },
+      selector: '.vm-list', // Теперь этот селектор найдет наш контейнер
+      events: {
+          'click .start-vm': '_onVmAction',
+          'click .stop-vm': '_onVmAction',
+          'click .reboot-vm': '_onVmAction',
+      },
 
-    _onStartVm: function (ev) {
-      const vmid = ev.currentTarget.dataset.vmid;
-      ajax.jsonRpc(`/vm/start/${vmid}`, 'call', {}).then(() => location.reload());
-    },
+      // Словарь для сопоставления статусов и CSS-классов
+      STATUS_CLASSES: {
+          'active': 'badge badge-success',
+          'stopped': 'badge badge-secondary',
+          'suspended': 'badge badge-warning',
+      },
 
-    _onStopVm: function (ev) {
-      const vmid = ev.currentTarget.dataset.vmid;
-      ajax.jsonRpc(`/vm/stop/${vmid}`, 'call', {}).then(() => location.reload());
-    },
+      /**
+       * Общий обработчик для всех действий с ВМ
+       * @param {MouseEvent} ev
+       * @private
+       */
+      _onVmAction: function (ev) {
+          ev.preventDefault();
+          const $button = $(ev.currentTarget);
+          const vmId = $button.data('vmid');
+          
+          // Определяем URL в зависимости от класса кнопки
+          let rpc_url = '';
+          if ($button.hasClass('start-vm')) rpc_url = `/vm/start/${vmId}`;
+          if ($button.hasClass('stop-vm')) rpc_url = `/vm/stop/${vmId}`;
+          if ($button.hasClass('reboot-vm')) rpc_url = `/vm/reboot/${vmId}`;
+          if (!rpc_url) return;
 
-    _onRebootVm: function (ev) {
-      const vmid = ev.currentTarget.dataset.vmid;
-      ajax.jsonRpc(`/vm/reboot/${vmid}`, 'call', {}).then(() => location.reload());
-    },
+          const $row = $button.closest('tr');
+          const $actionsCell = $row.find('.vm-actions-cell');
+          const $spinner = $actionsCell.find('.fa-spinner');
+          const $statusCell = $row.find('.vm-status-cell');
+          const $buttons = $actionsCell.find('.btn');
 
-    _onExtendVm: function (ev) {
-      const vmid = ev.currentTarget.dataset.vmid;
-      ajax.jsonRpc(`/vm/extend/${vmid}`, 'call', {}).then(() => location.reload());
-    },
+          // Блокируем интерфейс на время запроса
+          $buttons.addClass('disabled');
+          $spinner.removeClass('d-none');
+
+          ajax.jsonRpc(rpc_url, 'call', {}).then(result => {
+              if (result.success) {
+                  // Обновляем значок статуса
+                  const statusClass = this.STATUS_CLASSES[result.new_state] || 'badge badge-light';
+                  $statusCell.html(`<span class="${statusClass}">${result.state_text}</span>`);
+                  
+                  // Обновляем видимость кнопок
+                  this._updateButtonsVisibility($actionsCell, result.new_state);
+
+              } else {
+                  // Показываем ошибку, если что-то пошло не так
+                  this.displayNotification({
+                      type: 'danger',
+                      title: _t('Error'),
+                      message: result.error || _t('An unknown error occurred.'),
+                  });
+              }
+          }).guardedCatch(err => {
+               this.displayNotification({
+                  type: 'danger',
+                  title: _t('Error'),
+                  message: _t('Could not contact the server.'),
+              });
+          }).finally(() => {
+              // Возвращаем интерфейс в исходное состояние
+              $buttons.removeClass('disabled');
+              $spinner.addClass('d-none');
+          });
+      },
+
+      /**
+       * Обновляет видимость кнопок в зависимости от нового статуса ВМ
+       * @param {JQuery} $actionsCell
+       * @param {string} newState
+       * @private
+       */
+      _updateButtonsVisibility: function ($actionsCell, newState) {
+          $actionsCell.find('.start-vm').toggleClass('d-none', newState === 'active');
+          $actionsCell.find('.stop-vm').toggleClass('d-none', newState !== 'active');
+          $actionsCell.find('.reboot-vm').toggleClass('d-none', newState !== 'active');
+      },
   });
 
   return publicWidget.registry.VmButtons;

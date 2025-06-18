@@ -1,0 +1,250 @@
+# vm_rental/models/vm_rental_machine.py
+# -*- coding: utf-8 -*-
+from odoo import models, fields, api, _
+from odoo.exceptions import UserError, ValidationError
+from dateutil.relativedelta import relativedelta
+import logging
+
+_logger = logging.getLogger(__name__)
+
+class VmInstance(models.Model):
+    """
+    Represents a Virtual Machine instance, handling its lifecycle from creation
+    (manual or via sale) to expiration and management, using a generic hypervisor service layer.
+    """
+    _name = 'vm_rental.machine'
+    _description = 'Virtual Machine Instance'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
+
+    # === Fields Definition ===
+
+    name = fields.Char(string="VM Name", required=True, tracking=True)
+    
+    # --- РЕФАКТОРИНГ: Старые поля Proxmox заменены на универсальные ---
+    hypervisor_vm_ref = fields.Char(string="Hypervisor VM Reference", readonly=True, copy=False, index=True, help="The unique identifier for the VM in the hypervisor (e.g., a numeric ID for Proxmox, a UUID for VMware).")
+    hypervisor_node_name = fields.Char(string="Node/Cluster Name", readonly=True, copy=False, help="The actual node/cluster name where the VM is running.")
+
+    state = fields.Selection([
+        ('pending', 'Draft'),
+        ('active', 'Active'),
+        ('stopped', 'Stopped'),
+        ('suspended', 'Suspended'),
+        ('terminated', 'Terminated'),
+        ('archived', 'Archived')
+    ], string="State", default='pending', readonly=True, copy=False, tracking=True)
+    
+    start_date = fields.Date(string="Start Date", readonly=True, copy=False)
+    end_date = fields.Date(string="End Date", readonly=True, tracking=True, copy=False)
+    
+    partner_id = fields.Many2one('res.partner', string="Customer", required=True, tracking=True)
+    user_id = fields.Many2one('res.users', string="User", related='partner_id.user_id', store=True, readonly=True)
+
+    sale_order_ids = fields.One2many('sale.order', 'vm_instance_id', string="Sale Orders")
+    snapshot_ids = fields.One2many('vm.snapshot', 'vm_instance_id', string="Snapshots")
+    
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
+    currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string="Currency")
+    total_amount = fields.Monetary(string="Total Paid", compute="_compute_total_amount", store=True)
+
+    # --- Поля для конфигурации гипервизора ---
+    hypervisor_server_id = fields.Many2one('hypervisor.server', string="Hypervisor Server", tracking=True)
+    hypervisor_node_id = fields.Many2one('hypervisor.node', string="Node/Cluster", domain="[('server_id', '=?', hypervisor_server_id)]")
+    # hypervisor_storage_id = fields.Many2one('hypervisor.storage', string="Storage/Datastore", domain="[('server_id', '=?', hypervisor_server_id)]")
+    hypervisor_storage_id = fields.Many2one(
+        'hypervisor.storage',
+        string="Storage/Datastore",
+        domain="[('server_id', '=?', hypervisor_server_id), ('node_ids', 'in', hypervisor_node_id)]"
+    )
+    hypervisor_template_id = fields.Many2one('hypervisor.template', string="Template", domain="[('server_id', '=?', hypervisor_server_id)]")
+    
+    cores = fields.Integer(string="CPU Cores", default=1)
+    memory = fields.Integer(string="Memory (MiB)", default=1024)
+    disk = fields.Integer(string="Disk (GiB)", default=10)
+    is_trial = fields.Boolean(string="Is Trial Period", readonly=True, default=False)
+
+    user_id = fields.Many2one('res.users', string="User", compute='_compute_user_id', store=True, readonly=True)
+
+    @api.depends('partner_id', 'partner_id.user_ids')
+    def _compute_user_id(self):
+        """Вычисляет пользователя на основе партнера."""
+        for vm in self:
+            if vm.partner_id and vm.partner_id.user_ids:
+                # Берем первого активного пользователя
+                active_users = vm.partner_id.user_ids.filtered(lambda u: u.active and not u.share)
+                vm.user_id = active_users[0] if active_users else False
+            else:
+                vm.user_id = False
+
+    # === Onchange Methods ===
+    
+    @api.onchange('hypervisor_server_id')
+    def _onchange_hypervisor_server(self):
+        """Resets related fields when the server is changed."""
+        self.hypervisor_node_id = False
+        self.hypervisor_storage_id = False
+        self.hypervisor_template_id = False
+
+    # === Compute Methods ===
+
+    @api.depends('sale_order_ids.state', 'sale_order_ids.amount_total')
+    def _compute_total_amount(self):
+        """Computes the total amount paid across all confirmed orders."""
+        for rec in self:
+            paid_orders = rec.sale_order_ids.filtered(lambda o: o.state in ['sale', 'done'])
+            rec.total_amount = sum(paid_orders.mapped('amount_total'))
+
+    # === Helper & Service Methods ===
+
+    def _get_hypervisor_service(self):
+        """Возвращает правильный экземпляр сервиса (Proxmox или VMware)."""
+        self.ensure_one()
+        if not self.hypervisor_server_id:
+            raise UserError(_("Hypervisor server is not configured for this VM."))
+        return self.hypervisor_server_id._get_service_manager()
+
+    # === Actions ===
+
+    def action_provision_vm(self):
+        self.ensure_one()
+        if self.state != 'pending':
+            raise UserError(_("You can only provision VMs that are in the 'Draft' state."))
+        if not all([self.hypervisor_node_id, self.hypervisor_storage_id, self.hypervisor_template_id]):
+            raise ValidationError(_("Please select a Node/Cluster, Storage/Datastore, and Template before provisioning."))
+            
+        hypervisor_service = self._get_hypervisor_service()
+        vmid = hypervisor_service.get_next_vmid()
+        if not vmid:
+             raise UserError(_("Could not fetch the next available ID from the hypervisor."))
+        
+        # ИСПРАВЛЕНИЕ: Вызываем нужный метод в зависимости от типа шаблона
+        provisioning_result = None
+        template = self.hypervisor_template_id
+        
+        if template.template_type == 'qemu':
+            provisioning_result = hypervisor_service.create_vm(
+                node=self.hypervisor_node_id.name,
+                vm_id=vmid,
+                name=self.name,
+                template_vmid=template.vmid,
+                cores=self.cores,
+                memory=self.memory,
+                disk=self.disk,
+                storage=self.hypervisor_storage_id.name
+            )
+        elif template.template_type == 'lxc':
+            # Генерируем случайный пароль для контейнера
+            password = str(uuid.uuid4())
+            provisioning_result = hypervisor_service.create_container(
+                node=self.hypervisor_node_id.name,
+                vm_id=vmid,
+                name=self.name,
+                template_volid=template.vmid, # здесь хранится volid
+                cores=self.cores,
+                memory=self.memory,
+                disk=self.disk,
+                storage=self.hypervisor_storage_id.name,
+                password=password
+            )
+            # Сохраняем пароль в chatter для администратора
+            self.message_post(body=_(f"LXC container root password: <strong>{password}</strong>"))
+
+        if not provisioning_result:
+             raise UserError(_("API call to create instance failed. Check hypervisor logs for task details."))
+        
+        today = fields.Date.today()
+        if self.is_trial:
+            trial_days = int(self.env['ir.config_parameter'].sudo().get_param('vm_rental.default_trial_days', 7))
+            end_date = today + relativedelta(days=trial_days)
+        else:
+            end_date = today + relativedelta(months=1)
+
+        # --- РЕФАКТОРИНГ: Запись в новые универсальные поля ---
+        self.write({
+            'hypervisor_vm_ref': vmid,
+            'state': 'active',
+            'hypervisor_node_name': self.hypervisor_node_id.name,
+            'start_date': today,
+            'end_date': end_date
+        })
+        self.message_post(body=_(f"Virtual machine <strong>{self.name}</strong> (ID: {self.hypervisor_vm_ref}) was created successfully on {self.hypervisor_server_id.hypervisor_type}."))
+        return True
+
+    def extend_period(self, months=1):
+        """Extends the subscription period and re-activates the VM if suspended."""
+        self.ensure_one()
+        new_end_date = self.end_date if self.end_date and self.end_date > fields.Date.today() else fields.Date.today()
+        new_end_date += relativedelta(months=months)
+        
+        self.write({'end_date': new_end_date})
+        
+        # --- РЕФАКТОРИНГ: Используем универсальный сервис и поля ---
+        if self.state == 'suspended' and self.hypervisor_vm_ref:
+            service = self._get_hypervisor_service()
+            if service.start_vm(self.hypervisor_node_name, self.hypervisor_vm_ref):
+                self.write({'state': 'active'})
+            else:
+                 _logger.warning(f"Failed to start VM {self.name} via extend_period.")
+        
+        _logger.info(f"VM {self.name} extended until {self.end_date}")
+
+    # === Cron & Automation ===
+
+    @api.model
+    def _cron_check_expiry(self):
+        """
+        Cron job to automatically suspend VMs that have passed their end date.
+        """
+        _logger.info("Running VM expiry check cron job...")
+        expired_vms = self.search([('end_date', '<', fields.Date.today()), ('state', '=', 'active')])
+        for vm in expired_vms:
+            _logger.info(f"VM {vm.name} (ID: {vm.hypervisor_vm_ref}) has expired. Suspending.")
+            try:
+                # --- РЕФАКТОРИНГ: Используем универсальный сервис и поля ---
+                if vm.hypervisor_vm_ref:
+                    hypervisor_service = vm._get_hypervisor_service()
+                    hypervisor_service.suspend_vm(vm.hypervisor_node_name, vm.hypervisor_vm_ref)
+                
+                vm.write({'state': 'suspended'})
+                vm.message_post(body=_(f"The virtual machine was automatically suspended due to rental expiration on {vm.end_date}."))
+            except Exception as e:
+                _logger.error("Failed to suspend VM %s (ID: %s): %s", vm.name, vm.hypervisor_vm_ref, e, exc_info=True)
+                vm.message_post(body=_(f"Failed to automatically suspend the VM. Error: {e}"))
+
+    # === Business Logic ===
+    
+    @api.model
+    def create_from_order(self, order, line, vm_config):
+        """
+        Creates a VM record from a confirmed sales order line.
+        """
+        product = line.product_id
+        hypervisor_server = product.hypervisor_server_id
+        if not hypervisor_server:
+            raise UserError(_(f"Hypervisor server is not configured for product '{product.name}'."))
+        
+        new_vm = self.create({
+            'name': f"{order.name}-{line.name.replace(' ', '-')}",
+            'state': 'pending',
+            'partner_id': order.partner_id.id,
+            'sale_order_ids': [(4, order.id)],
+            'hypervisor_server_id': hypervisor_server.id,
+            'hypervisor_node_id': product.hypervisor_node_id.id,
+            'hypervisor_storage_id': product.hypervisor_storage_id.id,
+            'hypervisor_template_id': product.hypervisor_template_id.id,
+            'cores': vm_config.get('cores'),
+            'memory': vm_config.get('memory'),
+            'disk': vm_config.get('disk'),
+            'is_trial': product.has_trial_period,
+        })
+
+        try:
+            new_vm.action_provision_vm()
+            order.write({'vm_instance_id': new_vm.id})
+            return new_vm
+        except Exception as e:
+            _logger.error(f"Failed to create VM for order {order.name}: {e}", exc_info=True)
+            order.message_post(body=_(f"<strong>ERROR:</strong> Could not create virtual machine. Reason: {e}"))
+            # Удаляем черновик ВМ, если создание не удалось
+            if new_vm.exists():
+                new_vm.unlink()
+            return False

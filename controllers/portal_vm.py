@@ -1,99 +1,94 @@
-# controllers/portal_vm.py
-import logging
-import json
-import uuid
-from odoo import http, fields
+# vm_rental/controllers/portal_vm.py
+from odoo import http, _
 from odoo.http import request
-from odoo.addons.portal.controllers.portal import CustomerPortal
+from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
+import logging
 
 _logger = logging.getLogger(__name__)
 
+
 class PortalVM(CustomerPortal):
+    # Добавляем количество элементов на страницу
+    _items_per_page = 20
 
-    @http.route(['/my/vms'], type='http', auth='user', website=True)
-    def portal_my_vms(self, **kwargs):
-        user = request.env.user
-        vms = request.env['vm.instance'].sudo().search([('user_id', '=', user.id)])
+    def _prepare_portal_layout_values(self):
+        values = super()._prepare_portal_layout_values()
+        partner = request.env.user.partner_id
 
-        # Получение списка шаблонов ОС и конфигураций
-        service = request.env['vm.instance'].sudo()._get_proxmox_service()
-        os_templates = []
-        try:
-            os_templates = service.list_os_templates()
-        except Exception as e:
-            _logger.warning("list_os_templates() failed: %s", e)
+        # Убираем sudo() - теперь есть правила доступа
+        values['vm_count'] = request.env['vm_rental.machine'].search_count([
+            ('partner_id', 'child_of', partner.commercial_partner_id.id)
+        ])
 
-        config_json = request.env['ir.config_parameter'].sudo().get_param('vm_rental.config_templates')
-        config_options = {}
-        try:
-            config_options = json.loads(config_json or '{}')
-        except Exception as e:
-            _logger.warning("Invalid JSON for VM config templates: %s", e)
+        return values
 
-        return request.render("vm_rental.portal_create_vm", {
+    @http.route(['/my/vms', '/my/vms/page/<int:page>'], type='http', auth="user", website=True)
+    def portal_my_vms(self, page=1, **kw):
+        values = self._prepare_portal_layout_values()
+        partner = request.env.user.partner_id
+        VmInstance = request.env['vm_rental.machine']
+
+        domain = [('partner_id', 'child_of', partner.commercial_partner_id.id)]
+        vm_count = values.get('vm_count', 0)
+
+        pager = portal_pager(
+            url="/my/vms",
+            total=vm_count,
+            page=page,
+            step=self._items_per_page
+        )
+
+        # Убираем sudo() - используем правила доступа
+        vms = VmInstance.search(domain, limit=self._items_per_page, offset=pager['offset'])
+
+        values.update({
             'vms': vms,
-            'os_templates': os_templates,
-            'config_options': config_options,
+            'page_name': 'vms',
+            'pager': pager,
+            'default_url': '/my/vms',
         })
-
-    @http.route(['/my/vms/create'], type='http', auth='user', methods=['POST'], csrf=True, website=True)
-    def create_vm(self, **post):
-        vm_name = post.get('vm_name')
-        config_name = post.get('config_name')
-        os_template = post.get('os_template')
-
-        if not vm_name or not config_name or not os_template:
-            request.session.flash("All fields are required.", "danger")
-            return request.redirect("/my/vms")
-
-        last_vm = request.env['vm.instance'].sudo().search([], order='vmid desc', limit=1)
-        vm_id = request.env['ir.sequence'].next_by_code('vm.instance')
-        vm_id_int = int(vm_id.replace("VM", ""))  # если нужна числовая часть
-
-
-
-        proxmox_service = request.env['vm.instance'].sudo()._get_proxmox_service()
-        try:
-            result = proxmox_service.create_vm(
-                vm_id=vm_id_int,
-                name=vm_name,
-                template=os_template,
-                config_name=config_name
-            )
-        except Exception as e:
-            _logger.error("Failed to create VM: %s", e)
-            result = False
-
-        if result:
-            request.env['vm.instance'].sudo().create({
-                'name': vm_name,
-                'vmid': vm_id,
-                'user_id': request.env.user.id,
-                'config_name': config_name,
-                'os_template': os_template,
-                'start_date': fields.Date.today(),
-                'state': 'active',
-            })
-            request.session.flash('VM created successfully.', 'success')
-        else:
-            request.session.flash('VM creation failed.', 'danger')
-
-        return request.redirect('/my/vms')
+        return request.render("vm_rental.portal_my_vms", values)
 
     @http.route(['/my/vms/console/<int:vm_id>'], type='http', auth='user', website=True)
     def portal_vm_console(self, vm_id, **kwargs):
-        vm = request.env['vm.instance'].sudo().search([
+        # Используем правила доступа вместо sudo()
+        partner = request.env.user.partner_id
+        vm = request.env['vm_rental.machine'].search([
             ('id', '=', vm_id),
-            ('user_id', '=', request.env.user.id)
+            ('partner_id', 'child_of', partner.commercial_partner_id.id)
         ], limit=1)
-    
-    service = request.env['vm.instance'].sudo()._get_proxmox_service()
-    console_url = service.generate_console_url(vm.proxmox_vm_id)
 
         if not vm:
             return request.not_found()
 
-        return request.render("VM.portal_vm_console", { # Используйте VM, а не vm_rental
-        'vm': vm,
-        'console_url': console_url
-})
+        try:
+            service = vm._get_hypervisor_service()
+            console_url = service.get_console_url(vm.hypervisor_node_name, vm.hypervisor_vm_ref)
+        except Exception as e:
+            _logger.error(f"Could not generate console URL for VM {vm.id}: {e}")
+            return request.render("website.http_error", {
+                'status_code': 'Console Error',
+                'status_message': 'Could not generate a console URL for this virtual machine.'
+            })
+
+        return request.render("vm_rental.portal_vm_console", {
+            'vm': vm,
+            'console_url': console_url
+        })
+
+    @http.route(['/my/vm/<int:vm_id>/snapshots'], type='http', auth='user', website=True)
+    def portal_vm_snapshots(self, vm_id, **kwargs):
+        # Используем правила доступа вместо sudo()
+        partner = request.env.user.partner_id
+        vm = request.env['vm_rental.machine'].search([
+            ('id', '=', vm_id),
+            ('partner_id', 'child_of', partner.commercial_partner_id.id)
+        ], limit=1)
+
+        if not vm:
+            return request.not_found()
+
+        return request.render("vm_rental.portal_vm_snapshots_template", {
+            'vm': vm,
+            'snapshots': vm.snapshot_ids
+        })

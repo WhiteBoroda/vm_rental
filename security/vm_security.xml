@@ -1,16 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data>
+    <data noupdate="1">
+
+        <record id="group_vm_rental_manager" model="res.groups">
+            <field name="name">VM Rental / Manager</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+        </record>
 
         <record id="vm_instance_portal_user_rule" model="ir.rule">
             <field name="name">VM Instance: Portal User Own Documents</field>
-            <field name="model_id" ref="model_vm_instance"/>
+            <field name="model_id" ref="model_vm_rental_machine"/>
             <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>
-            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="domain_force">[('partner_id', 'child_of', user.partner_id.commercial_partner_id.id)]</field>
+        </record>
+
+        <record id="vm_instance_manager_rule" model="ir.rule">
+            <field name="name">VM Instance Manager Rule</field>
+            <field name="model_id" ref="model_vm_rental_machine"/>
+            <field name="groups" eval="[(4, ref('group_vm_rental_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+         <!-- Правило для внутренних пользователей -->
+        <record id="vm_rental_machine_user_rule" model="ir.rule">
+            <field name="name">Internal users can see all VMs</field>
+            <field name="model_id" ref="model_vm_rental_machine"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
     </data>

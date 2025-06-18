@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem 
+        id="menu_vm_rental_root" 
+        name="VM Rental" 
+        sequence="10"/>
+
+    <menuitem 
+        id="menu_vm_instances" 
+        name="VM Instances" 
+        parent="menu_vm_rental_root" 
+        action="vm_rental.action_vm_instance"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_link_existing_vms"
+        name="Link Existing VMs"
+        parent="menu_vm_rental_root"
+        action="vm_rental.action_linking_job" sequence="20"/>
+    
+    <menuitem 
+        id="menu_hypervisor_servers" 
+        name="Hypervisor Servers" 
+        parent="menu_vm_rental_root" 
+        action="vm_rental.action_hypervisor_server"
+        sequence="50"/>
+
+    <menuitem 
+        id="menu_vm_reports_submenu" 
+        name="Reports" 
+        parent="menu_vm_rental_root" 
+        sequence="99"/>
+
+    <menuitem 
+        id="menu_vm_admin_report" 
+        name="All Virtual Machines" 
+        parent="vm_rental.menu_vm_reports_submenu" 
+        action="vm_rental.action_report_vm_admin"
+        sequence="10"/>
+</odoo>
