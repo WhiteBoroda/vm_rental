@@ -8,7 +8,7 @@ class HypervisorNode(models.Model):
     _order = 'name'
 
     name = fields.Char(string="Node/Cluster Name", required=True)
-    server_id = fields.Many2one('hypervisor.server', string='Server', required=True, ondelete='cascade')
+    server_id = fields.Many2one('hypervisor.server', string='Server', required=True, ondelete='cascade', index=True)
 
     # ИСПРАВЛЕНИЕ: Явно определяем связь
     storage_ids = fields.Many2many(
@@ -29,7 +29,7 @@ class HypervisorStorage(models.Model):
     _order = 'name'
     
     name = fields.Char(string="Storage/Datastore Name", required=True)
-    server_id = fields.Many2one('hypervisor.server', string='Server', required=True, ondelete='cascade')
+    server_id = fields.Many2one('hypervisor.server', string='Server', required=True, ondelete='cascade', index=True)
 
     # ИСПРАВЛЕНИЕ: Явно определяем связь (с теми же параметрами)
     node_ids = fields.Many2many(
@@ -50,8 +50,8 @@ class HypervisorTemplate(models.Model):
     _order = 'name'
 
     name = fields.Char(string='Template Name', required=True)
-    vmid = fields.Char(string="Template ID / VolID", required=True, help="The unique identifier for the template in the hypervisor (VMID for KVM, VolID for LXC).")
-    server_id = fields.Many2one('hypervisor.server', string='Server', required=True, ondelete='cascade')
+    vmid = fields.Char(string="Template ID / VolID", required=True, index=True, help="The unique identifier for the template in the hypervisor (VMID for KVM, VolID for LXC).")
+    server_id = fields.Many2one('hypervisor.server', string='Server', required=True, ondelete='cascade', index=True)
     
     # НОВОЕ ПОЛЕ: Тип шаблона
     template_type = fields.Selection([
