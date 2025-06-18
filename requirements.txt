@@ -1,0 +1,4 @@
+# VM Rental module Python dependencies
+proxmoxer>=2.0.1
+pyvmomi>=8.0.1.0
+requests>=2.31.0
