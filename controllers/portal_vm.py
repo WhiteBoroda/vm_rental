@@ -2,6 +2,7 @@
 from odoo import http, _
 from odoo.http import request
 from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
+from odoo.tools import ormcache
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -11,17 +12,26 @@ class PortalVM(CustomerPortal):
     # Добавляем количество элементов на страницу
     _items_per_page = 20
 
+    @ormcache('partner_id')
+    def _get_vm_count_cached(self, partner_id):
+        """Кешированный подсчет ВМ"""
+        return request.env['vm_rental.machine'].search_count([
+            ('partner_id', 'child_of', partner_id)
+        ])
+    
     def _prepare_portal_layout_values(self):
         values = super()._prepare_portal_layout_values()
         partner = request.env.user.partner_id
 
         # Убираем sudo() - теперь есть правила доступа
-        values['vm_count'] = request.env['vm_rental.machine'].search_count([
-            ('partner_id', 'child_of', partner.commercial_partner_id.id)
-        ])
+#        values['vm_count'] = request.env['vm_rental.machine'].search_count([
+#            ('partner_id', 'child_of', partner.commercial_partner_id.id)
+#        ])
+        values['vm_count'] = self._get_vm_count_cached(partner.commercial_partner_id.id)
 
         return values
 
+   
     @http.route(['/my/vms', '/my/vms/page/<int:page>'], type='http', auth="user", website=True)
     def portal_my_vms(self, page=1, **kw):
         values = self._prepare_portal_layout_values()
