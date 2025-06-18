@@ -280,3 +280,26 @@ class VmInstance(models.Model):
         for vm in self:
             if vm.start_date and vm.end_date and vm.end_date < vm.start_date:
                 raise ValidationError(_("End date cannot be before start date"))
+
+    @api.model
+    @ormcache('partner_id')
+    def get_vm_count_for_partner(self, partner_id):
+        """Кешированный подсчет ВМ для партнера"""
+        return self.search_count([
+            ('partner_id', 'child_of', partner_id),
+            ('state', 'not in', ['terminated', 'archived'])
+        ])
+    
+    @api.model
+    def create(self, vals):
+        res = super().create(vals)
+        # Очищаем кеш при создании новой ВМ
+        if 'partner_id' in vals:
+            self.get_vm_count_for_partner.clear_cache(self)
+        return res
+    
+    def write(self, vals):
+        # Очищаем кеш при изменении партнера
+        if 'partner_id' in vals:
+            self.get_vm_count_for_partner.clear_cache(self)
+        return super().write(vals)
