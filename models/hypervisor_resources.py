@@ -64,11 +64,11 @@ class HypervisorTemplate(models.Model):
     ]
 
     def name_get(self):
-    result = []
-    for rec in self:
-        # Исправлено: используем dict для получения названия типа
-        type_names = dict(self._fields['template_type'].selection)
-        type_display = type_names.get(rec.template_type, rec.template_type)
-        name = f"{rec.name} ({type_display})"
-        result.append((rec.id, name))
-    return result
+        result = []
+        for rec in self:
+            # Исправлено: используем dict для получения названия типа
+            type_names = dict(self._fields['template_type'].selection)
+            type_display = type_names.get(rec.template_type, rec.template_type)
+            name = f"{rec.name} ({type_display})"
+            result.append((rec.id, name))
+        return result
