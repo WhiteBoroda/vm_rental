@@ -4,6 +4,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 from dateutil.relativedelta import relativedelta
 import logging
+import uuid
 
 _logger = logging.getLogger(__name__)
 
