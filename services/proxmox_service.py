@@ -1,8 +1,9 @@
 # vm_rental/services/proxmox_service.py
 # -*- coding: utf-8 -*-
 from proxmoxer import ProxmoxAPI
-from .base_service import BaseHypervisorService
+from .base_service import BaseHypervisorService, HypervisorConnectionError, HypervisorOperationError
 import logging
+import time
 
 _logger = logging.getLogger(__name__)
 
@@ -23,32 +24,32 @@ class ProxmoxService(BaseHypervisorService):
             raise ConnectionError(f"Could not connect to Proxmox host {self.server.host}.") from e
 
     def _execute(self, action, *args, **kwargs):
-    """Выполнение операции с улучшенной обработкой ошибок"""
-    max_retries = 3
-    retry_delay = 1
-    
-    for attempt in range(max_retries):
-        try:
-            return action(*args, **kwargs)
-        except Exception as e:
-            error_msg = str(e)
-            _logger.error(f"Proxmox API error (attempt {attempt + 1}/{max_retries}): {error_msg}", exc_info=True)
-            
-            # Проверка на временные ошибки
-            if any(temp_err in error_msg.lower() for temp_err in ['timeout', 'connection reset', 'temporary']):
-                if attempt < max_retries - 1:
-                    time.sleep(retry_delay * (attempt + 1))
-                    continue
-            
-            # Проверка на критические ошибки
-            if any(crit_err in error_msg.lower() for crit_err in ['authentication', 'unauthorized', 'forbidden']):
-                raise HypervisorConnectionError(f"Authentication failed: {error_msg}")
-            
-            # Для последней попытки или некритических ошибок
-            if attempt == max_retries - 1:
-                raise HypervisorOperationError(f"Operation failed after {max_retries} attempts: {error_msg}")
-    
-    return None
+        """Выполнение операции с улучшенной обработкой ошибок"""
+        max_retries = 3
+        retry_delay = 1
+        
+        for attempt in range(max_retries):
+            try:
+                return action(*args, **kwargs)
+            except Exception as e:
+                error_msg = str(e)
+                _logger.error(f"Proxmox API error (attempt {attempt + 1}/{max_retries}): {error_msg}", exc_info=True)
+                
+                # Проверка на временные ошибки
+                if any(temp_err in error_msg.lower() for temp_err in ['timeout', 'connection reset', 'temporary']):
+                    if attempt < max_retries - 1:
+                        time.sleep(retry_delay * (attempt + 1))
+                        continue
+                
+                # Проверка на критические ошибки
+                if any(crit_err in error_msg.lower() for crit_err in ['authentication', 'unauthorized', 'forbidden']):
+                    raise HypervisorConnectionError(f"Authentication failed: {error_msg}")
+                
+                # Для последней попытки или некритических ошибок
+                if attempt == max_retries - 1:
+                    raise HypervisorOperationError(f"Operation failed after {max_retries} attempts: {error_msg}")
+        
+        return None
     
     def get_version(self):
         version_info = self._execute(self.connection.version.get)
