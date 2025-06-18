@@ -6,13 +6,12 @@ class VMAPIController(http.Controller):
 
     def _get_user_vm(self, vm_id):
         """Проверка: ВМ должна принадлежать текущему пользователю"""
-        # ИСПРАВЛЕНИЕ: Используем `sudo()` для обхода правил доступа,
-        # так как принадлежность проверяется по `user_id` вручную.
-        vm = request.env['vm_rental.machine'].sudo().search([
+        partner = request.env.user.partner_id
+        # Ищем ВМ через партнера (более надежно)
+        vm = request.env['vm_rental.machine'].search([
             ('id', '=', int(vm_id)),
-            ('user_id', '=', request.env.user.id)
+            ('partner_id', 'child_of', partner.commercial_partner_id.id)
         ], limit=1)
-        return vm
     
     def _vm_action(self, vm_id, action, state_after, state_text):
         """
