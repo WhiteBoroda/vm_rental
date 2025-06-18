@@ -24,7 +24,7 @@ class PortalVM(CustomerPortal):
         partner = request.env.user.partner_id
 
         # ИСПРАВЛЕНИЕ: Вызываем обычный метод вместо кэшированного
-        values['vm_count'] = self._get_vm_count(partner.commercial_partner_id.id)
+        values['vms_count'] = self._get_vm_count(partner.commercial_partner_id.id)
 
         return values
 
