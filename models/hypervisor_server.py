@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging
+import ValidationError
 
 _logger = logging.getLogger(__name__)
 
