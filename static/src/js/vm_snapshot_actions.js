@@ -24,7 +24,11 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
             
             this._rpc({
                 route: `/vm/${vmId}/snapshot/create`,
-                params: { name: name, description: description },
+                params: { 
+                    name: name, 
+                    description: description,
+                    csrf_token: csrf_token
+                },
             }).then(res => {
                 if (res.success) {
                     // Простой и надежный способ обновить страницу
@@ -47,7 +51,9 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
 
             this._rpc({
                 route: `/vm/${vmId}/snapshot/${proxmoxName}/rollback`,
-                params: {},
+                params: {
+                    csrf_token: csrf_token
+                },
             }).then(res => {
                 if(res.success) {
                     alert(_t('Rollback started successfully! The VM will now restart.'));
@@ -69,7 +75,9 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
 
             this._rpc({
                 route: `/vm/${vmId}/snapshot/${proxmoxName}/delete`,
-                params: {},
+                params: {
+                    csrf_token: csrf_token
+                },
             }).then(res => {
                 if (res.success) {
                     $item.remove(); // Удаляем элемент из списка
@@ -83,6 +91,13 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
         _rpc: function(routeOptions) {
             const $buttons = this.$('button, a');
             $buttons.addClass('disabled');
+
+            if (!routeOptions.params) {
+                routeOptions.params = {};
+            }
+            if (!routeOptions.params.csrf_token) {
+                routeOptions.params.csrf_token = csrf_token;
+            }
             
             return ajax.jsonRpc(routeOptions.route, 'call', routeOptions.params || {})
                 .guardedCatch((err) => {
