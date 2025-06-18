@@ -159,3 +159,15 @@ class HypervisorServer(models.Model):
             raise UserError(_("Connection Test Failed!\n\nReason: %s") % error_message)
         
         return True
+
+    @api.constrains('host')
+    def _check_host(self):
+        """Проверка валидности хоста"""
+        import re
+        for server in self:
+            # Проверка на валидный IP или hostname
+            ip_pattern = re.compile(r'^(\d{1,3}\.){3}\d{1,3}$')
+            hostname_pattern = re.compile(r'^[a-zA-Z0-9.-]+$')
+            
+            if not (ip_pattern.match(server.host) or hostname_pattern.match(server.host)):
+                raise ValidationError(_("Invalid hostname or IP address format"))
