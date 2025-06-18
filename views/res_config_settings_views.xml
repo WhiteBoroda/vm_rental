@@ -1,0 +1,92 @@
+<!-- Создайте файл views/res_config_settings_views.xml -->
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_vm_rental" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.vm_rental</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" data-string="VM Rental" string="VM Rental" data-key="vm_rental" name="vm_rental_settings">
+                    <h2>VM Rental Configuration</h2>
+                    
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="vm_rental_default_trial_days"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="vm_rental_default_trial_days"/>
+                                <div class="text-muted">
+                                    Default duration for trial periods (in days)
+                                </div>
+                                <field name="vm_rental_default_trial_days" class="o_light_label"/>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="vm_rental_auto_suspend"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="vm_rental_auto_suspend"/>
+                                <div class="text-muted">
+                                    Automatically suspend VMs when subscription expires
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3>Resource Limits</h3>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <label for="vm_rental_max_cores"/>
+                                <field name="vm_rental_max_cores" class="o_light_label"/>
+                                <div class="text-muted">Maximum CPU cores per VM</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <label for="vm_rental_max_memory"/>
+                                <field name="vm_rental_max_memory" class="o_light_label"/>
+                                <div class="text-muted">Maximum memory per VM (MiB)</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_right_pane">
+                                <label for="vm_rental_max_disk"/>
+                                <field name="vm_rental_max_disk" class="o_light_label"/>
+                                <div class="text-muted">Maximum disk size per VM (GiB)</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h3>Backup Settings</h3>
+                    <div class="row mt16 o_settings_container">
+                        <div class="col-12 col-lg-6 o_setting_box">
+                            <div class="o_setting_left_pane">
+                                <field name="vm_rental_auto_backup"/>
+                            </div>
+                            <div class="o_setting_right_pane">
+                                <label for="vm_rental_auto_backup"/>
+                                <div class="text-muted">
+                                    Enable automatic configuration backups
+                                </div>
+                                <div class="content-group" attrs="{'invisible': [('vm_rental_auto_backup', '=', False)]}">
+                                    <div class="mt16">
+                                        <label for="vm_rental_backup_retention_days" class="o_light_label"/>
+                                        <field name="vm_rental_backup_retention_days" class="oe_inline"/>
+                                        <span> days retention</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
