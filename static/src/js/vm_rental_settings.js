@@ -4,6 +4,7 @@ odoo.define('vm_rental.settings', function (require) {
 var publicWidget = require('web.public.widget');
 var ajax = require('web.ajax');
 var core = require('web.core');
+var csrf_token = core.csrf_token;
 
 publicWidget.registry.ProxmoxSettings = publicWidget.Widget.extend({
     selector: '.app_settings_block[name="vm_rental_settings"]',
@@ -29,7 +30,10 @@ publicWidget.registry.ProxmoxSettings = publicWidget.Widget.extend({
         $statusCell.html('<span class="badge badge-warning">Connecting...</span>');
         $messageCell.html('');
 
-        ajax.jsonRpc('/vm_rental/settings/test_server', 'call', { server_id: serverId })
+        ajax.jsonRpc('/vm_rental/settings/test_server', 'call', { 
+            server_id: serverId,
+            csrf_token: csrf_token
+        })
             .then(result => {
                 if (result.success) {
                     $statusCell.html('<span class="badge badge-success">Connected</span>');
