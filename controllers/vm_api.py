@@ -12,6 +12,7 @@ class VMAPIController(http.Controller):
             ('id', '=', int(vm_id)),
             ('partner_id', 'child_of', partner.commercial_partner_id.id)
         ], limit=1)
+        return vm  # ИСПРАВЛЕНО: добавлен return
     
     def _vm_action(self, vm_id, action, state_after, state_text):
         """
