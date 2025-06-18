@@ -7,3 +7,6 @@ from . import product_template
 from . import vm_rental_machine
 from . import sale_order
 from . import vm_snapshot
+from . import vm_audit_log
+from . import vm_config_backup
+from . import res_config_settings
