@@ -250,3 +250,33 @@ class VmInstance(models.Model):
             if new_vm.exists():
                 new_vm.unlink()
             return False
+    
+    @api.constrains('cores', 'memory', 'disk')
+    def _check_resources(self):
+        """Проверка валидности ресурсов ВМ"""
+        for vm in self:
+            if vm.cores <= 0:
+                raise ValidationError(_("CPU cores must be greater than 0"))
+            if vm.memory < 128:
+                raise ValidationError(_("Memory must be at least 128 MiB"))
+            if vm.disk <= 0:
+                raise ValidationError(_("Disk size must be greater than 0 GiB"))
+            
+            # Проверка лимитов (настраиваемые через системные параметры)
+            max_cores = int(self.env['ir.config_parameter'].sudo().get_param('vm_rental.max_cores', 64))
+            max_memory = int(self.env['ir.config_parameter'].sudo().get_param('vm_rental.max_memory', 131072))  # 128GB
+            max_disk = int(self.env['ir.config_parameter'].sudo().get_param('vm_rental.max_disk', 10240))  # 10TB
+            
+            if vm.cores > max_cores:
+                raise ValidationError(_("CPU cores cannot exceed %d") % max_cores)
+            if vm.memory > max_memory:
+                raise ValidationError(_("Memory cannot exceed %d MiB") % max_memory)
+            if vm.disk > max_disk:
+                raise ValidationError(_("Disk size cannot exceed %d GiB") % max_disk)
+    
+    @api.constrains('end_date', 'start_date')
+    def _check_dates(self):
+        """Проверка корректности дат"""
+        for vm in self:
+            if vm.start_date and vm.end_date and vm.end_date < vm.start_date:
+                raise ValidationError(_("End date cannot be before start date"))
