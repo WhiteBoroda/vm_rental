@@ -39,100 +39,123 @@ class HypervisorServer(models.Model):
     def test_and_fetch_resources(self):
         self.ensure_one()
         self.write({'status': 'connecting', 'status_message': 'Connecting and fetching resources...'})
-        self.env.cr.commit()
-
+        
+        # Убираем commit для лучшей производительности и транзакционной целостности
+        # self.env.cr.commit() 
+    
         try:
             service = self._get_service_manager()
             version = service.get_version()
-
-            # --- ИСПРАВЛЕНИЕ: НОВАЯ, НЕРАЗРУШАЮЩАЯ ЛОГИКА СИНХРОНИЗАЦИИ ---
+    
+            # Используем batch операции для улучшения производительности
+            Node = self.env['hypervisor.node']
+            Storage = self.env['hypervisor.storage']
+            Template = self.env['hypervisor.template']
             
-            # 1. Синхронизация Нод
+            # 1. Синхронизация Нод (с batch операциями)
             api_nodes_data = service.list_nodes()
             api_node_names = {n['name'] for n in api_nodes_data}
             
             odoo_nodes = self.node_ids
-            odoo_node_names = {n.name for n in odoo_nodes}
+            odoo_node_names = {n.name: n for n in odoo_nodes}
             
-            # Ноды к добавлению
-            nodes_to_add_names = api_node_names - odoo_node_names
-            if nodes_to_add_names:
-                self.env['hypervisor.node'].create([
-                    {'name': name, 'server_id': self.id} for name in nodes_to_add_names
-                ])
-
-            # Ноды к удалению
+            # Batch create для новых нод
+            nodes_to_create = []
+            for name in api_node_names - set(odoo_node_names.keys()):
+                nodes_to_create.append({'name': name, 'server_id': self.id})
+            
+            if nodes_to_create:
+                Node.create(nodes_to_create)
+            
+            # Batch unlink для удаленных нод
             nodes_to_remove = odoo_nodes.filtered(lambda n: n.name not in api_node_names)
             if nodes_to_remove:
                 nodes_to_remove.unlink()
-
+            
+            # Принудительно обновляем кэш
             self.invalidate_recordset(['node_ids'])
             
-            # 2. Синхронизация Хранилищ и их связей с нодами
-            Storage = self.env['hypervisor.storage']
-            all_odoo_storages = self.storage_ids
-            api_storages_map = {}  # Карта: { 'имя_хранилища': {множество_имен_нод} }
-
+            # 2. Синхронизация Хранилищ (оптимизированная)
+            all_odoo_storages = {s.name: s for s in self.storage_ids}
+            api_storages_map = {}
+            
+            # Собираем все данные о хранилищах за один проход
             for node in self.node_ids:
                 storages_on_node = service.list_storages(node.name)
                 for storage_data in storages_on_node:
                     s_name = storage_data['name']
                     if s_name not in api_storages_map:
                         api_storages_map[s_name] = set()
-                    api_storages_map[s_name].add(node.name)
-
-            # Обновляем или создаем хранилища и их связи
-            for s_name, node_names in api_storages_map.items():
-                storage = all_odoo_storages.filtered(lambda s: s.name == s_name)
-                if not storage:
-                    storage = Storage.create({'name': s_name, 'server_id': self.id})
-                
-                nodes_to_link = self.node_ids.filtered(lambda n: n.name in node_names)
-                storage.node_ids = [(6, 0, nodes_to_link.ids)] # (6,0,...) заменяет список связей
-
-            # Хранилища к удалению
-            api_storage_names = set(api_storages_map.keys())
-            storages_to_remove = all_odoo_storages.filtered(lambda s: s.name not in api_storage_names)
-            if storages_to_remove:
-                storages_to_remove.unlink()
-
-            # 3. Синхронизация Шаблонов (аналогично нодам)
+                    api_storages_map[s_name].add(node.id)  # Используем ID для оптимизации
+            
+            # Batch операции для хранилищ
+            storages_to_create = []
+            for s_name, node_ids in api_storages_map.items():
+                if s_name not in all_odoo_storages:
+                    storages_to_create.append({
+                        'name': s_name,
+                        'server_id': self.id,
+                        'node_ids': [(6, 0, list(node_ids))]
+                    })
+                else:
+                    # Обновляем связи только если они изменились
+                    existing_storage = all_odoo_storages[s_name]
+                    if set(existing_storage.node_ids.ids) != node_ids:
+                        existing_storage.node_ids = [(6, 0, list(node_ids))]
+            
+            if storages_to_create:
+                Storage.create(storages_to_create)
+            
+            # Удаляем неиспользуемые хранилища
+            storages_to_remove_ids = []
+            for s_name, storage in all_odoo_storages.items():
+                if s_name not in api_storages_map:
+                    storages_to_remove_ids.append(storage.id)
+            
+            if storages_to_remove_ids:
+                Storage.browse(storages_to_remove_ids).unlink()
+            
+            # 3. Синхронизация Шаблонов (оптимизированная)
             api_templates_data = []
             for node in self.node_ids:
                 api_templates_data.extend(service.list_os_templates(node.name))
-
-            api_template_map = {t['vmid']: t for t in api_templates_data} # Уникальные по vmid
             
-            odoo_templates = self.template_ids
-            odoo_template_vmids = {t.vmid for t in odoo_templates}
+            # Используем словарь для быстрого поиска
+            api_template_map = {t['vmid']: t for t in api_templates_data}
+            odoo_template_map = {t.vmid: t for t in self.template_ids}
             
-            # Шаблоны к добавлению
-            templates_to_add_vmids = set(api_template_map.keys()) - odoo_template_vmids
-            if templates_to_add_vmids:
-                self.env['hypervisor.template'].create([
-                    {
-                        'name': api_template_map[vmid]['name'],
+            # Batch create для новых шаблонов
+            templates_to_create = []
+            for vmid, template_data in api_template_map.items():
+                if vmid not in odoo_template_map:
+                    templates_to_create.append({
+                        'name': template_data['name'],
                         'vmid': vmid,
                         'server_id': self.id,
-                        'template_type': api_template_map[vmid].get('template_type', 'qemu')
-                    } for vmid in templates_to_add_vmids
-                ])
-                
-            # Шаблоны к удалению
-            templates_to_remove = odoo_templates.filtered(lambda t: t.vmid not in api_template_map)
-            if templates_to_remove:
-                templates_to_remove.unlink()
-
-            # --- КОНЕЦ НОВОЙ ЛОГИКИ ---
-
+                        'template_type': template_data.get('template_type', 'qemu')
+                    })
+            
+            if templates_to_create:
+                Template.create(templates_to_create)
+            
+            # Batch unlink для удаленных шаблонов
+            templates_to_remove_ids = []
+            for vmid, template in odoo_template_map.items():
+                if vmid not in api_template_map:
+                    templates_to_remove_ids.append(template.id)
+            
+            if templates_to_remove_ids:
+                Template.browse(templates_to_remove_ids).unlink()
+            
             self.write({
                 'status': 'connected',
                 'status_message': f"Success! Connected to {self.hypervisor_type.capitalize()}. Version: {version}"
             })
+            
         except Exception as e:
             _logger.error("Failed to fetch resources for server %s: %s", self.name, e, exc_info=True)
             error_message = str(e)
             self.write({'status': 'failed', 'status_message': error_message})
-            raise UserError(_("Connection Test Failed!\n\nReason: %s", error_message))
+            raise UserError(_("Connection Test Failed!\n\nReason: %s") % error_message)
         
         return True
