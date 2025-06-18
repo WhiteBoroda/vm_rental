@@ -316,34 +316,33 @@ class VmInstance(models.Model):
         return super().write(vals)
     
     def log_vm_action(action_type):
-
     """Декоратор для автоматического логирования действий с ВМ"""
-    def decorator(func):
-        @wraps(func)
-        def wrapper(self, *args, **kwargs):
-            start_time = time.time()
-            error = None
-            result = None
-            
-            try:
-                result = func(self, *args, **kwargs)
-                success = True
-            except Exception as e:
-                error = str(e)
-                success = False
-                raise
-            finally:
-                duration = time.time() - start_time
-                if hasattr(self, 'id') and self.id:
-                    self.env['vm_rental.audit_log'].log_action(
-                        vm_id=self.id,
-                        action=action_type,
-                        success=success,
-                        error_message=error,
-                        duration=duration,
-                        metadata={'args': str(args), 'kwargs': str(kwargs)}
-                    )
-            
-            return result
-        return wrapper
-    return decorator
+        def decorator(func):
+            @wraps(func)
+            def wrapper(self, *args, **kwargs):
+                start_time = time.time()
+                error = None
+                result = None
+                
+                try:
+                    result = func(self, *args, **kwargs)
+                    success = True
+                except Exception as e:
+                    error = str(e)
+                    success = False
+                    raise
+                finally:
+                    duration = time.time() - start_time
+                    if hasattr(self, 'id') and self.id:
+                        self.env['vm_rental.audit_log'].log_action(
+                            vm_id=self.id,
+                            action=action_type,
+                            success=success,
+                            error_message=error,
+                            duration=duration,
+                            metadata={'args': str(args), 'kwargs': str(kwargs)}
+                        )
+                
+                return result
+            return wrapper
+        return decorator
