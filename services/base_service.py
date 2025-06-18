@@ -2,6 +2,18 @@
 import logging
 _logger = logging.getLogger(__name__)
 
+class HypervisorException(Exception):
+    """Базовое исключение для ошибок гипервизора"""
+    pass
+
+class HypervisorConnectionError(HypervisorException):
+    """Ошибка подключения к гипервизору"""
+    pass
+
+class HypervisorOperationError(HypervisorException):
+    """Ошибка операции гипервизора"""
+    pass
+    
 class BaseHypervisorService:
     """
     Abstract base class for all hypervisor services.
