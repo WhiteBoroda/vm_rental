@@ -1,5 +1,7 @@
 # vm_rental/models/hypervisor_server.py
 # -*- coding: utf-8 -*-
+from odoo.tools import ormcache
+from datetime import datetime, timedelta
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import logging
@@ -171,3 +173,21 @@ class HypervisorServer(models.Model):
             
             if not (ip_pattern.match(server.host) or hostname_pattern.match(server.host)):
                 raise ValidationError(_("Invalid hostname or IP address format"))
+
+    @ormcache('self.id')
+    def _get_cached_service_manager(self):
+        """Кешированная версия сервис-менеджера"""
+        return self._get_service_manager()
+    
+    def clear_service_cache(self):
+        """Очистка кеша при изменении конфигурации"""
+        self._get_cached_service_manager.clear_cache(self)
+    
+    @api.model
+    def write(self, vals):
+        # Очищаем кеш при изменении критических полей
+        critical_fields = {'host', 'user', 'token_name', 'token_value', 'vmware_user', 'vmware_password'}
+        if any(field in vals for field in critical_fields):
+            for record in self:
+                record.clear_service_cache()
+        return super().write(vals)
