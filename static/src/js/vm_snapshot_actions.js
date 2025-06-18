@@ -5,6 +5,7 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
     var ajax = require('web.ajax');
     var core = require('web.core');
     var _t = core._t;
+    var csrf_token = core.csrf_token;
 
     publicWidget.registry.VmSnapshotManager = publicWidget.Widget.extend({
         selector: '#vm_snapshots_manager',
