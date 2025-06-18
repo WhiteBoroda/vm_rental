@@ -35,9 +35,9 @@ class VmInstance(models.Model):
     ], string="State", default='pending', readonly=True, copy=False, tracking=True)
     
     start_date = fields.Date(string="Start Date", readonly=True, copy=False)
-    end_date = fields.Date(string="End Date", readonly=True, tracking=True, copy=False)
+    end_date = fields.Date(string="End Date", readonly=True, tracking=True, copy=False, index=True)
     
-    partner_id = fields.Many2one('res.partner', string="Customer", required=True, tracking=True)
+    partner_id = fields.Many2one('res.partner', string="Customer", required=True, tracking=True, index=True)
     user_id = fields.Many2one('res.users', string="User", related='partner_id.user_id', store=True, readonly=True)
 
     sale_order_ids = fields.One2many('sale.order', 'vm_instance_id', string="Sale Orders")
@@ -46,9 +46,10 @@ class VmInstance(models.Model):
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string="Currency")
     total_amount = fields.Monetary(string="Total Paid", compute="_compute_total_amount", store=True)
+    state = fields.Selection([...], string="State", default='pending', readonly=True, copy=False, tracking=True, index=True)
 
     # --- Поля для конфигурации гипервизора ---
-    hypervisor_server_id = fields.Many2one('hypervisor.server', string="Hypervisor Server", tracking=True)
+    hypervisor_server_id = fields.Many2one('hypervisor.server', string="Hypervisor Server", tracking=True, index=True)
     hypervisor_node_id = fields.Many2one('hypervisor.node', string="Node/Cluster", domain="[('server_id', '=?', hypervisor_server_id)]")
     # hypervisor_storage_id = fields.Many2one('hypervisor.storage', string="Storage/Datastore", domain="[('server_id', '=?', hypervisor_server_id)]")
     hypervisor_storage_id = fields.Many2one(
