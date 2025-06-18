@@ -48,6 +48,7 @@ class VmInstance(models.Model):
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string="Currency")
     total_amount = fields.Monetary(string="Total Paid", compute="_compute_total_amount", store=True)
     state = fields.Selection([...], string="State", default='pending', readonly=True, copy=False, tracking=True, index=True)
+    config_backup_ids = fields.One2many('vm_rental.config_backup', 'vm_id', string="Configuration Backups")
 
     # --- Поля для конфигурации гипервизора ---
     hypervisor_server_id = fields.Many2one('hypervisor.server', string="Hypervisor Server", tracking=True, index=True)
@@ -302,10 +303,18 @@ class VmInstance(models.Model):
         return res
     
     def write(self, vals):
+        
+        critical_fields = {'cores', 'memory', 'disk', 'hypervisor_node_id', 'hypervisor_storage_id'}
+        
+        if any(field in vals for field in critical_fields):
+            for vm in self:
+                self.env['vm_rental.config_backup'].create_backup(vm, backup_type='pre_change')
+        
         # Очищаем кеш при изменении партнера
         if 'partner_id' in vals:
             self.get_vm_count_for_partner.clear_cache(self)
         return super().write(vals)
+    
     def log_vm_action(action_type):
 
     """Декоратор для автоматического логирования действий с ВМ"""
