@@ -12,9 +12,9 @@ class PortalVM(CustomerPortal):
     # Добавляем количество элементов на страницу
     _items_per_page = 20
 
-    @ormcache('partner_id')
-    def _get_vm_count_cached(self, partner_id):
-        """Кешированный подсчет ВМ"""
+    # ИСПРАВЛЕНИЕ: Убран декоратор @ormcache с этого метода контроллера
+    def _get_vm_count(self, partner_id):
+        """Подсчет ВМ"""
         return request.env['vm_rental.machine'].search_count([
             ('partner_id', 'child_of', partner_id)
         ])
@@ -23,11 +23,8 @@ class PortalVM(CustomerPortal):
         values = super()._prepare_portal_layout_values()
         partner = request.env.user.partner_id
 
-        # Убираем sudo() - теперь есть правила доступа
-#        values['vm_count'] = request.env['vm_rental.machine'].search_count([
-#            ('partner_id', 'child_of', partner.commercial_partner_id.id)
-#        ])
-        values['vm_count'] = self._get_vm_count_cached(partner.commercial_partner_id.id)
+        # ИСПРАВЛЕНИЕ: Вызываем обычный метод вместо кэшированного
+        values['vm_count'] = self._get_vm_count(partner.commercial_partner_id.id)
 
         return values
 
