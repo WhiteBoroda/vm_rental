@@ -3,8 +3,9 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
 from dateutil.relativedelta import relativedelta
-import logging
-import uuid
+from functools import wraps
+import logging, uuid, time
+
 
 _logger = logging.getLogger(__name__)
 
@@ -105,7 +106,8 @@ class VmInstance(models.Model):
         return self.hypervisor_server_id._get_service_manager()
 
     # === Actions ===
-
+    
+    @log_vm_action('create')
     def action_provision_vm(self):
         self.ensure_one()
         if self.state != 'pending':
@@ -170,7 +172,8 @@ class VmInstance(models.Model):
         })
         self.message_post(body=_(f"Virtual machine <strong>{self.name}</strong> (ID: {self.hypervisor_vm_ref}) was created successfully on {self.hypervisor_server_id.hypervisor_type}."))
         return True
-
+    
+    @log_vm_action('extend')
     def extend_period(self, months=1):
         """Extends the subscription period and re-activates the VM if suspended."""
         self.ensure_one()
@@ -303,3 +306,35 @@ class VmInstance(models.Model):
         if 'partner_id' in vals:
             self.get_vm_count_for_partner.clear_cache(self)
         return super().write(vals)
+    def log_vm_action(action_type):
+
+    """Декоратор для автоматического логирования действий с ВМ"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            start_time = time.time()
+            error = None
+            result = None
+            
+            try:
+                result = func(self, *args, **kwargs)
+                success = True
+            except Exception as e:
+                error = str(e)
+                success = False
+                raise
+            finally:
+                duration = time.time() - start_time
+                if hasattr(self, 'id') and self.id:
+                    self.env['vm_rental.audit_log'].log_action(
+                        vm_id=self.id,
+                        action=action_type,
+                        success=success,
+                        error_message=error,
+                        duration=duration,
+                        metadata={'args': str(args), 'kwargs': str(kwargs)}
+                    )
+            
+            return result
+        return wrapper
+    return decorator
