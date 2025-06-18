@@ -39,7 +39,7 @@ class VmInstance(models.Model):
     end_date = fields.Date(string="End Date", readonly=True, tracking=True, copy=False, index=True)
     
     partner_id = fields.Many2one('res.partner', string="Customer", required=True, tracking=True, index=True)
-    user_id = fields.Many2one('res.users', string="User", related='partner_id.user_id', store=True, readonly=True)
+#    user_id = fields.Many2one('res.users', string="User", related='partner_id.user_id', store=True, readonly=True)
 
     sale_order_ids = fields.One2many('sale.order', 'vm_instance_id', string="Sale Orders")
     snapshot_ids = fields.One2many('vm.snapshot', 'vm_instance_id', string="Snapshots")
