@@ -25,7 +25,6 @@
         'views/portal_my_vms_template.xml',
         'views/portal_vm_console.xml',
         'views/portal_vm_snapshots.xml',
-        'views/portal_templates_inherit.xml',
         'views/res_config_settings_views.xml',
 
         # 3. Файл с МЕНЮ должен идти ПОСЛЕ всех видов и действий
