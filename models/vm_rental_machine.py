@@ -2,12 +2,44 @@
 # -*- coding: utf-8 -*-
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError, ValidationError
+from odoo.tools import ormcache
 from dateutil.relativedelta import relativedelta
 from functools import wraps
 import logging, uuid, time
 
-
 _logger = logging.getLogger(__name__)
+
+def log_vm_action(action_type):
+    """Декоратор для автоматического логирования действий с ВМ"""
+    def decorator(func):
+        @wraps(func)
+        def wrapper(self, *args, **kwargs):
+            start_time = time.time()
+            error = None
+            result = None
+            
+            try:
+                result = func(self, *args, **kwargs)
+                success = True
+            except Exception as e:
+                error = str(e)
+                success = False
+                raise
+            finally:
+                duration = time.time() - start_time
+                if hasattr(self, 'id') and self.id:
+                    self.env['vm_rental.audit_log'].log_action(
+                        vm_id=self.id,
+                        action=action_type,
+                        success=success,
+                        error_message=error,
+                        duration=duration,
+                        metadata={'args': str(args), 'kwargs': str(kwargs)}
+                    )
+            
+            return result
+        return wrapper
+    return decorator
 
 class VmInstance(models.Model):
     """
@@ -33,13 +65,12 @@ class VmInstance(models.Model):
         ('suspended', 'Suspended'),
         ('terminated', 'Terminated'),
         ('archived', 'Archived')
-    ], string="State", default='pending', readonly=True, copy=False, tracking=True)
+    ], string="State", default='pending', readonly=True, copy=False, tracking=True, index=True)
     
     start_date = fields.Date(string="Start Date", readonly=True, copy=False)
     end_date = fields.Date(string="End Date", readonly=True, tracking=True, copy=False, index=True)
     
     partner_id = fields.Many2one('res.partner', string="Customer", required=True, tracking=True, index=True)
-#    user_id = fields.Many2one('res.users', string="User", related='partner_id.user_id', store=True, readonly=True)
 
     sale_order_ids = fields.One2many('sale.order', 'vm_instance_id', string="Sale Orders")
     snapshot_ids = fields.One2many('vm.snapshot', 'vm_instance_id', string="Snapshots")
@@ -47,13 +78,12 @@ class VmInstance(models.Model):
     company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', string="Currency")
     total_amount = fields.Monetary(string="Total Paid", compute="_compute_total_amount", store=True)
-    state = fields.Selection([...], string="State", default='pending', readonly=True, copy=False, tracking=True, index=True)
+    
     config_backup_ids = fields.One2many('vm_rental.config_backup', 'vm_id', string="Configuration Backups")
 
     # --- Поля для конфигурации гипервизора ---
     hypervisor_server_id = fields.Many2one('hypervisor.server', string="Hypervisor Server", tracking=True, index=True)
     hypervisor_node_id = fields.Many2one('hypervisor.node', string="Node/Cluster", domain="[('server_id', '=?', hypervisor_server_id)]")
-    # hypervisor_storage_id = fields.Many2one('hypervisor.storage', string="Storage/Datastore", domain="[('server_id', '=?', hypervisor_server_id)]")
     hypervisor_storage_id = fields.Many2one(
         'hypervisor.storage',
         string="Storage/Datastore",
@@ -303,7 +333,6 @@ class VmInstance(models.Model):
         return res
     
     def write(self, vals):
-        
         critical_fields = {'cores', 'memory', 'disk', 'hypervisor_node_id', 'hypervisor_storage_id'}
         
         if any(field in vals for field in critical_fields):
@@ -314,35 +343,3 @@ class VmInstance(models.Model):
         if 'partner_id' in vals:
             self.get_vm_count_for_partner.clear_cache(self)
         return super().write(vals)
-    
-    def log_vm_action(action_type):
-    """Декоратор для автоматического логирования действий с ВМ"""
-        def decorator(func):
-            @wraps(func)
-            def wrapper(self, *args, **kwargs):
-                start_time = time.time()
-                error = None
-                result = None
-                
-                try:
-                    result = func(self, *args, **kwargs)
-                    success = True
-                except Exception as e:
-                    error = str(e)
-                    success = False
-                    raise
-                finally:
-                    duration = time.time() - start_time
-                    if hasattr(self, 'id') and self.id:
-                        self.env['vm_rental.audit_log'].log_action(
-                            vm_id=self.id,
-                            action=action_type,
-                            success=success,
-                            error_message=error,
-                            duration=duration,
-                            metadata={'args': str(args), 'kwargs': str(kwargs)}
-                        )
-                
-                return result
-            return wrapper
-        return decorator
