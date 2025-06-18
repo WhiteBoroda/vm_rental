@@ -13,3 +13,7 @@ access_hypervisor_template_admin,hypervisor.template admin,model_hypervisor_temp
 access_linking_job_system,vm_rental.linking_job system,model_vm_rental_linking_job,base.group_system,1,1,1,1
 access_linking_job_line_system,vm_rental.linking_job.line system,model_vm_rental_linking_job_line,base.group_system,1,1,1,1
 access_vm_snapshot_portal,vm.snapshot portal user,model_vm_snapshot,base.group_portal,1,0,0,0
+access_vm_audit_log_user,vm_rental.audit_log user,model_vm_rental_audit_log,base.group_user,1,1,1,0
+access_vm_audit_log_admin,vm_rental.audit_log admin,model_vm_rental_audit_log,base.group_system,1,1,1,1
+access_vm_config_backup_user,vm_rental.config_backup user,model_vm_rental_config_backup,base.group_user,1,1,1,0
+access_vm_config_backup_admin,vm_rental.config_backup admin,model_vm_rental_config_backup,base.group_system,1,1,1,1
