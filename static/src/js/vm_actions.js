@@ -5,6 +5,7 @@ odoo.define('vm_rental.vm_actions', function (require) {
   var ajax = require('web.ajax');
   var core = require('web.core');
   var _t = core._t;
+  var csrf_token = core.csrf_token;
 
   publicWidget.registry.VmButtons = publicWidget.Widget.extend({
       selector: '.vm-list', // Теперь этот селектор найдет наш контейнер
@@ -48,7 +49,7 @@ odoo.define('vm_rental.vm_actions', function (require) {
           $buttons.addClass('disabled');
           $spinner.removeClass('d-none');
 
-          ajax.jsonRpc(rpc_url, 'call', {}).then(result => {
+          ajax.jsonRpc(rpc_url, 'call', {'csrf_token': csrf_token}).then(result => {
               if (result.success) {
                   // Обновляем значок статуса
                   const statusClass = this.STATUS_CLASSES[result.new_state] || 'badge badge-light';
