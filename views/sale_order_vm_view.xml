@@ -6,6 +6,13 @@
         <field name="arch" type="xml">
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="vm_instance_id" options="{'no_create': True}"/>
+                <field name="vm_instance_id_state" invisible="1"/>
+            </xpath>
+            <xpath expr="//header" position="inside">
+                <button name="action_retry_vm_creation"
+                        string="Retry VM Creation" type="object"
+                        class="btn-warning"
+                        attrs="{'invisible': [('vm_instance_id_state', '!=', 'failed')]}"/>
             </xpath>
         </field>
     </record>

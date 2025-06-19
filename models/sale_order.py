@@ -14,6 +14,14 @@ class SaleOrder(models.Model):
         copy=False,
         help='Виртуальная машина, к которой относится этот заказ'
     )
+    vm_instance_id_state = fields.Selection(related='vm_instance_id.state', string="VM State", readonly=True)
+
+    # Добавляем этот метод для вызова из кнопки
+    def action_retry_vm_creation(self):
+        self.ensure_one()
+        if self.vm_instance_id:
+            self.vm_instance_id.action_retry_provisioning()
+        return True
 
     def _action_confirm(self):
         res = super()._action_confirm()

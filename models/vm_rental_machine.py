@@ -64,7 +64,8 @@ class VmInstance(models.Model):
         ('stopped', 'Stopped'),
         ('suspended', 'Suspended'),
         ('terminated', 'Terminated'),
-        ('archived', 'Archived')
+        ('archived', 'Archived'),
+        ('failed', 'Failed')
     ], string="State", default='pending', readonly=True, copy=False, tracking=True, index=True)
     
     start_date = fields.Date(string="Start Date", readonly=True, copy=False)
@@ -246,7 +247,7 @@ class VmInstance(models.Model):
                 vm.message_post(body=_(f"Failed to automatically suspend the VM. Error: {e}"))
 
     # === Business Logic ===
-    
+
     @api.model
     def create_from_order(self, order, line, vm_config):
         """
@@ -256,7 +257,7 @@ class VmInstance(models.Model):
         hypervisor_server = product.hypervisor_server_id
         if not hypervisor_server:
             raise UserError(_(f"Hypervisor server is not configured for product '{product.name}'."))
-        
+
         new_vm = self.create({
             'name': f"{order.name}-{line.name.replace(' ', '-')}",
             'state': 'pending',
@@ -272,16 +273,18 @@ class VmInstance(models.Model):
             'is_trial': product.has_trial_period,
         })
 
+        # Сразу привязываем ВМ к заказу, даже если создание не удастся
+        order.write({'vm_instance_id': new_vm.id})
+
         try:
             new_vm.action_provision_vm()
-            order.write({'vm_instance_id': new_vm.id})
             return new_vm
         except Exception as e:
             _logger.error(f"Failed to create VM for order {order.name}: {e}", exc_info=True)
             order.message_post(body=_(f"<strong>ERROR:</strong> Could not create virtual machine. Reason: {e}"))
-            # Удаляем черновик ВМ, если создание не удалось
+            # Вместо удаления, меняем статус на "Сбой"
             if new_vm.exists():
-                new_vm.unlink()
+                new_vm.write({'state': 'failed'})
             return False
     
     @api.constrains('cores', 'memory', 'disk')
@@ -342,3 +345,14 @@ class VmInstance(models.Model):
         if 'partner_id' in vals:
             self.get_vm_count_for_partner.clear_cache(self)
         return super().write(vals)
+
+    def action_retry_provisioning(self):
+        self.ensure_one()
+        if self.state != 'failed':
+            raise UserError(_("You can only retry provisioning for VMs in the 'Failed' state."))
+        try:
+            # Просто повторно вызываем основной метод создания
+            return self.action_provision_vm()
+        except Exception as e:
+            self.message_post(body=_("Retry provisioning failed again. Reason: %s") % e)
+            return False

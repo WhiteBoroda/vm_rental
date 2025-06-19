@@ -20,6 +20,10 @@
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <button name="action_retry_provisioning" type="object"
+                            string="Retry Provisioning"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'failed')]}"/>
                     <button name="action_provision_vm" type="object"
                             string="Provision VM"
                             class="oe_highlight"
