@@ -120,3 +120,7 @@ class BaseHypervisorService:
     def get_console_url(self, node, vm_id):
         """Generates a one-time use console URL."""
         raise NotImplementedError()
+
+    def delete_vm(self, node, vm_id):
+        """Deletes a virtual machine from the hypervisor."""
+        raise NotImplementedError()

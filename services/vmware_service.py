@@ -328,3 +328,20 @@ class VmwareService(BaseHypervisorService):
             f"host={mks_ticket.host}:{mks_ticket.port}&"
             f"ticket={mks_ticket.ticket}"
         )
+
+    def delete_vm(self, node, vm_uuid):
+        """
+        Deletes a virtual machine from vCenter.
+        It must be powered off first.
+        """
+        vm = self._get_vm_by_uuid(vm_uuid)
+
+        # Power off the VM if it is running
+        if vm.runtime.powerState != 'poweredOff':
+            task = vm.PowerOffVM_Task()
+            self._wait_for_task(task)
+
+        # Destroy the VM
+        task = vm.Destroy_Task()
+        self._wait_for_task(task)
+        return True

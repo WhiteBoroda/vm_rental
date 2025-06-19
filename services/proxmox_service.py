@@ -166,3 +166,10 @@ class ProxmoxService(BaseHypervisorService):
         ticket = console_info['ticket']
         port = console_info['port']
         return f"https://{host}:8006/?console=kvm&vmid={vm_id}&node={node}&vnc_ticket={ticket}"
+
+    def delete_vm(self, node, vm_id):
+        """
+        Deletes a QEMU virtual machine.
+        """
+        # Proxmox API for deletion returns the task ID
+        return self._execute(self.connection.nodes(node).qemu(vm_id).delete)
