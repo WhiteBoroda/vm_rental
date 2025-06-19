@@ -52,6 +52,7 @@ class PortalVM(CustomerPortal):
     def _prepare_portal_layout_values(self):
         values = super()._prepare_portal_layout_values()
         partner = request.env.user.partner_id
+<<<<<<< HEAD
         
         _logger.info(f"--- ДЕБАГ: ПОДГОТОВКА СТРАНИЦЫ ПОРТАЛА ---")
         _logger.info(f"Текущий пользователь: {request.env.user.name} (ID: {request.env.user.id})")
@@ -59,6 +60,12 @@ class PortalVM(CustomerPortal):
         _logger.info(f"Коммерческий партнер: {partner.commercial_partner_id.name} (ID: {partner.commercial_partner_id.id})")
         
         values['vms_count'] = self._get_vm_count(partner.commercial_partner_id.id)
+=======
+
+        # ИСПРАВЛЕНИЕ: Вызываем обычный метод вместо кэшированного
+        values['vms_count'] = self._get_vm_count(partner.commercial_partner_id.id)
+
+>>>>>>> 102a2852fdfe5965b5e91f554bd27e03fea9139c
         return values
    
     @http.route(['/my/vms', '/my/vms/page/<int:page>'], type='http', auth="user", website=True)
