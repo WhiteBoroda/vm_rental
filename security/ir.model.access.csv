@@ -1,6 +1,6 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_vm_instance_user,vm_rental.machine user,model_vm_rental_machine,base.group_user,1,1,1,1
-access_vm_template_user,vm.template user,model_vm_template,base.group_user,1,1,1,1
+access_vm_template_user,vm.template user,model_vm_template,base.group_user,1,1,1,0
 access_vm_instance_portal,vm_rental.machine portal user,model_vm_rental_machine,base.group_portal,1,0,0,0
 access_vm_snapshot,vm.snapshot access,model_vm_snapshot,base.group_user,1,1,1,1
 access_hypervisor_server_admin,hypervisor.server admin,model_hypervisor_server,base.group_system,1,1,1,1

@@ -4,6 +4,10 @@ from odoo import models, fields, api
 class ProductTemplate(models.Model):
     _inherit = 'product.template'
 
+    vm_cores = fields.Integer(string="Default CPU Cores", default=1)
+    vm_memory = fields.Integer(string="Default Memory (MiB)", default=1024)
+    vm_disk = fields.Integer(string="Default Disk (GiB)", default=10)
+
     # --- РЕФАКТОРИНГ: Поля полностью переименованы для универсальности ---
     hypervisor_server_id = fields.Many2one(
         'hypervisor.server',

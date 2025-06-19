@@ -134,10 +134,28 @@ class ProxmoxService(BaseHypervisorService):
 
     # ... остальные методы без изменений ...
     def start_vm(self, node, vm_id):
-        return self._execute(self.connection.nodes(node).qemu(vm_id).status.start.post)
+        """Универсальный метод запуска VM/LXC"""
+        # Сначала пытаемся как QEMU VM
+        try:
+            return self._execute(self.connection.nodes(node).qemu(vm_id).status.start.post)
+        except Exception:
+            # Если не получилось, пытаемся как LXC
+            try:
+                return self._execute(self.connection.nodes(node).lxc(vm_id).status.start.post)
+            except Exception as e:
+                _logger.error(f"Failed to start VM/LXC {vm_id}: {e}")
+                raise HypervisorOperationError(f"Cannot start VM/LXC {vm_id}: {e}")
 
     def stop_vm(self, node, vm_id):
-        return self._execute(self.connection.nodes(node).qemu(vm_id).status.stop.post)
+        """Универсальный метод остановки VM/LXC"""
+        try:
+            return self._execute(self.connection.nodes(node).qemu(vm_id).status.stop.post)
+        except Exception:
+            try:
+                return self._execute(self.connection.nodes(node).lxc(vm_id).status.stop.post)
+            except Exception as e:
+                _logger.error(f"Failed to stop VM/LXC {vm_id}: {e}")
+                raise HypervisorOperationError(f"Cannot stop VM/LXC {vm_id}: {e}")
 
     def reboot_vm(self, node, vm_id):
         return self._execute(self.connection.nodes(node).qemu(vm_id).status.reboot.post)

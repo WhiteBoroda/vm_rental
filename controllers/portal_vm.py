@@ -110,16 +110,13 @@ class PortalVM(CustomerPortal):
             'snapshots': vm.snapshot_ids
         })
 
-    def _get_portal_entries(self):
-        """Добавляет 'Мои виртуальные машины' на главную страницу портала."""
-        entries = super()._get_portal_entries()
-        vms_count = self._get_vm_count(self.env.user.partner_id.commercial_partner_id.id)
-        entries.append({
-            'label': _('My Virtual Machines'),
-            'url': '/my/vms',
-            'count': vms_count,
-        })
-        return entries
+    @http.route(['/my/home'], type='http', auth="user", website=True)
+    def home(self, **kw):
+        values = self._prepare_home_portal_values()
+        # Добавляем счетчик VM в главную страницу портала
+        partner = request.env.user.partner_id
+        values['vms_count'] = self._get_vm_count(partner.commercial_partner_id.id)
+        return request.render("portal.portal_my_home", values)
 
     def _get_vms_domain(self):
         """Вспомогательный метод для получения домена поиска ВМ."""

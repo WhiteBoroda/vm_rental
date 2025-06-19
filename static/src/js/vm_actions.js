@@ -36,25 +36,38 @@ odoo.define('vm_rental.vm_actions', function (require) {
               if (result.success) {
                   this._updateStatusBadge($card, result.new_state);
                   this._updateButtonsVisibility($actionsCell, result.new_state);
+                  this._showNotification(
+                      'success', _t('Success'), _t('Operation completed successfully.'));
               } else {
-                  this.displayNotification({
-                      type: 'danger',
-                      title: _t('Error'),
-                      message: result.error || _t('An unknown error occurred.'),
-                  });
+                  this._showNotification('danger', _t('Error'), result.error || _t('An unknown error occurred.'));
               }
           }).guardedCatch(err => {
-               this.displayNotification({
-                  type: 'danger',
-                  title: _t('Error'),
-                  message: _t('Could not contact the server.'),
-              });
+               this._showNotification('danger', _t('Error'), _t('Could not contact the server.'));
           }).finally(() => {
               // Возвращаем исходную иконку и активность кнопки
               $button.prop('disabled', false);
               $icon.attr('class', originalIconClass);
           });
       },
+
+      _showNotification: function(type, title, message) {
+            // Простой способ для фронтенда - используем alert или создаем Bootstrap toast
+            if (type === 'danger') {
+                alert(title + ': ' + message);
+            } else {
+                // Можно создать Bootstrap toast для успешных операций
+                const toast = $(`
+                    <div class="toast" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999;">
+                        <div class="toast-body bg-success text-white">
+                            <strong>${title}:</strong> ${message}
+                        </div>
+                    </div>
+                `);
+                $('body').append(toast);
+                toast.toast({delay: 3000}).toast('show');
+                setTimeout(() => toast.remove(), 3500);
+            }
+        },
 
       _updateStatusBadge: function ($card, newState) {
           const $badge = $card.find('.card-header .badge');
