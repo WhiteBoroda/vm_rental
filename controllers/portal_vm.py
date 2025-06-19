@@ -5,28 +5,12 @@ from odoo.addons.portal.controllers.portal import CustomerPortal, pager as porta
 from odoo.tools import ormcache
 import logging
 
-_logger = logging.getLogger(__name__)
-
-
-class PortalVM(CustomerPortal):
-    # Добавляем количество элементов на страницу
-    _items_per_page = 20
-
-    # ИСПРАВЛЕНИЕ: Убран декоратор @ormcache с этого метода контроллера
-    def _get_vm_count(self, partner_id):
-        """Подсчет ВМ"""
-        return request.env['vm_rental.machine'].search_count([
-            ('partner_id', 'child_of', partner_id)
-        ])
-    
-from odoo import http, _
-from odoo.http import request
-from odoo.addons.portal.controllers.portal import CustomerPortal, pager as portal_pager
-import logging
+#        return request.env['vm_rental.machine'].search_count([
+#            ('partner_id', 'child_of', partner_id)
+#        ])
 
 # Указываем имя логгера, чтобы его было легче найти
 _logger = logging.getLogger("vm_rental_portal_debug")
-
 
 class PortalVM(CustomerPortal):
     _items_per_page = 20
@@ -34,7 +18,7 @@ class PortalVM(CustomerPortal):
     def _get_vm_count(self, partner_id):
         domain = [('partner_id', 'child_of', partner_id)]
         
-        _logger.info(f"--- ДЕБАГ: ПОИСК КОЛИЧЕСТВА ВМ ---")
+        _logger.info(f"--- ДЕБАГ: ПОИСК КОЛИЧЕСТВА ВМ sudo() ---")
         _logger.info(f"Пользователь: {request.env.user.name}")
         _logger.info(f"ID партнера для поиска: {partner_id}")
         _logger.info(f"Условие поиска (domain): {domain}")
@@ -52,7 +36,6 @@ class PortalVM(CustomerPortal):
     def _prepare_portal_layout_values(self):
         values = super()._prepare_portal_layout_values()
         partner = request.env.user.partner_id
-<<<<<<< HEAD
         
         _logger.info(f"--- ДЕБАГ: ПОДГОТОВКА СТРАНИЦЫ ПОРТАЛА ---")
         _logger.info(f"Текущий пользователь: {request.env.user.name} (ID: {request.env.user.id})")
@@ -60,12 +43,7 @@ class PortalVM(CustomerPortal):
         _logger.info(f"Коммерческий партнер: {partner.commercial_partner_id.name} (ID: {partner.commercial_partner_id.id})")
         
         values['vms_count'] = self._get_vm_count(partner.commercial_partner_id.id)
-=======
 
-        # ИСПРАВЛЕНИЕ: Вызываем обычный метод вместо кэшированного
-        values['vms_count'] = self._get_vm_count(partner.commercial_partner_id.id)
-
->>>>>>> 102a2852fdfe5965b5e91f554bd27e03fea9139c
         return values
    
     @http.route(['/my/vms', '/my/vms/page/<int:page>'], type='http', auth="user", website=True)
@@ -149,3 +127,19 @@ class PortalVM(CustomerPortal):
             'vm': vm,
             'snapshots': vm.snapshot_ids
         })
+
+    def _get_portal_entries(self):
+        """Добавляет 'Мои виртуальные машины' на главную страницу портала."""
+        entries = super()._get_portal_entries()
+        vms_count = self.env['vm_rental.machine'].search_count(self._get_vms_domain())
+        entries.append({
+            'label': _('My Virtual Machines'),
+            'url': '/my/vms',
+            'count': vms_count,
+        })
+        return entries
+
+    def _get_vms_domain(self):
+        """Вспомогательный метод для получения домена поиска ВМ."""
+        partner = self.env.user.partner_id
+        return [('partner_id', 'child_of', partner.commercial_partner_id.id)]
