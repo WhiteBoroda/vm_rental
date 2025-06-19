@@ -1,7 +1,7 @@
 # vm_rental/__manifest__.py
 {
     'name': 'VM Rental (Universal)',
-    'version': '1.2.1',
+    'version': '1.2.3',
     'summary': 'Rent and manage virtual machines from multiple hypervisors',
     'author': 'Yuri Varaksin',
     'website': 'http://iodoo.info',
