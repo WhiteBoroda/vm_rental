@@ -20,6 +20,11 @@
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <button name="action_terminate_vm" type="object"
+                            string="Terminate"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', 'in', ['terminated', 'archived'])]}"
+                            confirm="Are you sure you want to terminate this VM? This will permanently delete the virtual machine from the hypervisor."/>
                     <button name="action_retry_provisioning" type="object"
                             string="Retry Provisioning"
                             class="oe_highlight"
@@ -29,6 +34,7 @@
                             class="oe_highlight"
                             attrs="{'invisible': [('state', '!=', 'pending')]}"/>
                     <field name="state" widget="statusbar" statusbar_visible="pending,active,suspended,terminated,archived"/>
+
                 </header>
                 <sheet>
                     <div class="oe_title">

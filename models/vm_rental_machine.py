@@ -356,3 +356,34 @@ class VmInstance(models.Model):
         except Exception as e:
             self.message_post(body=_("Retry provisioning failed again. Reason: %s") % e)
             return False
+
+    def action_terminate_vm(self):
+        """
+        Terminates the VM: deletes it from the hypervisor and sets the state to 'terminated'.
+        """
+        for vm in self:
+            if vm.hypervisor_vm_ref:
+                try:
+                    service = vm._get_hypervisor_service()
+                    # Сначала останавливаем ВМ, если она активна (для некоторых гипервизоров это обязательно)
+                    if vm.state == 'active':
+                        service.stop_vm(vm.hypervisor_node_name, vm.hypervisor_vm_ref)
+                        # Даем время на выключение
+                        # В реальном решении здесь лучше использовать проверку статуса, а не простую задержку
+                        import time
+                        time.sleep(5)
+
+                    # Удаляем ВМ на гипервизоре
+                    service.delete_vm(vm.hypervisor_node_name, vm.hypervisor_vm_ref)
+                    vm.message_post(body=_(f"VM {vm.hypervisor_vm_ref} was successfully deleted from the hypervisor."))
+                except Exception as e:
+                    _logger.error(f"Could not delete VM {vm.hypervisor_vm_ref} from hypervisor: {e}")
+                    # Если не удалось удалить на гипервизоре, можно прервать операцию
+                    raise UserError(_(f"Failed to delete VM on hypervisor: {e}"))
+
+            # Если все прошло успешно или если ВМ не была на гипервизоре, меняем статус
+            vm.write({
+                'state': 'terminated',
+                'hypervisor_vm_ref': False,  # Очищаем ссылку, т.к. ВМ больше нет
+            })
+        return True
