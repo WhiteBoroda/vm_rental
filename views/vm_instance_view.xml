@@ -33,7 +33,6 @@
                     <group>
                         <group>
                             <field name="partner_id" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
-                            <field name="user_id"/>
                         </group>
                         <group>
                             <field name="hypervisor_vm_ref"/>

@@ -96,18 +96,17 @@ class VmInstance(models.Model):
     disk = fields.Integer(string="Disk (GiB)", default=10)
     is_trial = fields.Boolean(string="Is Trial Period", readonly=True, default=False)
 
-    user_id = fields.Many2one('res.users', string="User", compute='_compute_user_id', store=True, readonly=True)
+#    user_id = fields.Many2one('res.users', string="User", compute='_compute_user_id', store=True, readonly=True)
 
-    @api.depends('partner_id', 'partner_id.user_ids')
-    def _compute_user_id(self):
-        """Вычисляет пользователя на основе партнера."""
-        for vm in self:
-            if vm.partner_id and vm.partner_id.user_ids:
+#    @api.depends('partner_id', 'partner_id.user_ids')
+#    def _compute_user_id(self):
+#        for vm in self:
+#            if vm.partner_id and vm.partner_id.user_ids:
                 # Берем первого активного пользователя
-                active_users = vm.partner_id.user_ids.filtered(lambda u: u.active and not u.share)
-                vm.user_id = active_users[0] if active_users else False
-            else:
-                vm.user_id = False
+#                active_users = vm.partner_id.user_ids.filtered(lambda u: u.active and not u.share)
+#                vm.user_id = active_users[0] if active_users else False
+#           else:
+#                vm.user_id = False
 
     # === Onchange Methods ===
     
@@ -148,7 +147,7 @@ class VmInstance(models.Model):
             
         hypervisor_service = self._get_hypervisor_service()
         vmid = hypervisor_service.get_next_vmid()
-        if not vmid:
+        if not vmid and self.hypervisor_server_id.hypervisor_type != 'vmware':
              raise UserError(_("Could not fetch the next available ID from the hypervisor."))
         
         # ИСПРАВЛЕНИЕ: Вызываем нужный метод в зависимости от типа шаблона

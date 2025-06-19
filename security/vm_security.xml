@@ -16,7 +16,7 @@
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>
-            <field name="domain_force">[('partner_id', 'child_of', user.partner_id.commercial_partner_id.id)]</field>
+            <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>        
         </record>
 
         <record id="vm_instance_manager_rule" model="ir.rule">
