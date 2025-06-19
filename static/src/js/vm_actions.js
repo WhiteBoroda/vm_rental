@@ -5,63 +5,38 @@ odoo.define('vm_rental.vm_actions', function (require) {
   var ajax = require('web.ajax');
   var core = require('web.core');
   var _t = core._t;
-  var csrf_token = core.csrf_token;
 
-  publicWidget.registry.VmButtons = publicWidget.Widget.extend({
-      selector: '.vm-list', // Теперь этот селектор найдет наш контейнер
+  publicWidget.registry.VmActions = publicWidget.Widget.extend({
+      selector: '.vm-list',
       events: {
-          'click .start-vm': '_onVmAction',
-          'click .stop-vm': '_onVmAction',
-          'click .reboot-vm': '_onVmAction',
+          'click .start-vm, .stop-vm, .reboot-vm': '_onVmAction',
       },
 
-      // Словарь для сопоставления статусов и CSS-классов
-      STATUS_CLASSES: {
-          'active': 'badge badge-success',
-          'stopped': 'badge badge-secondary',
-          'suspended': 'badge badge-warning',
-      },
-
-      /**
-       * Общий обработчик для всех действий с ВМ
-       * @param {MouseEvent} ev
-       * @private
-       */
       _onVmAction: function (ev) {
           ev.preventDefault();
           const $button = $(ev.currentTarget);
           const vmId = $button.data('vmid');
-          
-          // Определяем URL в зависимости от класса кнопки
+
           let rpc_url = '';
           if ($button.hasClass('start-vm')) rpc_url = `/vm/start/${vmId}`;
           if ($button.hasClass('stop-vm')) rpc_url = `/vm/stop/${vmId}`;
           if ($button.hasClass('reboot-vm')) rpc_url = `/vm/reboot/${vmId}`;
           if (!rpc_url) return;
 
-          const $row = $button.closest('tr');
-          const $actionsCell = $row.find('.vm-actions-cell');
-          const $spinner = $actionsCell.find('.fa-spinner');
-          const $statusCell = $row.find('.vm-status-cell');
-          const $buttons = $actionsCell.find('.btn');
+          const $card = $button.closest('.vm-card');
+          const $actionsCell = $card.find('.vm-actions-cell');
+          const $icon = $button.find('i');
+          const originalIconClass = $icon.attr('class');
 
-          // Блокируем интерфейс на время запроса
-          $buttons.addClass('disabled');
-          $spinner.removeClass('d-none');
+          // ИЗМЕНЕНИЕ: Заменяем иконку на спиннер внутри кнопки
+          $button.prop('disabled', true);
+          $icon.attr('class', 'fa fa-spinner fa-spin mr-1');
 
-          ajax.jsonRpc(rpc_url, 'call', {
-            'csrf_token': csrf_token
-          }).then(result => {
+          ajax.jsonRpc(rpc_url, 'call', {}).then(result => {
               if (result.success) {
-                  // Обновляем значок статуса
-                  const statusClass = this.STATUS_CLASSES[result.new_state] || 'badge badge-light';
-                  $statusCell.html(`<span class="${statusClass}">${result.state_text}</span>`);
-                  
-                  // Обновляем видимость кнопок
+                  this._updateStatusBadge($card, result.new_state);
                   this._updateButtonsVisibility($actionsCell, result.new_state);
-
               } else {
-                  // Показываем ошибку, если что-то пошло не так
                   this.displayNotification({
                       type: 'danger',
                       title: _t('Error'),
@@ -75,24 +50,38 @@ odoo.define('vm_rental.vm_actions', function (require) {
                   message: _t('Could not contact the server.'),
               });
           }).finally(() => {
-              // Возвращаем интерфейс в исходное состояние
-              $buttons.removeClass('disabled');
-              $spinner.addClass('d-none');
+              // Возвращаем исходную иконку и активность кнопки
+              $button.prop('disabled', false);
+              $icon.attr('class', originalIconClass);
           });
       },
 
-      /**
-       * Обновляет видимость кнопок в зависимости от нового статуса ВМ
-       * @param {JQuery} $actionsCell
-       * @param {string} newState
-       * @private
-       */
+      _updateStatusBadge: function ($card, newState) {
+          const $badge = $card.find('.card-header .badge');
+          if (!$badge.length) return;
+
+          $badge.removeClass('badge-success badge-secondary badge-warning badge-info badge-danger badge-dark');
+          let newClass = 'badge-light';
+          let newText = newState.charAt(0).toUpperCase() + newState.slice(1);
+
+          if (newState === 'active') newClass = 'badge-success';
+          else if (newState === 'stopped') newClass = 'badge-secondary';
+          else if (newState === 'suspended') newClass = 'badge-warning';
+
+          $badge.addClass(newClass).text(newText);
+      },
+
       _updateButtonsVisibility: function ($actionsCell, newState) {
-          $actionsCell.find('.start-vm').toggleClass('d-none', newState === 'active');
-          $actionsCell.find('.stop-vm').toggleClass('d-none', newState !== 'active');
-          $actionsCell.find('.reboot-vm').toggleClass('d-none', newState !== 'active');
+          const isActive = newState === 'active';
+          $actionsCell.find('.start-vm').toggleClass('d-none', isActive);
+          $actionsCell.find('.stop-vm').toggleClass('d-none', !isActive);
+          $actionsCell.find('.reboot-vm').toggleClass('d-none', !isActive);
+
+          // Обновляем ширину кнопки снапшотов
+          const $snapButton = $actionsCell.find('a[href*="snapshots"]');
+          $snapButton.toggleClass('w-50', isActive).toggleClass('w-100', !isActive);
       },
   });
 
-  return publicWidget.registry.VmButtons;
+  return publicWidget.registry.VmActions;
 });

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
   <template id="portal_my_vms" name="My Virtual Machines">
     <t t-call="portal.portal_layout">
       <div class="container vm-list">
@@ -7,55 +8,56 @@
             <h2>My Virtual Machines</h2>
             <a href="/shop" class="btn btn-primary" role="button">Order New VM</a>
         </div>
-        
-        <t t-if="vms">
-          <div class="table-responsive">
-            <table class="table table-hover">
-                <tbody>
-                    <t t-foreach="vms" t-as="vm">
-                        <tr t-att-data-vm-id="vm.id">
-                            <td>
-                                <strong><t t-esc="vm.name"/></strong><br/>
-                                <small class="text-muted"><t t-esc="vm.hypervisor_vm_ref"/></small>
-                            </td>
-                            <td class="text-center align-middle vm-status-cell">
-                                <span t-if="vm.state == 'active'" class="badge badge-success">Active</span>
-                                <span t-if="vm.state == 'stopped'" class="badge badge-secondary">Stopped</span>
-                                <span t-if="vm.state == 'suspended'" class="badge badge-warning">Suspended</span>
-                                <span t-if="vm.state == 'pending'" class="badge badge-info">Pending</span>
-                                <span t-if="vm.state in ['terminated', 'archived']" class="badge badge-dark">Archived</span>
-                            </td>
-                            <td class="text-center align-middle">
-                                <t t-esc="vm.end_date" t-options='{"widget": "date"}'/>
-                            </td>
-                            <td class="text-right vm-actions-cell align-middle">
-                                <i class="fa fa-spinner fa-spin d-none mr-2"/>
-                                
-                                <div class="btn-group" role="group">
-                                    <button t-if="vm.state in ['stopped', 'suspended']" t-att-data-vmid="vm.id" class="btn btn-sm btn-success start-vm" title="Start VM">
-                                        <i class="fa fa-play"/>
-                                    </button>
-                                    <button t-if="vm.state == 'active'" t-att-data-vmid="vm.id" class="btn btn-sm btn-warning stop-vm" title="Stop VM">
-                                        <i class="fa fa-stop"/>
-                                    </button>
-                                    <button t-if="vm.state == 'active'" t-att-data-vmid="vm.id" class="btn btn-sm btn-info reboot-vm" title="Reboot VM">
-                                        <i class="fa fa-refresh"/>
-                                    </button>
-                                </div>
 
-                                <div class="btn-group ml-2" role="group">
-                                    <a t-att-href="'/my/vm/%s/snapshots' % vm.id" class="btn btn-sm btn-secondary" title="Manage Snapshots" role="button">
-                                        <i class="fa fa-camera-retro"/>
-                                    </a>
-                                    <a t-if="vm.hypervisor_vm_ref" t-att-href="'/my/vms/console/%s' % vm.id" class="btn btn-sm btn-dark" target="_blank" title="Open Console" role="button">
-                                        <i class="fa fa-terminal"/>
-                                    </a>
-                                </div>
-                            </td>
-                        </tr>
-                    </t>
-                </tbody>
-            </table>
+        <t t-if="vms">
+          <div class="row">
+            <t t-foreach="vms" t-as="vm">
+              <div class="col-12 col-md-6 col-lg-4 mb-4">
+                <div class="card h-100 vm-card" t-att-data-vm-id="vm.id">
+
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-truncate" t-att-title="vm.name">
+                        <t t-esc="vm.name"/>
+                    </h5>
+                    <t t-call="vm_rental.portal_vm_status_badge"/>
+                  </div>
+
+                  <div class="card-body">
+                    <p class="text-muted" t-if="vm.hypervisor_vm_ref">
+                        <i class="fa fa-server mr-1"/> <t t-esc="vm.hypervisor_vm_ref"/>
+                    </p>
+                    <p t-if="vm.end_date">
+                        <i class="fa fa-calendar-times-o mr-1"/>
+                        Subscription expires on <span t-esc="vm.end_date" t-options='{"widget": "date"}'/>
+                    </p>
+                  </div>
+
+                  <div class="card-footer bg-white vm-actions-cell">
+                    <div class="mb-2">
+                        <button t-att-data-vmid="vm.id" t-att-class="'btn btn-success btn-block start-vm ' + ('d-none' if vm.state == 'active' else '')">
+                            <i class="fa fa-play mr-1"/> Start
+                        </button>
+                        <button t-att-data-vmid="vm.id" t-att-class="'btn btn-warning btn-block stop-vm ' + ('d-none' if vm.state != 'active' else '')">
+                            <i class="fa fa-stop mr-1"/> Stop
+                        </button>
+                    </div>
+
+                    <div class="btn-group w-100" role="group">
+                         <button t-att-data-vmid="vm.id" t-att-class="'btn btn-sm btn-info reboot-vm w-50 ' + ('d-none' if vm.state != 'active' else '')">
+                            <i class="fa fa-refresh mr-1"/> Reboot
+                        </button>
+                         <a t-attf-href="/my/vms/#{vm.id}/snapshots" t-att-class="'btn btn-sm btn-secondary ' + ('w-50' if vm.state == 'active' else 'w-100')">
+                            <i class="fa fa-camera-retro mr-1"/> Snapshots
+                        </a>
+                    </div>
+                    <a t-if="vm.hypervisor_vm_ref" t-attf-href="/my/vms/console/#{vm.id}" class="btn btn-sm btn-dark btn-block mt-2" target="_blank" title="Open Console" role="button">
+                        <i class="fa fa-terminal mr-1"/> Open Console
+                    </a>
+                  </div>
+
+                </div>
+              </div>
+            </t>
           </div>
         </t>
         <t t-else="">
@@ -63,6 +65,30 @@
               You do not have any virtual machines yet.
             </div>
         </t>
+        </div>
+    </t>
+  </template>
+
+  <template id="portal_vm_status_badge">
+    <span t-if="vm.state == 'active'" class="badge badge-success">Active</span>
+    <span t-if="vm.state == 'stopped'" class="badge badge-secondary">Stopped</span>
+    <span t-if="vm.state == 'suspended'" class="badge badge-warning">Suspended</span>
+    <span t-if="vm.state == 'pending'" class="badge badge-info">Pending</span>
+    <span t-if="vm.state == 'failed'" class="badge badge-danger">Failed</span>
+    <span t-if="vm.state in ['terminated', 'archived']" class="badge badge-dark">Archived</span>
+  </template>
+
+  <template id="portal_error_page" name="Portal Error Page">
+    <t t-call="portal.portal_layout">
+        <div id="wrap">
+            <div class="container">
+                <div class="alert alert-danger mt-4" role="alert">
+                    <h4 class="alert-heading"><t t-esc="status_code or 'Error'"/></h4>
+                    <p><t t-esc="status_message or 'An unexpected error occurred.'"/></p>
+                    <hr/>
+                    <p class="mb-0">Please contact the administrator if the problem persists.</p>
+                </div>
+            </div>
         </div>
     </t>
   </template>

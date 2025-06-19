@@ -32,7 +32,7 @@ class VMAPIController(http.Controller):
 
         if success:
             if state_after:
-                vm.write({'state': state_after})
+                vm.sudo().write({'state': state_after})
             return {"success": True, "new_state": state_after or vm.state, "state_text": state_text}
         
         return {"success": False, "error": f"Failed to {action.replace('_', ' ')}"}

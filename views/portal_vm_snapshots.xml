@@ -36,8 +36,12 @@
                     </div>
                     <p class="mb-1"><t t-esc="snap.description"/></p>
                     <div class="text-right">
-                        <button class="btn btn-sm btn-info rollback-snapshot">Rollback</button>
-                        <button class="btn btn-sm btn-danger delete-snapshot">Delete</button>
+                        <button class="btn btn-sm btn-info rollback-snapshot">
+                            <i class="fa fa-history mr-1"/> Rollback
+                        </button>
+                        <button class="btn btn-sm btn-danger delete-snapshot">
+                            <i class="fa fa-trash mr-1"/> Delete
+                        </button>
                     </div>
                 </div>
             </t>

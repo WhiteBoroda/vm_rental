@@ -5,7 +5,6 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
     var ajax = require('web.ajax');
     var core = require('web.core');
     var _t = core._t;
-    var csrf_token = core.csrf_token;
 
     publicWidget.registry.VmSnapshotManager = publicWidget.Widget.extend({
         selector: '#vm_snapshots_manager',
@@ -18,23 +17,29 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
         _onCreateSnapshot: function (ev) {
             ev.preventDefault();
             const $form = $(ev.currentTarget);
+            const $button = $form.find('button[type="submit"]');
+            const $spinner = $button.find('i.fa-spinner');
+
             const vmId = this.$el.data('vm-id');
             const name = $form.find('#snapshot_name').val();
             const description = $form.find('#snapshot_desc').val();
-            
+
+            $button.prop('disabled', true);
+            $spinner.removeClass('d-none');
+
             this._rpc({
                 route: `/vm/${vmId}/snapshot/create`,
-                params: { 
-                    name: name, 
+                params: {
+                    name: name,
                     description: description,
-                    csrf_token: csrf_token
                 },
             }).then(res => {
                 if (res.success) {
-                    // Простой и надежный способ обновить страницу
-                    window.location.reload(); 
+                    window.location.reload();
                 } else {
                     alert(_t('Error: ') + res.error);
+                    $button.prop('disabled', false);
+                    $spinner.addClass('d-none');
                 }
             });
         },
@@ -45,21 +50,26 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
             }
 
             const $button = $(ev.currentTarget);
-            const $item = $button.closest('.list-group-item');
+            const $icon = $button.find('i');
+            const originalIconClass = $icon.attr('class');
             const vmId = this.$el.data('vm-id');
-            const proxmoxName = $item.data('proxmox-name');
+            const proxmoxName = $button.closest('.list-group-item').data('proxmox-name');
+
+            $button.prop('disabled', true);
+            $icon.attr('class', 'fa fa-spinner fa-spin mr-1'); // Показываем спиннер
 
             this._rpc({
                 route: `/vm/${vmId}/snapshot/${proxmoxName}/rollback`,
-                params: {
-                    csrf_token: csrf_token
-                },
+                params: {},
             }).then(res => {
                 if(res.success) {
                     alert(_t('Rollback started successfully! The VM will now restart.'));
                 } else {
                     alert(_t('Rollback failed: ') + res.error);
                 }
+            }).finally(() => {
+                $button.prop('disabled', false);
+                $icon.attr('class', originalIconClass); // Возвращаем иконку
             });
         },
 
@@ -67,45 +77,36 @@ odoo.define('vm_rental.vm_snapshot_actions', function (require) {
             if (!confirm(_t("Are you sure you want to delete this snapshot? This CANNOT be undone."))) {
                 return;
             }
-            
+
             const $button = $(ev.currentTarget);
             const $item = $button.closest('.list-group-item');
+            const $icon = $button.find('i');
+            const originalIconClass = $icon.attr('class');
             const vmId = this.$el.data('vm-id');
             const proxmoxName = $item.data('proxmox-name');
 
+            $button.prop('disabled', true);
+            $icon.attr('class', 'fa fa-spinner fa-spin mr-1'); // Показываем спиннер
+
             this._rpc({
                 route: `/vm/${vmId}/snapshot/${proxmoxName}/delete`,
-                params: {
-                    csrf_token: csrf_token
-                },
+                params: {},
             }).then(res => {
                 if (res.success) {
-                    $item.remove(); // Удаляем элемент из списка
+                    $item.remove();
                 } else {
                     alert(_t('Error deleting snapshot: ') + res.error);
+                    $button.prop('disabled', false); // Разблокируем в случае ошибки
+                    $icon.attr('class', originalIconClass); // Возвращаем иконку
                 }
             });
         },
-        
-        // РЕФАКТОРИНГ: обертка для ajax.jsonRpc для удобства и обработки ошибок
-        _rpc: function(routeOptions) {
-            const $buttons = this.$('button, a');
-            $buttons.addClass('disabled');
 
-            if (!routeOptions.params) {
-                routeOptions.params = {};
-            }
-            if (!routeOptions.params.csrf_token) {
-                routeOptions.params.csrf_token = csrf_token;
-            }
-            
+        _rpc: function(routeOptions) {
             return ajax.jsonRpc(routeOptions.route, 'call', routeOptions.params || {})
                 .guardedCatch((err) => {
                     const errorMsg = err.data.message || _t('An RPC error occurred.');
                     alert(errorMsg);
-                })
-                .finally(() => {
-                    $buttons.removeClass('disabled');
                 });
         }
     });
