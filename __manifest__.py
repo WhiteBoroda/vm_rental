@@ -4,47 +4,50 @@
     'summary': 'Advanced VM rental system with composition-based traits architecture',
     'description': """
 
-                                      VM Rental Module with Advanced Traits Architecture
-                                      ==================================================
 
-                                      Enterprise-grade virtual machine rental and management system featuring:
 
-                                      🚀 **Traits Architecture**
+                                                                            VM Rental Module with Advanced Traits Architectu
+                   e
+                                                         ==================================================
+
+                                                                            Enterprise-grade virtual machine rental and management system featuring:
+
+                                                                            🚀 **Traits Architecture**
                    * Composition-based design eliminates inheritance conflicts
                    * VmResourceTrait and VmOperationTrait for maximum flexibility
                    * Static methods for high performance and easy testing
-                   
+
                    🎯 **Smart Resource Management**
                    * Automatic categorization (nano → micro → small → medium → large → xlarge)
                    * OS-specific recommendations (Ubuntu, Windows, Docker, CentOS)
                    * Resource normalization to standard values
                    * Boot time estimation and price calculation
-                   
+
                    🛠️ **Advanced Features**
                    * Configuration wizard with predefined templates
                    * Bulk operations for mass VM management
                    * Health monitoring and automated checks
                    * Comprehensive reporting and analytics
                    * Workload-specific configuration suggestions
-                   
+
                    ⚡ **Automation & Monitoring**
                    * Auto-provisioning of pending VMs
                    * Health checks for active VMs
                    * Automatic cleanup of old terminated VMs
                    * Resource utilization statistics
-                   
+
                    🎨 **Enhanced UI/UX**
                    * Modern kanban and dashboard views
                    * Smart filtering and categorization
                    * Resource visualization and reporting
                    * Mobile-responsive portal interface
-                   
+
                    📊 **Business Intelligence**
                    * Resource utilization reports
                    * Hypervisor distribution analytics
                    * Revenue tracking and forecasting
                    * Performance metrics and KPIs
-                   
+
                    Version 1.3.0 introduces the revolutionary traits-based architecture that solves
                    all inheritance conflicts while providing unprecedented flexibility and performance.
 """,
@@ -71,7 +74,6 @@
         'views/hypervisor_server_views.xml',
         'views/vm_instance_view.xml',
         'views/vm_report_view.xml',
-        'views/vm_traits_reports.xml',  # NEW: Advanced reports
         'views/product_template_view.xml',
         'views/product_attribute_view.xml',
         'views/sale_order_vm_view.xml',
@@ -84,7 +86,7 @@
 
         # Wizards
         'views/vm_traits_wizard.xml',
-        'views/vm_bulk_operations_wizard.xml',  # NEW: Bulk operations
+        'views/vm_bulk_operations_wizard.xml',
         'wizards/link_existing_vm_wizard_view.xml',
 
         # Settings and menus

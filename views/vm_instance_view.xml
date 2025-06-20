@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Server Action для удаления VM из Odoo (без удаления с гипервизора) -->
     <record id="action_server_forget_vm" model="ir.actions.server">
         <field name="name">Forget VM from Odoo</field>
-        <field name="model_id" ref="vm_rental.model_vm_rental_machine"/>
-        <field name="binding_model_id" ref="vm_rental.model_vm_rental_machine"/>
+        <field name="model_id" ref="model_vm_rental_machine"/>
+        <field name="binding_model_id" ref="model_vm_rental_machine"/>
         <field name="state">code</field>
         <field name="code">
 if records:
@@ -19,6 +20,7 @@ if records:
         </field>
     </record>
 
+    <!-- Основной список VM -->
     <record id="view_vm_instance_tree" model="ir.ui.view">
         <field name="name">vm_rental.machine.tree</field>
         <field name="model">vm_rental.machine</field>
@@ -30,8 +32,14 @@ if records:
                 <field name="name"/>
                 <field name="hypervisor_vm_ref"/>
                 <field name="partner_id"/>
-                <field name="state" widget="badge"/>
+                <field name="state" widget="badge"
+                       decoration-success="state=='active'"
+                       decoration-secondary="state=='stopped'"
+                       decoration-warning="state=='suspended'"
+                       decoration-info="state=='pending'"
+                       decoration-danger="state=='failed'"/>
 
+                <!-- Поля ресурсов с использованием traits -->
                 <field name="cores" optional="show" string="CPU"/>
                 <field name="memory" optional="show" string="RAM (MiB)"/>
                 <field name="disk" optional="show" string="Disk (GiB)"/>
@@ -41,18 +49,20 @@ if records:
                 <field name="hypervisor_server_id" optional="hide"/>
                 <field name="start_date" optional="hide"/>
                 <field name="end_date"/>
-                <field name="is_trial" optional="hide" widget="boolean_toggle"/>
+                <field name="is_trial" optional="hide"/>
                 <field name="total_amount" optional="hide" sum="Total Revenue"/>
             </tree>
         </field>
     </record>
 
+    <!-- Основная форма VM Instance -->
     <record id="view_vm_instance_form" model="ir.ui.view">
         <field name="name">vm_rental.machine.form</field>
         <field name="model">vm_rental.machine</field>
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <!-- Кнопки управления VM -->
                     <button name="action_provision_vm" type="object"
                             string="Provision VM"
                             class="oe_highlight"
@@ -75,24 +85,28 @@ if records:
                             attrs="{'invisible': [('state', 'in', ['terminated', 'archived'])]}"
                             confirm="Are you sure you want to unlink this VM from Odoo? The virtual machine on the hypervisor will NOT be deleted."/>
 
+                    <!-- Кнопка для визарда конфигурации VM -->
                     <button name="%(action_vm_config_wizard)d" type="action"
                             string="Configure Resources"
                             class="btn-secondary"
                             attrs="{'invisible': [('state', '!=', 'pending')]}"
                             context="{'default_cores': cores, 'default_memory': memory, 'default_disk': disk}"/>
 
+                    <!-- Кнопка нормализации ресурсов с использованием traits -->
                     <button name="normalize_vm_resources" type="object"
                             string="Normalize Resources"
                             class="btn-secondary"
                             attrs="{'invisible': [('state', '!=', 'pending')]}"
                             help="Adjust resources to standard values using VM traits"/>
 
+                    <!-- Статусная строка -->
                     <field name="state" widget="statusbar"
                            statusbar_visible="pending,active,stopped,suspended,failed,terminated,archived"/>
                 </header>
 
                 <sheet>
                     <div class="oe_button_box" name="button_box">
+                        <!-- Умные кнопки -->
                         <button class="oe_stat_button" type="object" name="action_view_snapshots" icon="fa-camera">
                             <field string="Snapshots" name="snapshot_count" widget="statinfo"/>
                         </button>
@@ -108,6 +122,7 @@ if records:
                         </h1>
                     </div>
 
+                    <!-- Основная информация -->
                     <group>
                         <group string="General Information">
                             <field name="partner_id" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
@@ -121,8 +136,10 @@ if records:
                         </group>
                     </group>
 
+                    <!-- Информация о ресурсах с использованием traits -->
                     <group>
                         <group string="VM Resources (Enhanced with Traits)">
+                            <!-- Основные поля ресурсов -->
                             <label for="cores" class="oe_inline"/>
                             <div class="o_row">
                                 <field name="cores" attrs="{'readonly': [('state', '!=', 'pending')]}"/>
@@ -139,11 +156,9 @@ if records:
                                 <span>GiB Disk</span>
                             </div>
 
+                            <!-- Computed поля из traits -->
                             <field name="vm_resource_summary" readonly="1" string="Resource Summary"/>
-                            <field name="vm_resource_category" readonly="1" string="Category"
-                                   widget="badge" decoration-info="vm_resource_category in ['nano', 'micro']"
-                                   decoration-success="vm_resource_category in ['small', 'medium']"
-                                   decoration-warning="vm_resource_category in ['large', 'xlarge']"/>
+                            <field name="vm_resource_category" readonly="1" string="Category"/>
                             <field name="vm_estimated_boot_time" readonly="1" string="Est. Boot Time (sec)"/>
                         </group>
 
@@ -156,6 +171,7 @@ if records:
                     </group>
 
                     <notebook>
+                        <!-- Конфигурация гипервизора (только для pending состояния) -->
                         <page string="Hypervisor Configuration" name="hypervisor_config"
                               attrs="{'invisible': [('state', '!=', 'pending')]}">
                             <group>
@@ -188,6 +204,7 @@ if records:
                                 </group>
                             </group>
 
+                            <!-- Предустановленные конфигурации -->
                             <separator string="Quick Configuration Templates"/>
                             <div class="o_row">
                                 <button string="Nano (1C/512M/5G)" type="object" name="set_nano_config" class="btn-outline-secondary"/>
@@ -198,6 +215,7 @@ if records:
                             </div>
                         </page>
 
+                        <!-- Заказы -->
                         <page string="Sale Orders">
                             <field name="sale_order_ids" readonly="1">
                                 <tree>
@@ -210,6 +228,7 @@ if records:
                             </field>
                         </page>
 
+                        <!-- Снапшоты -->
                         <page string="Snapshots">
                             <field name="snapshot_ids" readonly="1">
                                 <tree>
@@ -221,6 +240,7 @@ if records:
                             </field>
                         </page>
 
+                        <!-- Резервные копии конфигурации -->
                         <page string="Configuration Backups">
                             <field name="config_backup_ids" readonly="1">
                                 <tree>
@@ -231,6 +251,7 @@ if records:
                             </field>
                         </page>
 
+                        <!-- Техническая информация -->
                         <page string="Technical Details" groups="base.group_no_one">
                             <group>
                                 <group string="Identifiers">
@@ -249,6 +270,7 @@ if records:
                     </notebook>
                 </sheet>
 
+                <!-- Chatter для сообщений и активностей -->
                 <div class="oe_chatter">
                     <field name="message_follower_ids"/>
                     <field name="activity_ids"/>
@@ -258,16 +280,19 @@ if records:
         </field>
     </record>
 
+    <!-- Расширенный поиск VM -->
     <record id="view_vm_instance_search" model="ir.ui.view">
         <field name="name">vm_rental.machine.search</field>
         <field name="model">vm_rental.machine</field>
         <field name="arch" type="xml">
             <search string="VM Instances">
+                <!-- Поисковые поля -->
                 <field name="name" string="VM Name"/>
                 <field name="partner_id" string="Customer"/>
                 <field name="hypervisor_vm_ref" string="VM ID"/>
                 <field name="hypervisor_server_id" string="Server"/>
 
+                <!-- Фильтры -->
                 <separator/>
                 <filter string="Active" name="active" domain="[('state', '=', 'active')]"/>
                 <filter string="Pending" name="pending" domain="[('state', '=', 'pending')]"/>
@@ -283,6 +308,7 @@ if records:
                 <filter string="Expired" name="expired"
                         domain="[('end_date', '&lt;', context_today().strftime('%Y-%m-%d'))]"/>
 
+                <!-- Фильтры по ресурсам (используя traits) -->
                 <separator/>
                 <filter string="Nano VMs" name="nano" domain="[('vm_resource_category', '=', 'nano')]"/>
                 <filter string="Micro VMs" name="micro" domain="[('vm_resource_category', '=', 'micro')]"/>
@@ -291,6 +317,7 @@ if records:
                 <filter string="Large VMs" name="large" domain="[('vm_resource_category', '=', 'large')]"/>
                 <filter string="XLarge VMs" name="xlarge" domain="[('vm_resource_category', '=', 'xlarge')]"/>
 
+                <!-- Группировка -->
                 <separator/>
                 <group expand="0" string="Group By">
                     <filter string="State" name="group_state" context="{'group_by': 'state'}"/>
@@ -305,6 +332,7 @@ if records:
         </field>
     </record>
 
+    <!-- Канбан вид для VM -->
     <record id="view_vm_instance_kanban" model="ir.ui.view">
         <field name="name">vm_rental.machine.kanban</field>
         <field name="model">vm_rental.machine</field>
@@ -384,6 +412,7 @@ if records:
         </field>
     </record>
 
+    <!-- Действие для VM Instances -->
     <record id="action_vm_instance" model="ir.actions.act_window">
         <field name="name">VM Instances</field>
         <field name="res_model">vm_rental.machine</field>

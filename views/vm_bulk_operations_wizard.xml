@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Визард для массовых операций с VM -->
     <record id="view_vm_bulk_operations_wizard" model="ir.ui.view">
         <field name="name">vm.bulk.operations.wizard.form</field>
         <field name="model">vm.bulk.operations.wizard</field>
@@ -12,16 +13,22 @@
                         <field name="vm_count" readonly="1" string="Selected VMs"/>
                     </group>
 
-                    <group string="Configuration" attrs="{'invisible': [('operation_type', '!=', 'apply_config')]}">
-                        <field name="target_category" required="1" attrs="{'invisible': [('operation_type', '!=', 'apply_config')]}"/>
+                    <group string="Configuration"
+                           attrs="{'invisible': [('operation_type', '!=', 'apply_config')]}">
+                        <field name="target_category" required="1"
+                               attrs="{'invisible': [('operation_type', '!=', 'apply_config')]}"/>
                     </group>
 
-                    <group string="State Change" attrs="{'invisible': [('operation_type', '!=', 'change_state')]}">
-                        <field name="target_state" required="1" attrs="{'invisible': [('operation_type', '!=', 'change_state')]}"/>
+                    <group string="State Change"
+                           attrs="{'invisible': [('operation_type', '!=', 'change_state')]}">
+                        <field name="target_state" required="1"
+                               attrs="{'invisible': [('operation_type', '!=', 'change_state')]}"/>
                     </group>
 
-                    <group string="Subscription Extension" attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')]}">
-                        <field name="extend_months" required="1" attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')]}"/>
+                    <group string="Subscription Extension"
+                           attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')]}">
+                        <field name="extend_months" required="1"
+                               attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')]}"/>
                     </group>
                 </group>
 
@@ -37,13 +44,15 @@
                 </group>
 
                 <footer>
-                    <button name="execute_operation" type="object" string="Execute Operation" class="btn-primary"/>
+                    <button name="execute_operation" type="object"
+                            string="Execute Operation" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>
     </record>
 
+    <!-- Действие для массовых операций -->
     <record id="action_vm_bulk_operations" model="ir.actions.act_window">
         <field name="name">Bulk Operations</field>
         <field name="res_model">vm.bulk.operations.wizard</field>

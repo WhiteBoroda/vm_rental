@@ -53,20 +53,6 @@
         sequence="80"/>
 
     <menuitem
-        id="menu_vm_dashboard"
-        name="VM Dashboard"
-        parent="menu_vm_reports_submenu"
-        action="action_vm_dashboard"
-        sequence="5"/>
-
-    <menuitem
-        id="menu_vm_resource_report"
-        name="Resource Reports"
-        parent="menu_vm_reports_submenu"
-        action="action_vm_resource_report"
-        sequence="10"/>
-
-    <menuitem
         id="menu_vm_admin_report"
         name="All Virtual Machines"
         parent="menu_vm_reports_submenu"

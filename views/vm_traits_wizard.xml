@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Визард для быстрого создания VM конфигураций -->
+    <!-- Визард для быстрого создания VM конфигураций с traits -->
     <record id="view_vm_config_wizard_form" model="ir.ui.view">
         <field name="name">vm.config.wizard.form</field>
         <field name="model">vm.config.wizard</field>
@@ -10,9 +10,15 @@
                 <group>
                     <group string="Quick Configuration">
                         <field name="config_type" widget="radio"/>
-                        <field name="os_type" attrs="{'invisible': [('config_type', '!=', 'recommended')]}"/>
+                        <field name="predefined_config"
+                               attrs="{'invisible': [('config_type', '!=', 'predefined')],
+                                       'required': [('config_type', '=', 'predefined')]}"/>
+                        <field name="os_type"
+                               attrs="{'invisible': [('config_type', '!=', 'recommended')],
+                                       'required': [('config_type', '=', 'recommended')]}"/>
                     </group>
-                    <group string="Custom Configuration" attrs="{'invisible': [('config_type', '!=', 'custom')]}">
+                    <group string="Custom Configuration"
+                           attrs="{'invisible': [('config_type', '!=', 'custom')]}">
                         <field name="cores"/>
                         <field name="memory"/>
                         <field name="disk"/>
@@ -27,19 +33,21 @@
                 </group>
 
                 <footer>
-                    <button name="apply_configuration" type="object" string="Apply Configuration" class="btn-primary"/>
+                    <button name="apply_configuration" type="object"
+                            string="Apply Configuration" class="btn-primary"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
         </field>
     </record>
 
-    <!-- Действие для визарда -->
+    <!-- Действие для визарда конфигурации VM -->
     <record id="action_vm_config_wizard" model="ir.actions.act_window">
         <field name="name">VM Configuration Wizard</field>
         <field name="res_model">vm.config.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <field name="context">{}</field>
     </record>
 
 </odoo>

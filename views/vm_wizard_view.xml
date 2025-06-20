@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- ФАЙЛ: views/vm_wizards_views.xml -->
+<odoo>
+
+    <!-- Визард для быстрого создания VM конфигураций -->
+    <record id="view_vm_config_wizard_form" model="ir.ui.view">
+        <field name="name">vm.config.wizard.form</field>
+        <field name="model">vm.config.wizard</field>
+        <field name="arch" type="xml">
+            <form string="VM Configuration Wizard">
+                <group>
+                    <group string="Quick Configuration">
+                        <field name="config_type" widget="radio"/>
+                        <field name="predefined_config" attrs="{'invisible': [('config_type', '!=', 'predefined')], 'required': [('config_type', '=', 'predefined')]}"/>
+                        <field name="os_type" attrs="{'invisible': [('config_type', '!=', 'recommended')], 'required': [('config_type', '=', 'recommended')]}"/>
+                    </group>
+                    <group string="Custom Configuration" attrs="{'invisible': [('config_type', '!=', 'custom')]}">
+                        <field name="cores"/>
+                        <field name="memory"/>
+                        <field name="disk"/>
+                    </group>
+                </group>
+
+                <group string="Preview" attrs="{'invisible': [('config_type', '=', False)]}">
+                    <field name="resource_summary" readonly="1"/>
+                    <field name="resource_category" readonly="1"/>
+                    <field name="estimated_boot_time" readonly="1"/>
+                    <field name="estimated_price" readonly="1"/>
+                </group>
+
+                <footer>
+                    <button name="apply_configuration" type="object" string="Apply Configuration" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Действие для визарда -->
+    <record id="action_vm_config_wizard" model="ir.actions.act_window">
+        <field name="name">VM Configuration Wizard</field>
+        <field name="res_model">vm.config.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Визард для массовых операций -->
+    <record id="view_vm_bulk_operations_wizard" model="ir.ui.view">
+        <field name="name">vm.bulk.operations.wizard.form</field>
+        <field name="model">vm.bulk.operations.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Bulk Operations">
+                <group>
+                    <group string="Operation Details">
+                        <field name="operation_type" widget="radio"/>
+                        <field name="vm_count" readonly="1" string="Selected VMs"/>
+                    </group>
+
+                    <group string="Configuration" attrs="{'invisible': [('operation_type', '!=', 'apply_config')]}">
+                        <field name="target_category" required="1" attrs="{'invisible': [('operation_type', '!=', 'apply_config')]}"/>
+                    </group>
+
+                    <group string="State Change" attrs="{'invisible': [('operation_type', '!=', 'change_state')]}">
+                        <field name="target_state" required="1" attrs="{'invisible': [('operation_type', '!=', 'change_state')]}"/>
+                    </group>
+
+                    <group string="Subscription Extension" attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')]}">
+                        <field name="extend_months" required="1" attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')]}"/>
+                    </group>
+                </group>
+
+                <group string="Selected VMs">
+                    <field name="vm_ids" nolabel="1" readonly="1">
+                        <tree>
+                            <field name="name"/>
+                            <field name="state"/>
+                            <field name="vm_resource_category"/>
+                            <field name="partner_id"/>
+                        </tree>
+                    </field>
+                </group>
+
+                <footer>
+                    <button name="execute_operation" type="object" string="Execute Operation" class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vm_bulk_operations" model="ir.actions.act_window">
+        <field name="name">Bulk Operations</field>
+        <field name="res_model">vm.bulk.operations.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_vm_rental_machine"/>
+        <field name="binding_view_types">list</field>
+    </record>
+
+</odoo>
