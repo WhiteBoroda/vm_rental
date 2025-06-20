@@ -1,6 +1,11 @@
 # controllers/vm_api.py
 from odoo import http, fields
 from odoo.http import request
+from odoo.exceptions import AccessError, MissingError
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class VMAPIController(http.Controller):
 
@@ -12,7 +17,61 @@ class VMAPIController(http.Controller):
             ('id', '=', int(vm_id)),
             ('partner_id', 'child_of', partner.commercial_partner_id.id)
         ], limit=1)
-        return vm  # ИСПРАВЛЕНО: добавлен return
+        return vm
+
+    def _check_portal_vm_access(self, vm_id, required_operations=None):
+        """
+        Улучшенная проверка доступа для портальных пользователей
+
+        Args:
+            vm_id: ID виртуальной машины
+            required_operations: список операций ['read', 'write', 'state_change']
+
+        Returns:
+            vm: объект VM или None если доступ запрещен
+        """
+        if required_operations is None:
+            required_operations = ['read']
+
+        try:
+            # Получаем VM с проверкой прав доступа
+            vm = request.env['vm_rental.machine'].browse(int(vm_id))
+
+            # Проверяем основные права доступа
+            vm.check_access_rights('read')
+            vm.check_access_rule('read')
+
+            # Дополнительные проверки для портальных пользователей
+            if request.env.user.has_group('base.group_portal'):
+                partner = request.env.user.partner_id
+
+                # Проверяем владение VM
+                if vm.partner_id.id not in partner.commercial_partner_id.child_ids.ids + [
+                    partner.commercial_partner_id.id]:
+                    return None
+
+                # Проверяем состояние VM (портальные пользователи не могут работать с terminated/archived)
+                if vm.state in ['terminated', 'archived']:
+                    return None
+
+                # Проверяем специфичные операции
+                if 'write' in required_operations or 'state_change' in required_operations:
+                    # Портальные пользователи могут изменять только состояние активных VM
+                    if vm.state not in ['active', 'stopped', 'suspended']:
+                        return None
+
+                    # Проверяем права на write (должны быть разрешены в security)
+                    try:
+                        vm.check_access_rights('write')
+                        vm.check_access_rule('write')
+                    except Exception:
+                        return None
+
+            return vm
+
+        except Exception as e:
+            _logger.warning(f"VM access check failed for VM {vm_id}, user {request.env.user.name}: {e}")
+            return None
 
     def _vm_action(self, vm_id, action, state_after, state_text):
         """
@@ -188,71 +247,42 @@ class VMAPIController(http.Controller):
 
     @http.route('/vm/<int:vm_id>/snapshot/<string:proxmox_name>/delete', type='json', auth='user', methods=['POST'])
     def delete_vm_snapshot(self, vm_id, proxmox_name):
-        vm = self._get_user_vm(vm_id)
+        vm = self._check_portal_vm_access(vm_id, required_operations=['read', 'write'])
+        if not vm:
+            return {'success': False, 'error': 'Access Denied or VM not found'}
+
         # Проверка снапшота в Odoo
-        snap = request.env['vm.snapshot'].sudo().search([('proxmox_name', '=', proxmox_name), ('vm_instance_id', '=', vm.id)], limit=1)
-        if not vm or not snap:
-            return {'success': False, 'error': 'Access Denied or Snapshot not found'}
+        snap = request.env['vm.snapshot'].sudo().search([
+            ('proxmox_name', '=', proxmox_name),
+            ('vm_instance_id', '=', vm.id)
+        ], limit=1)
 
-        # ИСПРАВЛЕНИЕ: Вызываем универсальный сервис и поля
-        service = vm._get_hypervisor_service()
-        result = service.delete_snapshot(vm.hypervisor_node_name, vm.hypervisor_vm_ref, proxmox_name)
-
-        if result:
-            snap.sudo().unlink()
-            return {'success': True}
-        return {'success': False, 'error': 'Failed to delete snapshot in Hypervisor.'}
-
-    def _check_portal_vm_access(self, vm_id, required_operations=None):
-        """
-        Улучшенная проверка доступа для портальных пользователей
-
-        Args:
-            vm_id: ID виртуальной машины
-            required_operations: список операций ['read', 'write', 'state_change']
-
-        Returns:
-            vm: объект VM или None если доступ запрещен
-        """
-        if required_operations is None:
-            required_operations = ['read']
+        if not snap:
+            return {'success': False, 'error': 'Snapshot not found'}
 
         try:
-            # Получаем VM с проверкой прав доступа
-            vm = request.env['vm_rental.machine'].browse(int(vm_id))
+            # Вызываем универсальный сервис и поля
+            service = vm._get_hypervisor_service()
+            result = service.delete_snapshot(vm.hypervisor_node_name, vm.hypervisor_vm_ref, proxmox_name)
 
-            # Проверяем основные права доступа
-            vm.check_access_rights('read')
-            vm.check_access_rule('read')
+            if result:
+                # Логируем удаление снапшота
+                request.env['vm_rental.audit_log'].sudo().log_action(
+                    vm_id=vm.id,
+                    action='snapshot_delete',
+                    success=True,
+                    metadata={
+                        'snapshot_name': snap.name,
+                        'user': request.env.user.name,
+                        'portal_action': True
+                    }
+                )
 
-            # Дополнительные проверки для портальных пользователей
-            if request.env.user.has_group('base.group_portal'):
-                partner = request.env.user.partner_id
+                snap.sudo().unlink()
+                return {'success': True}
 
-                # Проверяем владение VM
-                if vm.partner_id.id not in partner.commercial_partner_id.child_ids.ids + [
-                    partner.commercial_partner_id.id]:
-                    return None
-
-                # Проверяем состояние VM (портальные пользователи не могут работать с terminated/archived)
-                if vm.state in ['terminated', 'archived']:
-                    return None
-
-                # Проверяем специфичные операции
-                if 'write' in required_operations or 'state_change' in required_operations:
-                    # Портальные пользователи могут изменять только состояние активных VM
-                    if vm.state not in ['active', 'stopped', 'suspended']:
-                        return None
-
-                    # Проверяем права на write (должны быть разрешены в security)
-                    try:
-                        vm.check_access_rights('write')
-                        vm.check_access_rule('write')
-                    except Exception:
-                        return None
-
-            return vm
+            return {'success': False, 'error': 'Failed to delete snapshot in Hypervisor.'}
 
         except Exception as e:
-            _logger.warning(f"VM access check failed for VM {vm_id}, user {request.env.user.name}: {e}")
-            return None
+            _logger.error(f"Snapshot deletion failed for VM {vm.id}: {e}")
+            return {'success': False, 'error': 'Snapshot deletion failed. Please try again later.'}
