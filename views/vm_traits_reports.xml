@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Отчет по использованию ресурсов -->
+    <record id="view_vm_resource_report" model="ir.ui.view">
+        <field name="name">vm.resource.report</field>
+        <field name="model">vm_rental.machine</field>
+        <field name="arch" type="xml">
+            <pivot string="VM Resource Utilization Report">
+                <field name="vm_resource_category" type="row"/>
+                <field name="hypervisor_server_id" type="row"/>
+                <field name="state" type="col"/>
+                <field name="cores" type="measure"/>
+                <field name="memory" type="measure"/>
+                <field name="disk" type="measure"/>
+                <field name="total_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- График распределения ресурсов -->
+    <record id="view_vm_resource_graph" model="ir.ui.view">
+        <field name="name">vm.resource.graph</field>
+        <field name="model">vm_rental.machine</field>
+        <field name="arch" type="xml">
+            <graph string="VM Resource Distribution" type="pie">
+                <field name="vm_resource_category"/>
+                <field name="cores" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Действие для отчета по ресурсам -->
+    <record id="action_vm_resource_report" model="ir.actions.act_window">
+        <field name="name">VM Resource Report</field>
+        <field name="res_model">vm_rental.machine</field>
+        <field name="view_mode">pivot,graph</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+                                      (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_vm_resource_report')}),
+                                      (0, 0, {'view_mode': 'graph', 'view_id': ref('view_vm_resource_graph')})]"/>
+        <field name="domain">[('state', '!=', 'terminated')]</field>
+        <field name="context">{'search_default_active': 1}</field>
+    </record>
+
+    <!-- Dashboard для VM метрик -->
+    <record id="view_vm_dashboard" model="ir.ui.view">
+        <field name="name">vm.dashboard</field>
+        <field name="model">vm_rental.machine</field>
+        <field name="arch" type="xml">
+            <dashboard>
+                <view type="graph" ref="view_vm_resource_graph"/>
+                <view type="pivot" ref="view_vm_resource_report"/>
+                <group string="Quick Stats">
+                    <group string="VM States" col="2">
+                        <filter name="active_vms" string="Active VMs" domain="[('state', '=', 'active')]"/>
+                        <filter name="pending_vms" string="Pending VMs" domain="[('state', '=', 'pending')]"/>
+                        <filter name="failed_vms" string="Failed VMs" domain="[('state', '=', 'failed')]"/>
+                    </group>
+                    <group string="Resource Categories" col="3">
+                        <filter name="nano_vms" string="Nano VMs" domain="[('vm_resource_category', '=', 'nano')]"/>
+                        <filter name="micro_vms" string="Micro VMs" domain="[('vm_resource_category', '=', 'micro')]"/>
+                        <filter name="small_vms" string="Small VMs" domain="[('vm_resource_category', '=', 'small')]"/>
+                        <filter name="medium_vms" string="Medium VMs" domain="[('vm_resource_category', '=', 'medium')]"/>
+                        <filter name="large_vms" string="Large VMs" domain="[('vm_resource_category', '=', 'large')]"/>
+                        <filter name="xlarge_vms" string="XLarge VMs" domain="[('vm_resource_category', '=', 'xlarge')]"/>
+                    </group>
+                </group>
+            </dashboard>
+        </field>
+    </record>
+
+    <!-- Действие для dashboard -->
+    <record id="action_vm_dashboard" model="ir.actions.act_window">
+        <field name="name">VM Dashboard</field>
+        <field name="res_model">vm_rental.machine</field>
+        <field name="view_mode">dashboard</field>
+        <field name="view_id" ref="view_vm_dashboard"/>
+    </record>
+
+</odoo>

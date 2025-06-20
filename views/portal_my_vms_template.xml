@@ -24,34 +24,99 @@
 
                   <div class="card-body">
                     <p class="text-muted" t-if="vm.hypervisor_vm_ref">
-                        <i class="fa fa-server mr-1"/> <t t-esc="vm.hypervisor_vm_ref"/>
+                        <i class="fa fa-server mr-1"/> ID: <t t-esc="vm.hypervisor_vm_ref"/>
                     </p>
-                    <p t-if="vm.end_date">
+
+                    <!-- ДОБАВЛЯЕМ информацию о ресурсах из миксина -->
+                    <div class="small text-muted mb-2">
+                        <div class="row">
+                            <div class="col-4 text-center">
+                                <i class="fa fa-microchip text-primary"></i><br/>
+                                <strong><t t-esc="vm.cores"/></strong><br/>
+                                <small>CPU</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <i class="fa fa-memory text-success"></i><br/>
+                                <strong><t t-esc="vm.memory"/></strong><br/>
+                                <small>MiB RAM</small>
+                            </div>
+                            <div class="col-4 text-center">
+                                <i class="fa fa-hdd-o text-info"></i><br/>
+                                <strong><t t-esc="vm.disk"/></strong><br/>
+                                <small>GiB Disk</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr class="my-2"/>
+
+                    <p t-if="vm.end_date" class="mb-0">
                         <i class="fa fa-calendar-times-o mr-1"/>
-                        Subscription expires on <span t-esc="vm.end_date" t-options='{"widget": "date"}'/>
+                        <small>Expires: <span t-esc="vm.end_date" t-options='{"widget": "date"}'/></small>
+                    </p>
+
+                    <p t-if="vm.is_trial" class="mb-0">
+                        <span class="badge badge-warning">
+                            <i class="fa fa-gift mr-1"/> Trial Period
+                        </span>
                     </p>
                   </div>
 
                   <div class="card-footer bg-white vm-actions-cell">
+                    <!-- Основные действия управления -->
                     <div class="mb-2">
-                        <button t-att-data-vmid="vm.id" t-att-class="'btn btn-success btn-block start-vm ' + ('d-none' if vm.state == 'active' else '')">
+                        <button t-att-data-vmid="vm.id"
+                                t-att-class="'btn btn-success btn-block start-vm ' + ('d-none' if vm.state == 'active' else '')"
+                                t-att-disabled="vm.state in ['pending', 'failed']">
                             <i class="fa fa-play mr-1"/> Start
                         </button>
-                        <button t-att-data-vmid="vm.id" t-att-class="'btn btn-warning btn-block stop-vm ' + ('d-none' if vm.state != 'active' else '')">
+
+                        <button t-att-data-vmid="vm.id"
+                                t-att-class="'btn btn-warning btn-block stop-vm ' + ('d-none' if vm.state != 'active' else '')">
                             <i class="fa fa-stop mr-1"/> Stop
                         </button>
+
+                        <div t-if="vm.state == 'pending'" class="btn btn-secondary btn-block disabled">
+                            <i class="fa fa-clock-o mr-1"/> Provisioning...
+                        </div>
+
+                        <div t-if="vm.state == 'failed'" class="btn btn-danger btn-block disabled">
+                            <i class="fa fa-exclamation-triangle mr-1"/> Provisioning Failed
+                        </div>
                     </div>
 
-                    <div class="btn-group w-100" role="group">
-                         <button t-att-data-vmid="vm.id" t-att-class="'btn btn-sm btn-info reboot-vm w-50 ' + ('d-none' if vm.state != 'active' else '')">
+                    <!-- Дополнительные действия -->
+                    <div class="btn-group w-100 mb-2" role="group">
+                         <button t-att-data-vmid="vm.id"
+                                 t-att-class="'btn btn-sm btn-info reboot-vm w-50 ' + ('d-none' if vm.state != 'active' else '')"
+                                 title="Reboot VM">
                             <i class="fa fa-refresh mr-1"/> Reboot
                         </button>
-                         <a t-attf-href="/my/vms/#{vm.id}/snapshots" t-att-class="'btn btn-sm btn-secondary ' + ('w-50' if vm.state == 'active' else 'w-100')">
+
+                         <a t-attf-href="/my/vms/#{vm.id}/snapshots"
+                            t-att-class="'btn btn-sm btn-secondary ' + ('w-50' if vm.state == 'active' else 'w-100')"
+                            title="Manage Snapshots">
                             <i class="fa fa-camera-retro mr-1"/> Snapshots
                         </a>
                     </div>
-                    <a t-if="vm.hypervisor_vm_ref" t-attf-href="/my/vms/console/#{vm.id}" class="btn btn-sm btn-dark btn-block mt-2" target="_blank" title="Open Console" role="button">
+
+                    <!-- Консоль (только для активных VM) -->
+                    <a t-if="vm.hypervisor_vm_ref and vm.state == 'active'"
+                       t-attf-href="/my/vms/console/#{vm.id}"
+                       class="btn btn-sm btn-dark btn-block"
+                       target="_blank"
+                       title="Open Console"
+                       role="button">
                         <i class="fa fa-terminal mr-1"/> Open Console
+                    </a>
+
+                    <!-- Ссылка на детали для неактивных VM -->
+                    <a t-if="vm.state != 'active'"
+                       t-attf-href="/my/vms/#{vm.id}"
+                       class="btn btn-sm btn-outline-primary btn-block"
+                       title="View Details"
+                       role="button">
+                        <i class="fa fa-info-circle mr-1"/> View Details
                     </a>
                   </div>
 
@@ -59,37 +124,272 @@
               </div>
             </t>
           </div>
+
+          <!-- Пагинация -->
+          <t t-if="pager">
+              <t t-call="portal.pager"/>
+          </t>
+
         </t>
         <t t-else="">
-            <div class="alert alert-info" role="alert">
-              You do not have any virtual machines yet.
+            <div class="alert alert-info text-center" role="alert">
+                <h4><i class="fa fa-info-circle mr-2"></i>No Virtual Machines</h4>
+                <p class="mb-3">You don't have any virtual machines yet.</p>
+                <a href="/shop" class="btn btn-primary">
+                    <i class="fa fa-plus mr-1"></i> Order Your First VM
+                </a>
             </div>
         </t>
-        </div>
+      </div>
     </t>
   </template>
 
+  <!-- Статус badges для VM -->
   <template id="portal_vm_status_badge">
-    <span t-if="vm.state == 'active'" class="badge badge-success">Active</span>
-    <span t-if="vm.state == 'stopped'" class="badge badge-secondary">Stopped</span>
-    <span t-if="vm.state == 'suspended'" class="badge badge-warning">Suspended</span>
-    <span t-if="vm.state == 'pending'" class="badge badge-info">Pending</span>
-    <span t-if="vm.state == 'failed'" class="badge badge-danger">Failed</span>
-    <span t-if="vm.state in ['terminated', 'archived']" class="badge badge-dark">Archived</span>
+    <span t-if="vm.state == 'active'" class="badge badge-success">
+        <i class="fa fa-check-circle mr-1"></i>Active
+    </span>
+    <span t-if="vm.state == 'stopped'" class="badge badge-secondary">
+        <i class="fa fa-stop-circle mr-1"></i>Stopped
+    </span>
+    <span t-if="vm.state == 'suspended'" class="badge badge-warning">
+        <i class="fa fa-pause-circle mr-1"></i>Suspended
+    </span>
+    <span t-if="vm.state == 'pending'" class="badge badge-info">
+        <i class="fa fa-clock-o mr-1"></i>Pending
+    </span>
+    <span t-if="vm.state == 'failed'" class="badge badge-danger">
+        <i class="fa fa-times-circle mr-1"></i>Failed
+    </span>
+    <span t-if="vm.state in ['terminated', 'archived']" class="badge badge-dark">
+        <i class="fa fa-archive mr-1"></i>Archived
+    </span>
   </template>
 
+  <!-- Страница ошибки для портала -->
   <template id="portal_error_page" name="Portal Error Page">
     <t t-call="portal.portal_layout">
         <div id="wrap">
             <div class="container">
                 <div class="alert alert-danger mt-4" role="alert">
-                    <h4 class="alert-heading"><t t-esc="status_code or 'Error'"/></h4>
+                    <h4 class="alert-heading">
+                        <i class="fa fa-exclamation-triangle mr-2"></i>
+                        <t t-esc="status_code or 'Error'"/>
+                    </h4>
                     <p><t t-esc="status_message or 'An unexpected error occurred.'"/></p>
                     <hr/>
-                    <p class="mb-0">Please contact the administrator if the problem persists.</p>
+                    <p class="mb-0">
+                        <i class="fa fa-envelope mr-1"></i>
+                        Please contact the administrator if the problem persists.
+                    </p>
+                </div>
+                <div class="text-center mt-4">
+                    <a href="/my/vms" class="btn btn-primary">
+                        <i class="fa fa-arrow-left mr-1"></i> Back to My VMs
+                    </a>
                 </div>
             </div>
         </div>
     </t>
   </template>
+
+  <!-- НОВЫЙ ШАБЛОН: Детальная страница VM -->
+  <template id="portal_vm_detail" name="VM Details">
+    <t t-call="portal.portal_layout">
+      <div class="container">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/my">My Account</a></li>
+            <li class="breadcrumb-item"><a href="/my/vms">Virtual Machines</a></li>
+            <li class="breadcrumb-item active" aria-current="page"><t t-esc="vm.name"/></li>
+          </ol>
+        </nav>
+
+        <div class="row">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h3 class="mb-0">
+                    <i class="fa fa-server mr-2"></i>
+                    <t t-esc="vm.name"/>
+                </h3>
+                <t t-call="vm_rental.portal_vm_status_badge"/>
+              </div>
+
+              <div class="card-body">
+                <div class="row">
+                  <!-- VM Information -->
+                  <div class="col-md-6">
+                    <h5><i class="fa fa-info-circle mr-2 text-primary"></i>VM Information</h5>
+                    <table class="table table-sm table-borderless">
+                      <tr>
+                        <td class="font-weight-bold">VM ID:</td>
+                        <td><code><t t-esc="vm.hypervisor_vm_ref or 'Not assigned'"/></code></td>
+                      </tr>
+                      <tr>
+                        <td class="font-weight-bold">Node/Cluster:</td>
+                        <td><t t-esc="vm.hypervisor_node_name or 'Not assigned'"/></td>
+                      </tr>
+                      <tr>
+                        <td class="font-weight-bold">Hypervisor:</td>
+                        <td><t t-esc="vm.hypervisor_server_id.name if vm.hypervisor_server_id else 'Not configured'"/></td>
+                      </tr>
+                      <tr>
+                        <td class="font-weight-bold">Start Date:</td>
+                        <td><t t-esc="vm.start_date" t-options='{"widget": "date"}'/></td>
+                      </tr>
+                      <tr>
+                        <td class="font-weight-bold">End Date:</td>
+                        <td><t t-esc="vm.end_date" t-options='{"widget": "date"}'/></td>
+                      </tr>
+                      <tr t-if="vm.is_trial">
+                        <td class="font-weight-bold">Trial Period:</td>
+                        <td><span class="badge badge-warning">Yes</span></td>
+                      </tr>
+                    </table>
+                  </div>
+
+                  <!-- Resource Configuration -->
+                  <div class="col-md-6">
+                    <h5><i class="fa fa-cog mr-2 text-success"></i>Resource Configuration</h5>
+                    <table class="table table-sm table-borderless">
+                      <tr>
+                        <td class="font-weight-bold">
+                            <i class="fa fa-microchip text-primary mr-1"></i>
+                            CPU Cores:
+                        </td>
+                        <td><span class="badge badge-primary"><t t-esc="vm.cores"/></span></td>
+                      </tr>
+                      <tr>
+                        <td class="font-weight-bold">
+                            <i class="fa fa-memory text-success mr-1"></i>
+                            Memory:
+                        </td>
+                        <td><span class="badge badge-success"><t t-esc="vm.memory"/> MiB</span></td>
+                      </tr>
+                      <tr>
+                        <td class="font-weight-bold">
+                            <i class="fa fa-hdd-o text-info mr-1"></i>
+                            Disk Space:
+                        </td>
+                        <td><span class="badge badge-info"><t t-esc="vm.disk"/> GiB</span></td>
+                      </tr>
+                    </table>
+
+                    <!-- Resource Summary Box -->
+                    <div class="alert alert-light mt-3">
+                        <h6 class="alert-heading">Resource Summary</h6>
+                        <p class="mb-0">
+                            <t t-esc="vm.cores"/> CPU Core<t t-if="vm.cores != 1">s</t> •
+                            <t t-esc="vm.memory"/> MiB RAM •
+                            <t t-esc="vm.disk"/> GiB Storage
+                        </p>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row mt-4">
+                  <div class="col-12">
+                    <h5><i class="fa fa-play-circle mr-2 text-warning"></i>Quick Actions</h5>
+                    <div class="btn-toolbar" role="toolbar">
+                      <div class="btn-group mr-2" role="group">
+                        <a t-attf-href="/my/vms/#{vm.id}/snapshots" class="btn btn-outline-secondary">
+                          <i class="fa fa-camera-retro mr-1"></i> Manage Snapshots
+                        </a>
+                        <a t-if="vm.hypervisor_vm_ref and vm.state == 'active'"
+                           t-attf-href="/my/vms/console/#{vm.id}"
+                           class="btn btn-outline-dark"
+                           target="_blank">
+                          <i class="fa fa-terminal mr-1"></i> Open Console
+                        </a>
+                      </div>
+                      <div class="btn-group" role="group">
+                        <a href="/my/vms" class="btn btn-outline-primary">
+                          <i class="fa fa-arrow-left mr-1"></i> Back to VM List
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="row mt-4">
+          <div class="col-12">
+            <div class="card">
+              <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fa fa-history mr-2"></i>Recent Activity
+                </h5>
+              </div>
+              <div class="card-body">
+                <t t-if="vm.message_ids">
+                  <div class="timeline">
+                    <t t-foreach="vm.message_ids[:5]" t-as="message">
+                      <div class="timeline-item">
+                        <small class="text-muted">
+                          <t t-esc="message.date" t-options='{"widget": "datetime"}'/>
+                        </small>
+                        <p class="mb-1" t-esc="message.body"/>
+                      </div>
+                    </t>
+                  </div>
+                </t>
+                <t t-else="">
+                  <p class="text-muted">No recent activity.</p>
+                </t>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </t>
+  </template>
+
+  <!-- Дополнительные CSS стили для портала -->
+  <template id="portal_vm_styles" name="Portal VM Styles">
+    <style>
+      .vm-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      }
+
+      .vm-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      }
+
+      .timeline-item {
+        border-left: 2px solid #dee2e6;
+        padding-left: 1rem;
+        margin-bottom: 1rem;
+      }
+
+      .timeline-item:last-child {
+        margin-bottom: 0;
+      }
+
+      .resource-icon {
+        font-size: 1.2em;
+      }
+
+      .vm-status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 5px;
+      }
+
+      .status-active .vm-status-indicator { background-color: #28a745; }
+      .status-stopped .vm-status-indicator { background-color: #6c757d; }
+      .status-suspended .vm-status-indicator { background-color: #ffc107; }
+      .status-pending .vm-status-indicator { background-color: #17a2b8; }
+      .status-failed .vm-status-indicator { background-color: #dc3545; }
+    </style>
+  </template>
+
 </odoo>

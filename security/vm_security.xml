@@ -2,23 +2,40 @@
 <odoo>
     <data noupdate="1">
 
+        <!-- ===== ГРУППЫ БЕЗОПАСНОСТИ (без изменений) ===== -->
+
         <record id="group_vm_rental_manager" model="res.groups">
             <field name="name">VM Rental / Manager</field>
             <field name="category_id" ref="base.module_category_hidden"/>
             <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+            <field name="comment">VM Rental managers can create, modify and delete VMs, manage hypervisor settings</field>
         </record>
 
+        <record id="group_vm_rental_admin" model="res.groups">
+            <field name="name">VM Rental / Administrator</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('group_vm_rental_manager')), (4, ref('base.group_system'))]"/>
+            <field name="comment">VM Rental administrators have full access to all VM rental features and settings</field>
+        </record>
+
+        <!-- ===== ИСПРАВЛЕННЫЕ ПРАВИЛА ДОСТУПА ДЛЯ VM INSTANCES ===== -->
+
+        <!-- ИСПРАВЛЕНИЕ: Портальные пользователи могут изменять ТОЛЬКО состояние своих VM -->
         <record id="vm_instance_portal_user_rule" model="ir.rule">
-            <field name="name">VM Instance: Portal User Own Documents</field>
+            <field name="name">VM Instance: Portal User Can Manage Own VMs</field>
             <field name="model_id" ref="model_vm_rental_machine"/>
             <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
             <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="False"/>
+            <field name="perm_write" eval="True"/>  <!-- ИСПРАВЛЕНИЕ: разрешаем write -->
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>
-            <field name="domain_force">[('partner_id', '=', user.partner_id.id)]</field>        
+            <field name="domain_force">[
+                ('partner_id', 'child_of', user.partner_id.commercial_partner_id.id),
+                ('state', 'not in', ['terminated', 'archived'])
+            ]</field>
         </record>
 
+        <!-- Менеджеры видят все VM (без изменений) -->
         <record id="vm_instance_manager_rule" model="ir.rule">
             <field name="name">VM Instance Manager Rule</field>
             <field name="model_id" ref="model_vm_rental_machine"/>
@@ -26,7 +43,7 @@
             <field name="domain_force">[(1, '=', 1)]</field>
         </record>
 
-         <!-- Правило для внутренних пользователей -->
+        <!-- Внутренние пользователи видят все VM (без изменений) -->
         <record id="vm_rental_machine_user_rule" model="ir.rule">
             <field name="name">Internal users can see all VMs</field>
             <field name="model_id" ref="model_vm_rental_machine"/>
@@ -34,15 +51,143 @@
             <field name="groups" eval="[(4, ref('base.group_user'))]"/>
         </record>
 
+        <!-- ===== ИСПРАВЛЕННЫЕ ПРАВИЛА ДЛЯ SNAPSHOTS ===== -->
+
+        <!-- ИСПРАВЛЕНИЕ: Портальные пользователи могут создавать снапшоты своих VM -->
         <record id="vm_snapshot_portal_user_rule" model="ir.rule">
-            <field name="name">VM Snapshot: Portal User Own Documents</field>
+            <field name="name">VM Snapshot: Portal User Can Manage Own VM Snapshots</field>
             <field name="model_id" ref="model_vm_snapshot"/>
             <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>   <!-- ИСПРАВЛЕНИЕ: разрешаем write -->
+            <field name="perm_create" eval="True"/>  <!-- ИСПРАВЛЕНИЕ: разрешаем create -->
+            <field name="perm_unlink" eval="False"/> <!-- Удаление запрещено -->
+            <field name="domain_force">[('vm_instance_id.partner_id', 'child_of', user.partner_id.commercial_partner_id.id)]</field>
+        </record>
+
+        <!-- ===== ПРАВИЛА ДОСТУПА ДЛЯ AUDIT LOGS ===== -->
+
+        <!-- ИСПРАВЛЕНИЕ: Портальные пользователи могут создавать audit записи (для логирования действий) -->
+        <record id="vm_audit_log_portal_rule" model="ir.rule">
+            <field name="name">VM Audit Log: Portal users see own VM logs</field>
+            <field name="model_id" ref="model_vm_rental_audit_log"/>
+            <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="True"/>  <!-- ИСПРАВЛЕНИЕ: разрешаем create для логирования -->
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[('vm_id.partner_id', 'child_of', user.partner_id.commercial_partner_id.id)]</field>
+        </record>
+
+        <!-- Audit logs для внутренних пользователей -->
+        <record id="vm_audit_log_user_rule" model="ir.rule">
+            <field name="name">VM Audit Log: User can see own VM logs</field>
+            <field name="model_id" ref="model_vm_rental_audit_log"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[
+                '|',
+                ('vm_id.partner_id', '=', user.partner_id.id),
+                ('user_id', '=', user.id)
+            ]</field>
+        </record>
+
+        <!-- ===== ПРАВИЛА ДОСТУПА ДЛЯ CONFIG BACKUPS (без изменений) ===== -->
+
+        <record id="vm_config_backup_user_rule" model="ir.rule">
+            <field name="name">VM Config Backup: User can see own VM backups</field>
+            <field name="model_id" ref="model_vm_rental_config_backup"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[('vm_id.partner_id', '=', user.partner_id.id)]</field>
+        </record>
+
+        <!-- ===== ПРАВИЛА ДОСТУПА ДЛЯ HYPERVISOR RESOURCES (без изменений) ===== -->
+
+        <record id="hypervisor_server_admin_rule" model="ir.rule">
+            <field name="name">Hypervisor Server: Admin Full Access</field>
+            <field name="model_id" ref="model_hypervisor_server"/>
+            <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="hypervisor_node_user_rule" model="ir.rule">
+            <field name="name">Hypervisor Node: User Read Access</field>
+            <field name="model_id" ref="model_hypervisor_node"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>
-            <field name="domain_force">[('vm_instance_id.partner_id', 'child_of', user.partner_id.commercial_partner_id.id)]</field>
+        </record>
+
+        <record id="hypervisor_storage_user_rule" model="ir.rule">
+            <field name="name">Hypervisor Storage: User Read Access</field>
+            <field name="model_id" ref="model_hypervisor_storage"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="hypervisor_template_user_rule" model="ir.rule">
+            <field name="name">Hypervisor Template: User Read Access</field>
+            <field name="model_id" ref="model_hypervisor_template"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <!-- ===== ПРАВИЛА ДОСТУПА ДЛЯ LINKING JOBS (без изменений) ===== -->
+
+        <record id="linking_job_user_rule" model="ir.rule">
+            <field name="name">Linking Job: User can see own jobs</field>
+            <field name="model_id" ref="model_vm_rental_linking_job"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <!-- ===== ПРАВИЛА ДЛЯ WIZARDS (без изменений) ===== -->
+
+        <record id="vm_config_wizard_user_rule" model="ir.rule">
+            <field name="name">VM Config Wizard: User Access</field>
+            <field name="model_id" ref="model_vm_config_wizard"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        </record>
+
+        <record id="vm_bulk_operations_wizard_manager_rule" model="ir.rule">
+            <field name="name">VM Bulk Operations: Manager Access</field>
+            <field name="model_id" ref="model_vm_bulk_operations_wizard"/>
+            <field name="groups" eval="[(4, ref('group_vm_rental_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="vm_bulk_operations_wizard_user_rule" model="ir.rule">
+            <field name="name">VM Bulk Operations: Limited User Access</field>
+            <field name="model_id" ref="model_vm_bulk_operations_wizard"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
         </record>
 
     </data>

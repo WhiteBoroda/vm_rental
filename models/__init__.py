@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from . import vm_traits
 from . import hypervisor_server
 from . import hypervisor_resources
 from . import product_attribute

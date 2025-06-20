@@ -1,9 +1,9 @@
-# vm_rental/models/sale_order.py
 from odoo import models, fields, api, _
 import logging
-import re # <-- Добавлен импорт
+import re
 
 _logger = logging.getLogger(__name__)
+
 
 class SaleOrder(models.Model):
     _inherit = 'sale.order'
@@ -16,7 +16,6 @@ class SaleOrder(models.Model):
     )
     vm_instance_id_state = fields.Selection(related='vm_instance_id.state', string="VM State", readonly=True)
 
-    # Добавляем этот метод для вызова из кнопки
     def action_retry_vm_creation(self):
         self.ensure_one()
         if self.vm_instance_id:
@@ -28,38 +27,42 @@ class SaleOrder(models.Model):
         for order in self.filtered(lambda o: o.state == 'sale' and not o.vm_instance_id):
             for line in order.order_line:
                 product = line.product_id
+                # Проверяем, является ли продукт товаром для аренды ВМ
                 if not product.hypervisor_server_id:
                     continue
 
-                # ИСПРАВЛЕНИЕ: Правильная обработка конфигурации
-                vm_config = {'cores': 1, 'memory': 1024, 'disk': 10}  # Значения по умолчанию
+                # ИСПРАВЛЕНИЕ: Теперь используем поля из миксина
+                vm_config = {
+                    'cores': product.cores or 1,  # Поле из миксина
+                    'memory': product.memory or 1024,  # Поле из миксина
+                    'disk': product.disk or 10  # Поле из миксина
+                }
 
-                # Сначала пытаемся взять из атрибутов продукта
+                # Дополнительно проверяем атрибуты продукта для переопределения
                 if product.product_template_attribute_value_ids:
                     for attr_line in product.product_template_attribute_value_ids:
                         attribute_name = attr_line.attribute_id.name.lower()
                         attr_value = attr_line.product_attribute_value_id
 
-                        if attr_value.proxmox_value:  # Используем специальное поле
+                        # Используем proxmox_value если есть, иначе парсим имя
+                        value_to_parse = attr_value.proxmox_value or attr_value.name
+                        numeric_match = re.search(r'\d+', str(value_to_parse))
+
+                        if numeric_match:
                             try:
-                                numeric_value = int(attr_value.proxmox_value)
+                                numeric_value = int(numeric_match.group(0))
                                 if 'cpu' in attribute_name or 'core' in attribute_name:
                                     vm_config['cores'] = numeric_value
                                 elif 'ram' in attribute_name or 'memory' in attribute_name:
-                                    vm_config['memory'] = numeric_value
+                                    vm_config[
+                                        'memory'] = numeric_value * 1024 if numeric_value < 100 else numeric_value  # Автоматическое преобразование GB в MB
                                 elif 'disk' in attribute_name:
                                     vm_config['disk'] = numeric_value
                             except (ValueError, TypeError):
-                                _logger.warning(
-                                    f"Invalid proxmox_value for attribute {attribute_name}: {attr_value.proxmox_value}")
+                                _logger.warning(f"Invalid value for attribute {attribute_name}: {value_to_parse}")
 
-                # Если конфигурация не была собрана из атрибутов, берем из полей продукта
-                if vm_config['cores'] == 1 and hasattr(product, 'vm_cores'):
-                    vm_config['cores'] = product.vm_cores or 1
-                if vm_config['memory'] == 1024 and hasattr(product, 'vm_memory'):
-                    vm_config['memory'] = product.vm_memory or 1024
-                if vm_config['disk'] == 10 and hasattr(product, 'vm_disk'):
-                    vm_config['disk'] = product.vm_disk or 10
+                _logger.info(f"Preparing to create VM for order {order.name} with config: {vm_config}")
 
                 self.env['vm_rental.machine'].create_from_order(order, line, vm_config)
+
         return res

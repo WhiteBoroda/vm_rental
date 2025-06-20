@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- Демо продукты с использованием traits -->
+        <record id="demo_vm_product_nano" model="product.template">
+            <field name="name">VM Nano</field>
+            <field name="type">service</field>
+            <field name="list_price">5.0</field>
+            <field name="cores">1</field>
+            <field name="memory">512</field>
+            <field name="disk">5</field>
+            <field name="has_trial_period">True</field>
+            <field name="trial_period_days">3</field>
+        </record>
+
+        <record id="demo_vm_product_micro" model="product.template">
+            <field name="name">VM Micro</field>
+            <field name="type">service</field>
+            <field name="list_price">10.0</field>
+            <field name="cores">1</field>
+            <field name="memory">1024</field>
+            <field name="disk">10</field>
+            <field name="has_trial_period">True</field>
+            <field name="trial_period_days">7</field>
+        </record>
+
+        <record id="demo_vm_product_small" model="product.template">
+            <field name="name">VM Small</field>
+            <field name="type">service</field>
+            <field name="list_price">20.0</field>
+            <field name="cores">2</field>
+            <field name="memory">2048</field>
+            <field name="disk">20</field>
+            <field name="has_trial_period">True</field>
+            <field name="trial_period_days">7</field>
+        </record>
+
+        <record id="demo_vm_product_medium" model="product.template">
+            <field name="name">VM Medium</field>
+            <field name="type">service</field>
+            <field name="list_price">40.0</field>
+            <field name="cores">4</field>
+            <field name="memory">4096</field>
+            <field name="disk">50</field>
+        </record>
+
+    </data>
+</odoo>

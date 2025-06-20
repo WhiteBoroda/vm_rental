@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Добавляем VM в главное меню портала -->
+    <template id="portal_my_home_menu_vm" name="Portal layout : VM menu entries" inherit_id="portal.portal_breadcrumbs" priority="40">
+        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
+            <li class="breadcrumb-item">
+                <a t-attf-href="/my/vms?{{ keep_query() }}">Virtual Machines</a>
+            </li>
+        </xpath>
+    </template>
+
+    <!-- Добавляем VM в основное меню портала (домашняя страница) -->
+    <template id="portal_my_home_vm" name="Portal My Home : VM entries" inherit_id="portal.portal_my_home" priority="40">
+        <div class="o_portal_docs" position="inside">
+            <t t-call="portal.portal_docs_entry">
+                <t t-set="title">Virtual Machines</t>
+                <t t-set="url" t-value="'/my/vms'"/>
+                <t t-set="placeholder_count" t-value="'vms_count'"/>
+            </t>
+        </div>
+    </template>
+
+    <!-- Обновляем стандартный layout портала для VM страниц -->
+    <template id="portal_layout_vm" name="Portal layout : VM pages" inherit_id="portal.portal_layout">
+        <xpath expr="//div[@class='o_portal_sidebar']" position="inside">
+            <!-- Добавляем сайдбар для VM страниц -->
+            <t t-if="page_name and page_name.startswith('vm')">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fa fa-server mr-2"></i>VM Management
+                        </h5>
+                    </div>
+                    <div class="list-group list-group-flush">
+                        <a href="/my/vms" t-attf-class="list-group-item list-group-item-action #{'active' if page_name == 'vms' else ''}">
+                            <i class="fa fa-list mr-2"></i>All Virtual Machines
+                        </a>
+                        <a href="/my/vms?filterby=active" t-attf-class="list-group-item list-group-item-action">
+                            <i class="fa fa-play-circle mr-2 text-success"></i>Active VMs
+                        </a>
+                        <a href="/my/vms?filterby=pending" t-attf-class="list-group-item list-group-item-action">
+                            <i class="fa fa-clock-o mr-2 text-info"></i>Pending VMs
+                        </a>
+                        <a href="/my/vms?filterby=trial" t-attf-class="list-group-item list-group-item-action">
+                            <i class="fa fa-gift mr-2 text-warning"></i>Trial VMs
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Добавляем быстрые ссылки для конкретной VM -->
+                <t t-if="vm and page_name in ['vm_detail', 'vm_snapshots', 'vm_console']">
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fa fa-server mr-2"></i>
+                                <t t-esc="vm.name"/>
+                            </h6>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <a t-attf-href="/my/vms/#{vm.id}" t-attf-class="list-group-item list-group-item-action #{'active' if page_name == 'vm_detail' else ''}">
+                                <i class="fa fa-info-circle mr-2"></i>VM Details
+                            </a>
+                            <a t-attf-href="/my/vms/#{vm.id}/snapshots" t-attf-class="list-group-item list-group-item-action #{'active' if page_name == 'vm_snapshots' else ''}">
+                                <i class="fa fa-camera-retro mr-2"></i>Snapshots
+                            </a>
+                            <a t-if="vm.state == 'active' and vm.hypervisor_vm_ref"
+                               t-attf-href="/my/vms/console/#{vm.id}"
+                               t-attf-class="list-group-item list-group-item-action #{'active' if page_name == 'vm_console' else ''}"
+                               target="_blank">
+                                <i class="fa fa-terminal mr-2"></i>Console
+                            </a>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </xpath>
+    </template>
+
+    <!-- Добавляем breadcrumbs для VM страниц -->
+    <template id="portal_breadcrumbs_vm" name="Portal Breadcrumbs : VM" inherit_id="portal.portal_breadcrumbs" priority="40">
+        <xpath expr="//ol[hasclass('breadcrumb')]" position="inside">
+            <!-- Breadcrumb для списка VM -->
+            <li t-if="page_name == 'vms'" class="breadcrumb-item active">Virtual Machines</li>
+
+            <!-- Breadcrumb для детальной страницы VM -->
+            <li t-if="page_name == 'vm_detail'" class="breadcrumb-item">
+                <a href="/my/vms">Virtual Machines</a>
+            </li>
+            <li t-if="page_name == 'vm_detail'" class="breadcrumb-item active">
+                <t t-esc="vm.name"/>
+            </li>
+
+            <!-- Breadcrumb для снапшотов -->
+            <li t-if="page_name == 'vm_snapshots'" class="breadcrumb-item">
+                <a href="/my/vms">Virtual Machines</a>
+            </li>
+            <li t-if="page_name == 'vm_snapshots'" class="breadcrumb-item">
+                <a t-attf-href="/my/vms/#{vm.id}"><t t-esc="vm.name"/></a>
+            </li>
+            <li t-if="page_name == 'vm_snapshots'" class="breadcrumb-item active">Snapshots</li>
+        </xpath>
+    </template>
+
+    <!-- Добавляем CSS стили для VM портала -->
+    <template id="vm_portal_assets" name="VM Portal Assets">
+        <xpath expr="." position="inside">
+            <link rel="stylesheet" type="text/css" href="/vm_rental/static/src/css/portal.css"/>
+        </xpath>
+    </template>
+
+</odoo>

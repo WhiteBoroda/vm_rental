@@ -6,17 +6,83 @@
         <field name="inherit_id" ref="product.product_template_form_view"/>
         <field name="arch" type="xml">
             <xpath expr="//page[@name='sales']" position="inside">
-                <group name="vm_rental" string="VM Rental Configuration">
-                    <group>
+                <group name="vm_rental" string="VM Rental Configuration" attrs="{'invisible': [('hypervisor_server_id', '=', False)]}">
+                    <group string="Hypervisor Settings">
                         <field name="hypervisor_server_id"/>
                         <field name="hypervisor_node_id"/>
                         <field name="hypervisor_storage_id"/>
                         <field name="hypervisor_template_id"/>
                     </group>
+
+                    <group string="VM Resources">
+                        <!-- Поля ресурсов с использованием traits -->
+                        <label for="cores" class="oe_inline"/>
+                        <div class="o_row">
+                            <field name="cores" class="oe_inline"/><span>CPU Cores</span>
+                        </div>
+                        <label for="memory" class="oe_inline"/>
+                        <div class="o_row">
+                            <field name="memory" class="oe_inline"/><span>MiB RAM</span>
+                        </div>
+                        <label for="disk" class="oe_inline"/>
+                        <div class="o_row">
+                            <field name="disk" class="oe_inline"/><span>GiB Disk</span>
+                        </div>
+
+                        <!-- Computed поля из traits -->
+                        <field name="vm_resource_summary" readonly="1" string="Summary"/>
+                        <field name="vm_resource_category" readonly="1" string="Category"/>
+                        <field name="vm_estimated_boot_time" readonly="1" string="Est. Boot Time (sec)"/>
+                    </group>
+
                     <group string="Trial Period">
                         <field name="has_trial_period"/>
                         <field name="trial_period_days" attrs="{'invisible': [('has_trial_period', '=', False)]}"/>
                     </group>
+
+                    <!-- Кнопки для работы с traits -->
+                    <div class="oe_button_box" attrs="{'invisible': [('hypervisor_server_id', '=', False)]}">
+                        <button name="normalize_vm_resources" type="object"
+                                string="Normalize Resources"
+                                class="btn-secondary"
+                                help="Adjust resources to standard values"/>
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Добавляем поля ресурсов в список продуктов -->
+    <record id="product_template_tree_view_vm_rental" model="ir.ui.view">
+        <field name="name">product.template.tree.vm.rental</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_tree_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='list_price']" position="after">
+                <field name="vm_resource_category" optional="hide" string="VM Type"/>
+                <field name="cores" optional="hide" string="CPU"/>
+                <field name="memory" optional="hide" string="RAM (MiB)"/>
+                <field name="disk" optional="hide" string="Disk (GiB)"/>
+                <field name="hypervisor_server_id" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Поиск продуктов по VM характеристикам -->
+    <record id="product_template_search_view_vm_rental" model="ir.ui.view">
+        <field name="name">product.template.search.vm.rental</field>
+        <field name="model">product.template</field>
+        <field name="inherit_id" ref="product.product_template_search_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter string="VM Products" name="vm_products" domain="[('hypervisor_server_id', '!=', False)]"/>
+                <filter string="Trial Products" name="trial_products" domain="[('has_trial_period', '=', True)]"/>
+                <separator/>
+                <group expand="0" string="VM Resources">
+                    <filter string="Category" name="group_vm_category" context="{'group_by': 'vm_resource_category'}"/>
+                    <filter string="CPU Cores" name="group_cores" context="{'group_by': 'cores'}"/>
+                    <filter string="Hypervisor" name="group_hypervisor" context="{'group_by': 'hypervisor_server_id'}"/>
                 </group>
             </xpath>
         </field>
