@@ -1,62 +1,57 @@
-# =============================================================================
-# ИСПРАВЛЕННЫЙ ФАЙЛ: security/ir.model.access.csv
-# =============================================================================
-
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 # VM Rental Machine Access
-access_vm_instance_user,vm_rental.machine user,model_vm_rental_machine,base.group_user,1,1,1,0
-access_vm_instance_manager,vm_rental.machine manager,model_vm_rental_machine,vm_rental.group_vm_rental_manager,1,1,1,1
-# ИСПРАВЛЕНИЕ: Портальные пользователи получают права на write для управления состоянием VM
-access_vm_instance_portal,vm_rental.machine portal user,model_vm_rental_machine,base.group_portal,1,1,0,0
+access_vm_instance_user,vm_rental.machine user,vm_rental.model_vm_rental_machine,base.group_user,1,1,1,0
+access_vm_instance_manager,vm_rental.machine manager,vm_rental.model_vm_rental_machine,vm_rental.group_vm_rental_manager,1,1,1,1
+access_vm_instance_portal,vm_rental.machine portal user,vm_rental.model_vm_rental_machine,base.group_portal,1,1,0,0
 
 # VM Template Access (legacy - may be removed if not used)
-access_vm_template_user,vm.template user,model_vm_template,base.group_user,1,1,1,1
+access_vm_template_user,vm.template user,vm_rental.model_vm_template,base.group_user,1,1,1,1
 
-# VM Snapshots Access - ИСПРАВЛЕНИЕ: портальные пользователи могут создавать снапшоты
-access_vm_snapshot_user,vm.snapshot user,model_vm_snapshot,base.group_user,1,1,1,1
-access_vm_snapshot_portal,vm.snapshot portal user,model_vm_snapshot,base.group_portal,1,1,1,0
+# VM Snapshots Access
+access_vm_snapshot_user,vm.snapshot user,vm_rental.model_vm_snapshot,base.group_user,1,1,1,1
+access_vm_snapshot_portal,vm.snapshot portal user,vm_rental.model_vm_snapshot,base.group_portal,1,1,1,0
 
-# Hypervisor Server Access (без изменений)
-access_hypervisor_server_admin,hypervisor.server admin,model_hypervisor_server,base.group_system,1,1,1,1
-access_hypervisor_server_user,hypervisor.server user,model_hypervisor_server,base.group_user,1,0,0,0
-access_hypervisor_server_manager,hypervisor.server manager,model_hypervisor_server,vm_rental.group_vm_rental_manager,1,1,0,0
-access_hypervisor_server_portal,hypervisor.server portal user,model_hypervisor_server,base.group_portal,1,0,0,0
+# Hypervisor Server Access
+access_hypervisor_server_admin,hypervisor.server admin,vm_rental.model_hypervisor_server,base.group_system,1,1,1,1
+access_hypervisor_server_user,hypervisor.server user,vm_rental.model_hypervisor_server,base.group_user,1,0,0,0
+access_hypervisor_server_manager,hypervisor.server manager,vm_rental.model_hypervisor_server,vm_rental.group_vm_rental_manager,1,1,0,0
+access_hypervisor_server_portal,hypervisor.server portal user,vm_rental.model_hypervisor_server,base.group_portal,1,0,0,0
 
-# Hypervisor Resources Access (без изменений)
-access_hypervisor_node_user,hypervisor.node user,model_hypervisor_node,base.group_user,1,0,0,0
-access_hypervisor_node_admin,hypervisor.node admin,model_hypervisor_node,base.group_system,1,1,1,1
-access_hypervisor_node_manager,hypervisor.node manager,model_hypervisor_node,vm_rental.group_vm_rental_manager,1,1,0,0
+# Hypervisor Resources Access
+access_hypervisor_node_user,hypervisor.node user,vm_rental.model_hypervisor_node,base.group_user,1,0,0,0
+access_hypervisor_node_admin,hypervisor.node admin,vm_rental.model_hypervisor_node,base.group_system,1,1,1,1
+access_hypervisor_node_manager,hypervisor.node manager,vm_rental.model_hypervisor_node,vm_rental.group_vm_rental_manager,1,1,0,0
 
-access_hypervisor_storage_user,hypervisor.storage user,model_hypervisor_storage,base.group_user,1,0,0,0
-access_hypervisor_storage_admin,hypervisor.storage admin,model_hypervisor_storage,base.group_system,1,1,1,1
-access_hypervisor_storage_manager,hypervisor.storage manager,model_hypervisor_storage,vm_rental.group_vm_rental_manager,1,1,0,0
+access_hypervisor_storage_user,hypervisor.storage user,vm_rental.model_hypervisor_storage,base.group_user,1,0,0,0
+access_hypervisor_storage_admin,hypervisor.storage admin,vm_rental.model_hypervisor_storage,base.group_system,1,1,1,1
+access_hypervisor_storage_manager,hypervisor.storage manager,vm_rental.model_hypervisor_storage,vm_rental.group_vm_rental_manager,1,1,0,0
 
-access_hypervisor_template_user,hypervisor.template user,model_hypervisor_template,base.group_user,1,0,0,0
-access_hypervisor_template_admin,hypervisor.template admin,model_hypervisor_template,base.group_system,1,1,1,1
-access_hypervisor_template_manager,hypervisor.template manager,model_hypervisor_template,vm_rental.group_vm_rental_manager,1,1,0,0
+access_hypervisor_template_user,hypervisor.template user,vm_rental.model_hypervisor_template,base.group_user,1,0,0,0
+access_hypervisor_template_admin,hypervisor.template admin,vm_rental.model_hypervisor_template,base.group_system,1,1,1,1
+access_hypervisor_template_manager,hypervisor.template manager,vm_rental.model_hypervisor_template,vm_rental.group_vm_rental_manager,1,1,0,0
 
-# VM Linking Jobs Access (без изменений)
-access_linking_job_system,vm_rental.linking_job system,model_vm_rental_linking_job,base.group_system,1,1,1,1
-access_linking_job_manager,vm_rental.linking_job manager,model_vm_rental_linking_job,vm_rental.group_vm_rental_manager,1,1,1,1
-access_linking_job_user,vm_rental.linking_job user,model_vm_rental_linking_job,base.group_user,1,0,0,0
+# VM Linking Jobs Access
+access_linking_job_system,vm_rental.linking_job system,vm_rental.model_vm_rental_linking_job,base.group_system,1,1,1,1
+access_linking_job_manager,vm_rental.linking_job manager,vm_rental.model_vm_rental_linking_job,vm_rental.group_vm_rental_manager,1,1,1,1
+access_linking_job_user,vm_rental.linking_job user,vm_rental.model_vm_rental_linking_job,base.group_user,1,0,0,0
 
-access_linking_job_line_system,vm_rental.linking_job.line system,model_vm_rental_linking_job_line,base.group_system,1,1,1,1
-access_linking_job_line_manager,vm_rental.linking_job.line manager,model_vm_rental_linking_job_line,vm_rental.group_vm_rental_manager,1,1,1,1
-access_linking_job_line_user,vm_rental.linking_job.line user,model_vm_rental_linking_job_line,base.group_user,1,0,0,0
+access_linking_job_line_system,vm_rental.linking_job.line system,vm_rental.model_vm_rental_linking_job_line,base.group_system,1,1,1,1
+access_linking_job_line_manager,vm_rental.linking_job.line manager,vm_rental.model_vm_rental_linking_job_line,vm_rental.group_vm_rental_manager,1,1,1,1
+access_linking_job_line_user,vm_rental.linking_job.line user,vm_rental.model_vm_rental_linking_job_line,base.group_user,1,0,0,0
 
-# VM Audit Log Access (без изменений)
-access_vm_audit_log_user,vm_rental.audit_log user,model_vm_rental_audit_log,base.group_user,1,1,1,0
-access_vm_audit_log_admin,vm_rental.audit_log admin,model_vm_rental_audit_log,base.group_system,1,1,1,1
-access_vm_audit_log_manager,vm_rental.audit_log manager,model_vm_rental_audit_log,vm_rental.group_vm_rental_manager,1,1,1,1
+# VM Audit Log Access
+access_vm_audit_log_user,vm_rental.audit_log user,vm_rental.model_vm_rental_audit_log,base.group_user,1,1,1,0
+access_vm_audit_log_admin,vm_rental.audit_log admin,vm_rental.model_vm_rental_audit_log,base.group_system,1,1,1,1
+access_vm_audit_log_manager,vm_rental.audit_log manager,vm_rental.model_vm_rental_audit_log,vm_rental.group_vm_rental_manager,1,1,1,1
 
-# VM Configuration Backup Access (без изменений)
-access_vm_config_backup_user,vm_rental.config_backup user,model_vm_rental_config_backup,base.group_user,1,1,1,0
-access_vm_config_backup_admin,vm_rental.config_backup admin,model_vm_rental_config_backup,base.group_system,1,1,1,1
-access_vm_config_backup_manager,vm_rental.config_backup manager,model_vm_rental_config_backup,vm_rental.group_vm_rental_manager,1,1,1,1
+# VM Configuration Backup Access
+access_vm_config_backup_user,vm_rental.config_backup user,vm_rental.model_vm_rental_config_backup,base.group_user,1,1,1,0
+access_vm_config_backup_admin,vm_rental.config_backup admin,vm_rental.model_vm_rental_config_backup,base.group_system,1,1,1,1
+access_vm_config_backup_manager,vm_rental.config_backup manager,vm_rental.model_vm_rental_config_backup,vm_rental.group_vm_rental_manager,1,1,1,1
 
-# Wizards Access (без изменений)
-access_vm_config_wizard_user,vm.config.wizard user,model_vm_config_wizard,base.group_user,1,1,1,1
-access_vm_config_wizard_manager,vm.config.wizard manager,model_vm_config_wizard,vm_rental.group_vm_rental_manager,1,1,1,1
+# Wizards Access
+access_vm_config_wizard_user,vm.config.wizard user,vm_rental.model_vm_config_wizard,base.group_user,1,1,1,1
+access_vm_config_wizard_manager,vm.config.wizard manager,vm_rental.model_vm_config_wizard,vm_rental.group_vm_rental_manager,1,1,1,1
 
-access_vm_bulk_operations_wizard_user,vm.bulk.operations.wizard user,model_vm_bulk_operations_wizard,base.group_user,1,1,1,1
-access_vm_bulk_operations_wizard_manager,vm.bulk.operations.wizard manager,model_vm_bulk_operations_wizard,vm_rental.group_vm_rental_manager,1,1,1,1
+access_vm_bulk_operations_wizard_user,vm.bulk.operations.wizard user,vm_rental.model_vm_bulk_operations_wizard,base.group_user,1,1,1,1
+access_vm_bulk_operations_wizard_manager,vm.bulk.operations.wizard manager,vm_rental.model_vm_bulk_operations_wizard,vm_rental.group_vm_rental_manager,1,1,1,1

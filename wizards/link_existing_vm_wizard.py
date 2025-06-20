@@ -5,6 +5,7 @@ import logging
 
 _logger = logging.getLogger(__name__)
 
+
 # ИЗМЕНЕНИЕ: TransientModel -> Model
 class VmLinkingJob(models.Model):
     _name = 'vm_rental.linking_job'
@@ -12,27 +13,30 @@ class VmLinkingJob(models.Model):
 
     name = fields.Char(string="Job Name", required=True, copy=False, readonly=True, default=lambda self: _('New'))
     state = fields.Selection([('draft', 'Draft'), ('done', 'Done')], string="Status", default='draft', readonly=True)
-    
-    hypervisor_server_id = fields.Many2one('hypervisor.server', string="Hypervisor Server", required=True, readonly=True, states={'draft': [('readonly', False)]})
-    partner_id = fields.Many2one('res.partner', string="Customer", required=True, readonly=True, states={'draft': [('readonly', False)]})
-    
+
+    hypervisor_server_id = fields.Many2one('hypervisor.server', string="Hypervisor Server", required=True,
+                                           readonly=True, states={'draft': [('readonly', False)]})
+    partner_id = fields.Many2one('res.partner', string="Customer", required=True, readonly=True,
+                                 states={'draft': [('readonly', False)]})
+
     line_ids = fields.One2many('vm_rental.linking_job.line', 'job_id', string="Available VMs")
 
-    @api.model
-    def create(self, vals):
-        if vals.get('name', _('New')) == _('New'):
-            vals['name'] = self.env['ir.sequence'].next_by_code('vm_rental.linking_job') or _('New')
-        return super(VmLinkingJob, self).create(vals)
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', _('New')) == _('New'):
+                vals['name'] = self.env['ir.sequence'].next_by_code('vm_rental.linking_job') or _('New')
+        return super(VmLinkingJob, self).create(vals_list)
 
     def action_fetch_vms(self):
         """
         ИЗМЕНЕНИЕ: Бывший onchange, теперь - метод кнопки.
         """
         self.ensure_one()
-        self.line_ids.unlink() # Очищаем старые строки перед новым поиском
+        self.line_ids.unlink()  # Очищаем старые строки перед новым поиском
 
         service = self.hypervisor_server_id._get_service_manager()
-        
+
         all_vms_on_server = []
         nodes = self.env['hypervisor.node'].search([('server_id', '=', self.hypervisor_server_id.id)])
         for node in nodes:
@@ -45,7 +49,7 @@ class VmLinkingJob(models.Model):
         linked_vm_refs = self.env['vm_rental.machine'].search([
             ('hypervisor_server_id', '=', self.hypervisor_server_id.id)
         ]).mapped('hypervisor_vm_ref')
-        
+
         lines_vals = []
         for vm_data in all_vms_on_server:
             vm_name = vm_data.get('name')
@@ -61,7 +65,7 @@ class VmLinkingJob(models.Model):
                 'status': vm_data.get('status'),
                 'job_id': self.id,
             })
-        
+
         self.env['vm_rental.linking_job.line'].create(lines_vals)
         return True
 
@@ -83,12 +87,13 @@ class VmLinkingJob(models.Model):
                 'start_date': fields.Date.today(),
             }
             created_vms |= self.env['vm_rental.machine'].create(vals)
-        
+
         self.write({'state': 'done'})
-        
+
         action = self.env['ir.actions.act_window']._for_xml_id('vm_rental.action_vm_instance')
         action['domain'] = [('id', 'in', created_vms.ids)]
         return action
+
 
 # ИЗМЕНЕНИЕ: TransientModel -> Model
 class VmLinkingJobLine(models.Model):

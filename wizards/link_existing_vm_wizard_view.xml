@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Форма для создания задания привязки VM -->
+    <record id="view_vm_linking_job_form" model="ir.ui.view">
+        <field name="name">vm_rental.linking_job.form</field>
+        <field name="model">vm_rental.linking_job</field>
+        <field name="arch" type="xml">
+            <form string="Link Existing VMs">
+                <header>
+                    <button name="action_fetch_vms" type="object"
+                            string="Fetch VMs from Hypervisor"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <button name="action_link_vms" type="object"
+                            string="Link Selected VMs"
+                            class="oe_highlight"
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,done"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Configuration">
+                            <field name="hypervisor_server_id" required="1"/>
+                            <field name="partner_id" required="1"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="Available VMs">
+                            <field name="line_ids">
+                                <tree editable="bottom">
+                                    <field name="should_link"/>
+                                    <field name="name" readonly="1"/>
+                                    <field name="vmid" readonly="1"/>
+                                    <field name="node" readonly="1"/>
+                                    <field name="status" readonly="1"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Список заданий привязки -->
+    <record id="view_vm_linking_job_tree" model="ir.ui.view">
+        <field name="name">vm_rental.linking_job.tree</field>
+        <field name="model">vm_rental.linking_job</field>
+        <field name="arch" type="xml">
+            <tree string="VM Linking Jobs">
+                <field name="name"/>
+                <field name="hypervisor_server_id"/>
+                <field name="partner_id"/>
+                <field name="state"/>
+                <field name="create_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Действие для заданий привязки -->
+    <record id="action_linking_job" model="ir.actions.act_window">
+        <field name="name">Link Existing VMs</field>
+        <field name="res_model">vm_rental.linking_job</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create a linking job to import existing VMs
+            </p>
+            <p>
+                Use this feature to import VMs that already exist on your hypervisors
+                into Odoo for management.
+            </p>
+        </field>
+    </record>
+
+</odoo>

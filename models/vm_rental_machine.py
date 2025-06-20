@@ -624,3 +624,176 @@ class VmInstance(models.Model):
         )
 
         return True
+
+    def action_provision_vm(self):
+        """Провижининг VM на гипервизоре"""
+        self.ensure_one()
+
+        if self.state != 'pending':
+            raise UserError(_("Can only provision pending VMs"))
+
+        if not all([self.hypervisor_server_id, self.hypervisor_node_id,
+                    self.hypervisor_storage_id, self.hypervisor_template_id]):
+            raise UserError(_("Please configure all hypervisor settings before provisioning"))
+
+        try:
+            service = self._get_hypervisor_service()
+
+            # Получаем следующий доступный ID
+            vm_id = service.get_next_vmid()
+            if not vm_id:
+                vm_id = str(int(time.time()))  # Fallback ID
+
+            # Создаем VM на гипервизоре
+            task_result = service.create_vm(
+                node=self.hypervisor_node_id.name,
+                vm_id=vm_id,
+                name=self.name,
+                template_vmid=self.hypervisor_template_id.vmid,
+                cores=self.cores,
+                memory=self.memory,
+                disk=self.disk,
+                storage=self.hypervisor_storage_id.name
+            )
+
+            if task_result:
+                # Обновляем запись VM
+                self.write({
+                    'state': 'active',
+                    'hypervisor_vm_ref': vm_id,
+                    'hypervisor_node_name': self.hypervisor_node_id.name,
+                    'start_date': fields.Date.today(),
+                    'end_date': fields.Date.today() + relativedelta(months=1),
+                })
+
+                self.message_post(
+                    body=_("VM successfully provisioned with ID: %s") % vm_id,
+                    message_type='notification'
+                )
+
+                return True
+            else:
+                self.write({'state': 'failed'})
+                raise UserError(_("VM provisioning failed"))
+
+        except Exception as e:
+            self.write({'state': 'failed'})
+            self.message_post(
+                body=_("VM provisioning failed: %s") % str(e),
+                message_type='notification'
+            )
+            raise UserError(_("VM provisioning failed: %s") % str(e))
+
+    def action_retry_provisioning(self):
+        """Повторная попытка провижининга"""
+        self.ensure_one()
+        self.write({'state': 'pending'})
+        return self.action_provision_vm()
+
+    def action_terminate_vm(self):
+        """Удаление VM с гипервизора"""
+        self.ensure_one()
+
+        if self.state in ['terminated', 'archived']:
+            raise UserError(_("VM is already terminated"))
+
+        try:
+            if self.hypervisor_vm_ref:
+                service = self._get_hypervisor_service()
+                service.delete_vm(self.hypervisor_node_name, self.hypervisor_vm_ref)
+
+            self.write({'state': 'terminated'})
+            self.message_post(
+                body=_("VM terminated and removed from hypervisor"),
+                message_type='notification'
+            )
+
+        except Exception as e:
+            _logger.error(f"Failed to terminate VM {self.name}: {e}")
+            self.message_post(
+                body=_("VM terminated in Odoo but may still exist on hypervisor: %s") % str(e),
+                message_type='notification'
+            )
+            self.write({'state': 'terminated'})
+
+    def extend_period(self, months=1):
+        """Продление периода подписки"""
+        self.ensure_one()
+
+        if not self.end_date:
+            self.end_date = fields.Date.today()
+
+        new_end_date = self.end_date + relativedelta(months=months)
+        self.write({'end_date': new_end_date})
+
+        self.message_post(
+            body=_("Subscription extended by %d months until %s") % (months, new_end_date),
+            message_type='notification'
+        )
+
+    @api.model
+    def create_from_order(self, order, order_line, vm_config):
+        """Создание VM из заказа продажи"""
+        product = order_line.product_id
+
+        # Проверяем, что продукт настроен для VM
+        if not product.hypervisor_server_id:
+            _logger.warning(f"Product {product.name} is not configured for VM rental")
+            return False
+
+        # Создаем VM
+        vm_vals = {
+            'name': f"{product.name} for {order.partner_id.name}",
+            'partner_id': order.partner_id.id,
+            'hypervisor_server_id': product.hypervisor_server_id.id,
+            'hypervisor_node_id': product.hypervisor_node_id.id if product.hypervisor_node_id else False,
+            'hypervisor_storage_id': product.hypervisor_storage_id.id if product.hypervisor_storage_id else False,
+            'hypervisor_template_id': product.hypervisor_template_id.id if product.hypervisor_template_id else False,
+            'cores': vm_config.get('cores', 1),
+            'memory': vm_config.get('memory', 1024),
+            'disk': vm_config.get('disk', 10),
+            'is_trial': product.has_trial_period,
+            'state': 'pending',
+        }
+
+        vm = self.create(vm_vals)
+
+        # Привязываем к заказу
+        order.write({'vm_instance_id': vm.id})
+
+        _logger.info(f"Created VM {vm.name} for order {order.name}")
+        return vm
+
+    @api.model
+    def _cron_check_expiry(self):
+        """CRON задача проверки истечения срока"""
+        today = fields.Date.today()
+        expired_vms = self.search([
+            ('state', '=', 'active'),
+            ('end_date', '<', today)
+        ])
+
+        for vm in expired_vms:
+            try:
+                service = vm._get_hypervisor_service()
+                service.suspend_vm(vm.hypervisor_node_name, vm.hypervisor_vm_ref)
+                vm.write({'state': 'suspended'})
+
+                # Отправляем уведомление
+                template = self.env.ref('vm_rental.mail_vm_expired', raise_if_not_found=False)
+                if template:
+                    template.send_mail(vm.id, force_send=True)
+
+            except Exception as e:
+                _logger.error(f"Failed to suspend expired VM {vm.name}: {e}")
+
+    def action_linking_job(self):
+        """Действие для создания задания привязки VM"""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Link Existing VMs',
+            'res_model': 'vm_rental.linking_job',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {'default_hypervisor_server_id': self.env.context.get('active_id')},
+        }
