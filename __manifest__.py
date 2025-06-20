@@ -51,7 +51,7 @@
     'author': 'Yuri Varaksin',
     'website': 'http://iodoo.info',
     'category': 'Tools',
-    'license': 'Apache-2.0',
+    'license': 'LGPL-3',
     'depends': [
         'base', 'product', 'sale', 'website', 'portal', 'website_sale', 'payment'
     ],
