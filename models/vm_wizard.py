@@ -1,10 +1,4 @@
-# ДОБАВИТЬ В КОНЕЦ models/__init__.py:
-# from . import vm_config_wizard  # убрать эту строку из __init__.py в wizards
-# from . import vm_bulk_operations_wizard  # убрать эту строку из __init__.py в wizards
-
-# =============================================================================
-# СОЗДАТЬ НОВЫЙ ФАЙЛ: models/vm_wizards.py
-# =============================================================================
+# models/vm_wizards.py
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 from .vm_traits import VmResourceTrait, VmOperationTrait

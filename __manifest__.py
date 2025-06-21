@@ -3,53 +3,49 @@
     'version': '1.3.0',
     'summary': 'Advanced VM rental system with composition-based traits architecture',
     'description': """
+VM Rental Module with Advanced Traits Architecture
+==================================================
 
+Enterprise-grade virtual machine rental and management system featuring:
 
+🚀 **Traits Architecture**
+* Composition-based design eliminates inheritance conflicts
+* VmResourceTrait and VmOperationTrait for maximum flexibility
+* Static methods for high performance and easy testing
 
-                                                                            VM Rental Module with Advanced Traits Architectu
-                   e
-                                                         ==================================================
+🎯 **Smart Resource Management**
+* Automatic categorization (nano → micro → small → medium → large → xlarge)
+* OS-specific recommendations (Ubuntu, Windows, Docker, CentOS)
+* Resource normalization to standard values
+* Boot time estimation and price calculation
 
-                                                                            Enterprise-grade virtual machine rental and management system featuring:
+🛠️ **Advanced Features**
+* Configuration wizard with predefined templates
+* Bulk operations for mass VM management
+* Health monitoring and automated checks
+* Comprehensive reporting and analytics
+* Workload-specific configuration suggestions
 
-                                                                            🚀 **Traits Architecture**
-                   * Composition-based design eliminates inheritance conflicts
-                   * VmResourceTrait and VmOperationTrait for maximum flexibility
-                   * Static methods for high performance and easy testing
+⚡ **Automation & Monitoring**
+* Auto-provisioning of pending VMs
+* Health checks for active VMs
+* Automatic cleanup of old terminated VMs
+* Resource utilization statistics
 
-                   🎯 **Smart Resource Management**
-                   * Automatic categorization (nano → micro → small → medium → large → xlarge)
-                   * OS-specific recommendations (Ubuntu, Windows, Docker, CentOS)
-                   * Resource normalization to standard values
-                   * Boot time estimation and price calculation
+🎨 **Enhanced UI/UX**
+* Modern kanban and dashboard views
+* Smart filtering and categorization
+* Resource visualization and reporting
+* Mobile-responsive portal interface
 
-                   🛠️ **Advanced Features**
-                   * Configuration wizard with predefined templates
-                   * Bulk operations for mass VM management
-                   * Health monitoring and automated checks
-                   * Comprehensive reporting and analytics
-                   * Workload-specific configuration suggestions
+📊 **Business Intelligence**
+* Resource utilization reports
+* Hypervisor distribution analytics
+* Revenue tracking and forecasting
+* Performance metrics and KPIs
 
-                   ⚡ **Automation & Monitoring**
-                   * Auto-provisioning of pending VMs
-                   * Health checks for active VMs
-                   * Automatic cleanup of old terminated VMs
-                   * Resource utilization statistics
-
-                   🎨 **Enhanced UI/UX**
-                   * Modern kanban and dashboard views
-                   * Smart filtering and categorization
-                   * Resource visualization and reporting
-                   * Mobile-responsive portal interface
-
-                   📊 **Business Intelligence**
-                   * Resource utilization reports
-                   * Hypervisor distribution analytics
-                   * Revenue tracking and forecasting
-                   * Performance metrics and KPIs
-
-                   Version 1.3.0 introduces the revolutionary traits-based architecture that solves
-                   all inheritance conflicts while providing unprecedented flexibility and performance.
+Version 1.3.0 introduces the revolutionary traits-based architecture that solves
+all inheritance conflicts while providing unprecedented flexibility and performance.
 """,
     'author': 'Yuri Varaksin',
     'website': 'http://iodoo.info',
@@ -64,6 +60,7 @@
     'data': [
         # Security
         'security/vm_security.xml',
+        'security/ir.model.access.csv',
 
         # Data and sequences
         'data/vm_sequence.xml',
@@ -84,7 +81,7 @@
         'views/portal_vm_snapshots.xml',
         'views/portal_menu_templates.xml',
 
-        # Wizards (УПРОЩЕНО: используем только один файл)
+        # Wizards
         'wizards/link_existing_vm_wizard_view.xml',
 
         # Settings and menus
@@ -96,10 +93,7 @@
 
         # Cron jobs
         'data/cron_jobs.xml',
-
-        # Access rights (last)
-        'security/ir.model.access.csv',
-],
+    ],
     'assets': {
         'web.assets_backend': [
             'vm_rental/static/src/js/vm_rental_settings.js',
