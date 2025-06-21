@@ -7,42 +7,42 @@
         <field name="model_id" ref="base.model_res_config_settings"/>
         <field name="state">code</field>
         <field name="code">
-import json
-from datetime import datetime
-
 # Получаем текущие настройки
-config = env['res.config.settings'].create({})
+settings_text = """VM Rental Settings Export
 
-settings = {
-    'vm_rental_default_trial_days': env['ir.config_parameter'].sudo().get_param('vm_rental.default_trial_days', 7),
-    'vm_rental_auto_suspend': env['ir.config_parameter'].sudo().get_param('vm_rental.auto_suspend', True),
-    'vm_rental_max_cores': env['ir.config_parameter'].sudo().get_param('vm_rental.max_cores', 64),
-    'vm_rental_max_memory': env['ir.config_parameter'].sudo().get_param('vm_rental.max_memory', 131072),
-    'vm_rental_max_disk': env['ir.config_parameter'].sudo().get_param('vm_rental.max_disk', 10240),
-    'vm_rental_auto_backup': env['ir.config_parameter'].sudo().get_param('vm_rental.auto_backup', False),
-    'vm_rental_backup_retention_days': env['ir.config_parameter'].sudo().get_param('vm_rental.backup_retention_days', 30),
-    'export_timestamp': datetime.now().isoformat(),
-    'exported_by': env.user.name,
-    'company': env.company.name,
-}
+Default Trial Days: %s
+Auto-suspend Expired VMs: %s
+Maximum CPU Cores: %s
+Maximum Memory (MiB): %s
+Maximum Disk (GiB): %s
+Auto Backup: %s
+Backup Retention Days: %s
 
-# Конвертируем в JSON
-settings_json = json.dumps(settings, indent=2)
-
-# Создаем attachment для скачивания
-filename = f"vm_rental_settings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
-attachment = env['ir.attachment'].create({
-    'name': filename,
-    'type': 'binary',
-    'datas': settings_json.encode('utf-8').hex().encode('utf-8'),
-    'res_model': 'res.config.settings',
-    'res_id': 0,
-})
+Exported by: %s
+Company: %s
+Export date: %s
+""" % (
+    env['ir.config_parameter'].sudo().get_param('vm_rental.default_trial_days', '7'),
+    env['ir.config_parameter'].sudo().get_param('vm_rental.auto_suspend', 'True'),
+    env['ir.config_parameter'].sudo().get_param('vm_rental.max_cores', '64'),
+    env['ir.config_parameter'].sudo().get_param('vm_rental.max_memory', '131072'),
+    env['ir.config_parameter'].sudo().get_param('vm_rental.max_disk', '10240'),
+    env['ir.config_parameter'].sudo().get_param('vm_rental.auto_backup', 'False'),
+    env['ir.config_parameter'].sudo().get_param('vm_rental.backup_retention_days', '30'),
+    env.user.name,
+    env.company.name,
+    fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+)
 
 action = {
-    'type': 'ir.actions.act_url',
-    'url': f'/web/content/{attachment.id}?download=true',
-    'target': 'new',
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'VM Rental Settings',
+        'message': settings_text,
+        'type': 'info',
+        'sticky': True,
+    }
 }
         </field>
     </record>
@@ -84,16 +84,14 @@ action = {
         <field name="model_id" ref="model_vm_rental_audit_log"/>
         <field name="state">code</field>
         <field name="code">
-from datetime import datetime, timedelta
-
 # Удаляем логи старше 90 дней
-cutoff_date = datetime.now() - timedelta(days=90)
+cutoff_date = fields.Datetime.now() - timedelta(days=90)
 old_logs = model.search([('create_date', '&lt;', cutoff_date)])
 
 if old_logs:
     count = len(old_logs)
     old_logs.unlink()
-    message = f"Successfully deleted {count} old audit log entries"
+    message = "Successfully deleted %d old audit log entries" % count
     msg_type = 'success'
 else:
     message = "No old audit logs found to delete"
@@ -132,32 +130,41 @@ connected_hypervisors = len([h for h in hypervisors if h.status == 'connected'])
 cron_jobs = env['ir.cron'].search([('name', 'ilike', 'VM Rental')])
 active_crons = len([c for c in cron_jobs if c.active])
 
-# Проверяем логи ошибок
-error_logs = env['vm_rental.audit_log'].search_count([
-    ('success', '=', False),
-    ('create_date', '&gt;=', (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
-])
+# Проверяем логи ошибок (последние 100 записей)
+error_logs = env['vm_rental.audit_log'].search_count([('success', '=', False)], limit=100)
 
-health_report = f """
-System Health Report:
+# Определяем статус
+if failed_vms == 0 and error_logs &lt; 10:
+    status = 'Healthy'
+elif failed_vms &lt; 5:
+    status = 'Needs Attention'
+else:
+    status = 'Critical'
 
-📊 VM Statistics:
-• Active VMs: {active_vms}
-• Pending VMs: {pending_vms}
-• Failed VMs: {failed_vms}
-• Total VMs: {total_vms}
+health_report = """System Health Report:
 
-🔗 Hypervisors:
-• Connected: {connected_hypervisors}/{len(hypervisors)}
+VM Statistics:
+• Active VMs: %d
+• Pending VMs: %d
+• Failed VMs: %d
+• Total VMs: %d
 
-⚙️ Automation:
-• Active Cron Jobs: {active_crons}/{len(cron_jobs)}
+Hypervisors:
+• Connected: %d/%d
 
-⚠️ Recent Errors:
-• Error logs (last 7 days): {error_logs}
+Automation:
+• Active Cron Jobs: %d/%d
 
-Status: {'🟢 Healthy' if failed_vms == 0 and error_logs < 10 else '🟡 Needs Attention' if failed_vms &lt; 5 else '🔴 Critical'}
-"""
+Recent Errors:
+• Error logs: %d
+
+Status: %s""" % (
+    active_vms, pending_vms, failed_vms, total_vms,
+    connected_hypervisors, len(hypervisors),
+    active_crons, len(cron_jobs),
+    error_logs,
+    status
+)
 
 action = {
     'type': 'ir.actions.client',

@@ -12,7 +12,7 @@
                     <div class="row mt16">
                         <div class="col-12">
                             <div class="d-flex align-items-center mb-3">
-                                <i class="fa fa-server fa-3x text-primary mr-3"></i>
+                                <i class="fa fa-server fa-3x text-primary mr-3" title="VM Rental Configuration"></i>
                                 <div>
                                     <h2 class="mb-0">VM Rental Configuration</h2>
                                     <p class="text-muted mb-0">Configure virtual machine rental settings and resource limits</p>
@@ -81,74 +81,145 @@
                                     </h5>
                                 </div>
                                 <div class="card-body">
-                                    <div class="alert alert-info">
-                                        <i class="fa fa-lightbulb-o mr-2"></i>
+                                    <div class="alert alert-info" role="alert">
+                                        <i class="fa fa-lightbulb-o mr-2" title="Information"></i>
                                         <strong>Note:</strong> These limits apply to all VM configurations and help prevent resource abuse.
                                     </div>
 
                                     <div class="row">
-                                        <div class="col-12 col-lg-4 o_setting_box">
-                                            <div class="text-center">
-                                                <i class="fa fa-microchip fa-2x text-primary mb-2"></i>
-                                                <h6 class="font-weight-bold">CPU Cores</h6>
-                                                <div class="input-group">
-                                                    <field name="vm_rental_max_cores" class="form-control text-center"/>
-                                                    <div class="input-group-append">
-                                                        <span class="input-group-text">cores</span>
+                                        <!-- CPU Cores Section -->
+                                        <div class="col-12 col-lg-4 mb-4">
+                                            <div class="card bg-light h-100">
+                                                <div class="card-body text-center">
+                                                    <div class="mb-3">
+                                                        <i class="fa fa-microchip fa-3x text-primary" title="CPU Cores"></i>
                                                     </div>
+                                                    <h6 class="card-title font-weight-bold">CPU Cores</h6>
+                                                    <div class="form-group">
+                                                        <div class="input-group input-group-lg justify-content-center">
+                                                            <field name="vm_rental_max_cores" class="form-control form-control-lg text-center font-weight-bold" style="max-width: 120px; font-size: 1.5rem;"/>
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text bg-primary text-white">cores</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <small class="text-muted">Maximum CPU cores per VM</small>
                                                 </div>
-                                                <small class="text-muted">Maximum CPU cores per VM</small>
                                             </div>
                                         </div>
 
-                                        <div class="col-12 col-lg-4 o_setting_box">
-                                            <div class="text-center">
-                                                <i class="fa fa-memory fa-2x text-success mb-2"></i>
-                                                <h6 class="font-weight-bold">Memory</h6>
-                                                <div class="input-group">
-                                                    <field name="vm_rental_max_memory" class="form-control text-center"/>
-                                                    <div class="input-group-append">
-                                                        <span class="input-group-text">MiB</span>
+                                        <!-- Memory Section -->
+                                        <div class="col-12 col-lg-4 mb-4">
+                                            <div class="card bg-light h-100">
+                                                <div class="card-body text-center">
+                                                    <div class="mb-3">
+                                                        <i class="fa fa-th-large fa-3x text-success" title="Memory"></i>
                                                     </div>
+                                                    <h6 class="card-title font-weight-bold">Memory</h6>
+                                                    <div class="form-group">
+                                                        <div class="input-group input-group-lg justify-content-center">
+                                                            <field name="vm_rental_max_memory" class="form-control form-control-lg text-center font-weight-bold" style="max-width: 140px; font-size: 1.5rem;"/>
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text bg-success text-white">MiB</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <small class="text-muted">Maximum memory per VM</small>
                                                 </div>
-                                                <small class="text-muted">Maximum memory per VM</small>
                                             </div>
                                         </div>
 
-                                        <div class="col-12 col-lg-4 o_setting_box">
-                                            <div class="text-center">
-                                                <i class="fa fa-hdd-o fa-2x text-warning mb-2"></i>
-                                                <h6 class="font-weight-bold">Disk Space</h6>
-                                                <div class="input-group">
-                                                    <field name="vm_rental_max_disk" class="form-control text-center"/>
-                                                    <div class="input-group-append">
-                                                        <span class="input-group-text">GiB</span>
+                                        <!-- Disk Space Section -->
+                                        <div class="col-12 col-lg-4 mb-4">
+                                            <div class="card bg-light h-100">
+                                                <div class="card-body text-center">
+                                                    <div class="mb-3">
+                                                        <i class="fa fa-hdd-o fa-3x text-warning" title="Disk Space"></i>
                                                     </div>
+                                                    <h6 class="card-title font-weight-bold">Disk Space</h6>
+                                                    <div class="form-group">
+                                                        <div class="input-group input-group-lg justify-content-center">
+                                                            <field name="vm_rental_max_disk" class="form-control form-control-lg text-center font-weight-bold" style="max-width: 120px; font-size: 1.5rem;"/>
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text bg-warning text-dark">GiB</span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <small class="text-muted">Maximum disk size per VM</small>
                                                 </div>
-                                                <small class="text-muted">Maximum disk size per VM</small>
                                             </div>
                                         </div>
                                     </div>
 
                                     <!-- Resource Usage Tips -->
+                                    <div class="row mt-4">
+                                        <div class="col-12">
+                                            <div class="card border-0">
+                                                <div class="card-header bg-transparent border-0">
+                                                    <h6 class="font-weight-bold mb-0">
+                                                        <i class="fa fa-graduation-cap text-primary mr-2"></i>Resource Recommendations
+                                                    </h6>
+                                                </div>
+                                                <div class="card-body pt-2">
+                                                    <div class="row">
+                                                        <div class="col-md-4 mb-3">
+                                                            <div class="border-left border-primary pl-3">
+                                                                <h6 class="font-weight-bold text-primary mb-1">Development VMs</h6>
+                                                                <p class="mb-1"><strong>CPU:</strong> 1-2 cores</p>
+                                                                <p class="mb-1"><strong>RAM:</strong> 1-4 GB</p>
+                                                                <p class="mb-0"><strong>Disk:</strong> 10-50 GB</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4 mb-3">
+                                                            <div class="border-left border-success pl-3">
+                                                                <h6 class="font-weight-bold text-success mb-1">Production VMs</h6>
+                                                                <p class="mb-1"><strong>CPU:</strong> 4-8 cores</p>
+                                                                <p class="mb-1"><strong>RAM:</strong> 8-16 GB</p>
+                                                                <p class="mb-0"><strong>Disk:</strong> 100-500 GB</p>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-md-4 mb-3">
+                                                            <div class="border-left border-warning pl-3">
+                                                                <h6 class="font-weight-bold text-warning mb-1">Enterprise VMs</h6>
+                                                                <p class="mb-1"><strong>CPU:</strong> 8+ cores</p>
+                                                                <p class="mb-1"><strong>RAM:</strong> 16+ GB</p>
+                                                                <p class="mb-0"><strong>Disk:</strong> 500+ GB</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Current Usage Summary -->
                                     <div class="row mt-3">
                                         <div class="col-12">
-                                            <div class="alert alert-light">
-                                                <h6 class="font-weight-bold mb-2">
-                                                    <i class="fa fa-graduation-cap mr-1"></i>Resource Recommendations:
-                                                </h6>
-                                                <div class="row">
-                                                    <div class="col-md-4">
-                                                        <strong>Development VMs:</strong><br/>
-                                                        <small>1-2 cores, 1-4 GB RAM</small>
+                                            <div class="alert alert-secondary" role="alert">
+                                                <div class="row text-center">
+                                                    <div class="col-md-3">
+                                                        <h6 class="font-weight-bold mb-1">
+                                                            <i class="fa fa-calculator text-primary mr-1"></i>Calculator
+                                                        </h6>
+                                                        <small>16GB = 16,384 MiB<br/>1TB = 1,024 GiB</small>
                                                     </div>
-                                                    <div class="col-md-4">
-                                                        <strong>Production VMs:</strong><br/>
-                                                        <small>4-8 cores, 8-16 GB RAM</small>
+                                                    <div class="col-md-3">
+                                                        <h6 class="font-weight-bold mb-1">
+                                                            <i class="fa fa-shield text-success mr-1"></i>Security
+                                                        </h6>
+                                                        <small>Limits prevent<br/>resource abuse</small>
                                                     </div>
-                                                    <div class="col-md-4">
-                                                        <strong>Enterprise VMs:</strong><br/>
-                                                        <small>8+ cores, 16+ GB RAM</small>
+                                                    <div class="col-md-3">
+                                                        <h6 class="font-weight-bold mb-1">
+                                                            <i class="fa fa-tachometer text-warning mr-1"></i>Performance
+                                                        </h6>
+                                                        <small>Higher limits allow<br/>more powerful VMs</small>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <h6 class="font-weight-bold mb-1">
+                                                            <i class="fa fa-cogs text-info mr-1"></i>Flexibility
+                                                        </h6>
+                                                        <small>Adjust limits based<br/>on your infrastructure</small>
                                                     </div>
                                                 </div>
                                             </div>
@@ -181,7 +252,7 @@
                                                 </div>
 
                                                 <div class="content-group mt-3" attrs="{'invisible': [('vm_rental_auto_backup', '=', False)]}">
-                                                    <div class="alert alert-success">
+                                                    <div class="alert alert-success" role="alert">
                                                         <i class="fa fa-check-circle mr-1"></i>
                                                         Auto backup is enabled
                                                     </div>
@@ -232,25 +303,29 @@
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-3 mb-3">
-                                            <a href="/web#action=vm_rental.action_hypervisor_server" class="btn btn-outline-primary btn-block">
+                                            <a href="/web#action=vm_rental.action_hypervisor_server"
+                                               class="btn btn-outline-primary btn-block" role="button">
                                                 <i class="fa fa-server mr-2"></i>
                                                 Manage Hypervisors
                                             </a>
                                         </div>
                                         <div class="col-md-3 mb-3">
-                                            <a href="/web#action=vm_rental.action_vm_instance" class="btn btn-outline-success btn-block">
+                                            <a href="/web#action=vm_rental.action_vm_instance"
+                                               class="btn btn-outline-success btn-block" role="button">
                                                 <i class="fa fa-desktop mr-2"></i>
                                                 View All VMs
                                             </a>
                                         </div>
                                         <div class="col-md-3 mb-3">
-                                            <a href="/web#action=vm_rental.action_linking_job" class="btn btn-outline-warning btn-block">
+                                            <a href="/web#action=vm_rental.action_linking_job"
+                                               class="btn btn-outline-warning btn-block" role="button">
                                                 <i class="fa fa-link mr-2"></i>
                                                 Link Existing VMs
                                             </a>
                                         </div>
                                         <div class="col-md-3 mb-3">
-                                            <a href="/web#action=vm_rental.action_vm_resource_stats" class="btn btn-outline-info btn-block">
+                                            <a href="/web#action=vm_rental.action_vm_resource_stats"
+                                               class="btn btn-outline-info btn-block" role="button">
                                                 <i class="fa fa-bar-chart mr-2"></i>
                                                 Resource Stats
                                             </a>
@@ -260,36 +335,36 @@
                                     <!-- Дополнительные действия -->
                                     <div class="row mt-3">
                                         <div class="col-md-3 mb-3">
-                                            <button type="button" onclick="window.open('/web#action=vm_rental.action_export_vm_settings')"
-                                                    class="btn btn-outline-secondary btn-block">
+                                            <a href="/web#action=vm_rental.action_export_vm_settings"
+                                               class="btn btn-outline-secondary btn-block" role="button">
                                                 <i class="fa fa-download mr-2"></i>
                                                 Export Settings
-                                            </button>
+                                            </a>
                                         </div>
                                         <div class="col-md-3 mb-3">
-                                            <button type="button" onclick="window.open('/web#action=vm_rental.action_test_all_hypervisors')"
-                                                    class="btn btn-outline-secondary btn-block">
+                                            <a href="/web#action=vm_rental.action_test_all_hypervisors"
+                                               class="btn btn-outline-secondary btn-block" role="button">
                                                 <i class="fa fa-plug mr-2"></i>
                                                 Test All Connections
-                                            </button>
+                                            </a>
                                         </div>
                                         <div class="col-md-3 mb-3">
-                                            <button type="button" onclick="window.open('/web#action=vm_rental.action_system_health_check')"
-                                                    class="btn btn-outline-secondary btn-block">
+                                            <a href="/web#action=vm_rental.action_system_health_check"
+                                               class="btn btn-outline-secondary btn-block" role="button">
                                                 <i class="fa fa-heartbeat mr-2"></i>
                                                 Health Check
-                                            </button>
+                                            </a>
                                         </div>
                                         <div class="col-md-3 mb-3">
-                                            <button type="button" onclick="window.open('/web#action=vm_rental.action_cleanup_audit_logs')"
-                                                    class="btn btn-outline-secondary btn-block">
+                                            <a href="/web#action=vm_rental.action_cleanup_audit_logs"
+                                               class="btn btn-outline-secondary btn-block" role="button">
                                                 <i class="fa fa-trash mr-2"></i>
                                                 Cleanup Logs
-                                            </button>
+                                            </a>
                                         </div>
                                     </div>
 
-                                    <div class="alert alert-light mt-3">
+                                    <div class="alert alert-light mt-3" role="alert">
                                         <div class="row">
                                             <div class="col-md-6">
                                                 <h6 class="font-weight-bold">
@@ -298,7 +373,7 @@
                                                 <p class="mb-0">
                                                     <a href="#" class="text-primary">View Documentation</a> •
                                                     <a href="#" class="text-primary">Video Tutorials</a> •
-                                                    <a href="#" class="text-primary">Support Forum</a>
+                                                    <a href="mailto:support@iodoo.info" class="text-primary">Support</a>
                                                 </p>
                                             </div>
                                             <div class="col-md-6">

@@ -1,5 +1,5 @@
 # models/res_config_settings.py
-from odoo import fields, models
+from odoo import fields, models, api
 
 
 class ResConfigSettings(models.TransientModel):
@@ -56,3 +56,50 @@ class ResConfigSettings(models.TransientModel):
         config_parameter='vm_rental.backup_retention_days',
         help="Number of days to keep automatic backups"
     )
+
+    # Module version field
+    vm_rental_module_version = fields.Char(
+        string="Module Version",
+        compute='_compute_vm_rental_module_version',
+        help="Current version of VM Rental module"
+    )
+
+    # System statistics field
+    vm_rental_system_stats = fields.Char(
+        string="System Statistics",
+        compute='_compute_vm_rental_system_stats',
+        help="Basic system statistics"
+    )
+
+    @api.depends()
+    def _compute_vm_rental_module_version(self):
+        """Получает версию модуля из манифеста"""
+        for record in self:
+            try:
+                module = self.env['ir.module.module'].search([
+                    ('name', '=', 'vm_rental'),
+                    ('state', '=', 'installed')
+                ], limit=1)
+
+                if module:
+                    # Получаем версию из latest_version или из installed_version
+                    version = module.latest_version or module.installed_version
+                    record.vm_rental_module_version = f"VM Rental v{version}" if version else "VM Rental (Unknown Version)"
+                else:
+                    record.vm_rental_module_version = "VM Rental (Not Installed)"
+            except Exception:
+                record.vm_rental_module_version = "VM Rental v1.3.0"
+
+    @api.depends()
+    def _compute_vm_rental_system_stats(self):
+        """Получает базовую статистику системы"""
+        for record in self:
+            try:
+                # Подсчитываем основные метрики
+                total_vms = self.env['vm_rental.machine'].search_count([])
+                active_vms = self.env['vm_rental.machine'].search_count([('state', '=', 'active')])
+                hypervisors = self.env['hypervisor.server'].search_count([])
+
+                record.vm_rental_system_stats = f"{total_vms} VMs total, {active_vms} active\n{hypervisors} hypervisor(s) configured"
+            except Exception:
+                record.vm_rental_system_stats = "Statistics unavailable"

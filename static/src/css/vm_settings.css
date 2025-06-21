@@ -26,22 +26,80 @@
     margin-bottom: 15px;
 }
 
+/* Enhanced Resource Cards */
+.app_settings_block[name="vm_rental_settings"] .card.bg-light {
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.app_settings_block[name="vm_rental_settings"] .card.bg-light:hover {
+    border-color: #007bff;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+}
+
 .app_settings_block[name="vm_rental_settings"] .input-group {
     max-width: 200px;
     margin: 0 auto;
 }
 
+.app_settings_block[name="vm_rental_settings"] .input-group-lg .form-control {
+    font-size: 1.5rem;
+    font-weight: bold;
+    text-align: center;
+    border: 2px solid #dee2e6;
+}
+
+.app_settings_block[name="vm_rental_settings"] .input-group-lg .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.3rem rgba(0,123,255,.25);
+}
+
 .app_settings_block[name="vm_rental_settings"] .input-group-text {
     background-color: #f8f9fa;
     border-color: #ced4da;
-    font-weight: 500;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.app_settings_block[name="vm_rental_settings"] .input-group-text.bg-primary {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+}
+
+.app_settings_block[name="vm_rental_settings"] .input-group-text.bg-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.app_settings_block[name="vm_rental_settings"] .input-group-text.bg-warning {
+    background-color: #ffc107 !important;
+    border-color: #ffc107 !important;
+}
+
+/* Resource Recommendations */
+.app_settings_block[name="vm_rental_settings"] .border-left {
+    border-left-width: 4px !important;
+}
+
+.app_settings_block[name="vm_rental_settings"] .border-primary {
+    border-left-color: #007bff !important;
+}
+
+.app_settings_block[name="vm_rental_settings"] .border-success {
+    border-left-color: #28a745 !important;
+}
+
+.app_settings_block[name="vm_rental_settings"] .border-warning {
+    border-left-color: #ffc107 !important;
 }
 
 /* Quick Action Buttons */
 .app_settings_block[name="vm_rental_settings"] .btn-outline-primary:hover,
 .app_settings_block[name="vm_rental_settings"] .btn-outline-success:hover,
 .app_settings_block[name="vm_rental_settings"] .btn-outline-warning:hover,
-.app_settings_block[name="vm_rental_settings"] .btn-outline-info:hover {
+.app_settings_block[name="vm_rental_settings"] .btn-outline-info:hover,
+.app_settings_block[name="vm_rental_settings"] .btn-outline-secondary:hover {
     transform: translateY(-2px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
     transition: all 0.3s ease;
@@ -56,6 +114,7 @@
 .app_settings_block[name="vm_rental_settings"] .alert-info {
     background-color: #e7f3ff;
     color: #0c63e4;
+    border-left: 4px solid #007bff;
 }
 
 .app_settings_block[name="vm_rental_settings"] .alert-light {
@@ -66,6 +125,13 @@
 .app_settings_block[name="vm_rental_settings"] .alert-success {
     background-color: #d4edda;
     color: #155724;
+    border-left: 4px solid #28a745;
+}
+
+.app_settings_block[name="vm_rental_settings"] .alert-secondary {
+    background-color: #f8f9fa;
+    color: #495057;
+    border: 1px solid #dee2e6;
 }
 
 /* Icon Styling */
@@ -75,6 +141,7 @@
 
 .app_settings_block[name="vm_rental_settings"] .fa-3x {
     font-size: 2.5em;
+    margin-bottom: 15px;
 }
 
 /* Form Controls */
@@ -94,6 +161,13 @@
     margin-bottom: 5px;
 }
 
+/* Card titles in resource sections */
+.app_settings_block[name="vm_rental_settings"] .card-title {
+    color: #495057;
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .app_settings_block[name="vm_rental_settings"] .col-lg-4,
@@ -103,6 +177,10 @@
 
     .app_settings_block[name="vm_rental_settings"] .input-group {
         max-width: 100%;
+    }
+
+    .app_settings_block[name="vm_rental_settings"] .input-group-lg .form-control {
+        font-size: 1.2rem;
     }
 }
 
@@ -130,4 +208,20 @@
 .app_settings_block[name="vm_rental_settings"] .alert-light small {
     color: #6c757d;
     font-size: 0.875em;
+}
+
+/* Enhanced spacing for recommendations */
+.app_settings_block[name="vm_rental_settings"] .border-left.pl-3 {
+    padding-left: 1rem !important;
+    margin-bottom: 15px;
+}
+
+.app_settings_block[name="vm_rental_settings"] .border-left.pl-3 h6 {
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+.app_settings_block[name="vm_rental_settings"] .border-left.pl-3 p {
+    font-size: 0.9rem;
+    line-height: 1.3;
 }
