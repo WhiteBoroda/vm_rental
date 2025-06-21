@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Server Action для экспорта настроек VM Rental -->
+    <record id="action_export_vm_settings" model="ir.actions.server">
+        <field name="name">Export VM Rental Settings</field>
+        <field name="model_id" ref="base.model_res_config_settings"/>
+        <field name="state">code</field>
+        <field name="code">
+import json
+from datetime import datetime
+
+# Получаем текущие настройки
+config = env['res.config.settings'].create({})
+
+settings = {
+    'vm_rental_default_trial_days': env['ir.config_parameter'].sudo().get_param('vm_rental.default_trial_days', 7),
+    'vm_rental_auto_suspend': env['ir.config_parameter'].sudo().get_param('vm_rental.auto_suspend', True),
+    'vm_rental_max_cores': env['ir.config_parameter'].sudo().get_param('vm_rental.max_cores', 64),
+    'vm_rental_max_memory': env['ir.config_parameter'].sudo().get_param('vm_rental.max_memory', 131072),
+    'vm_rental_max_disk': env['ir.config_parameter'].sudo().get_param('vm_rental.max_disk', 10240),
+    'vm_rental_auto_backup': env['ir.config_parameter'].sudo().get_param('vm_rental.auto_backup', False),
+    'vm_rental_backup_retention_days': env['ir.config_parameter'].sudo().get_param('vm_rental.backup_retention_days', 30),
+    'export_timestamp': datetime.now().isoformat(),
+    'exported_by': env.user.name,
+    'company': env.company.name,
+}
+
+# Конвертируем в JSON
+settings_json = json.dumps(settings, indent=2)
+
+# Создаем attachment для скачивания
+filename = f"vm_rental_settings_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+attachment = env['ir.attachment'].create({
+    'name': filename,
+    'type': 'binary',
+    'datas': settings_json.encode('utf-8').hex().encode('utf-8'),
+    'res_model': 'res.config.settings',
+    'res_id': 0,
+})
+
+action = {
+    'type': 'ir.actions.act_url',
+    'url': f'/web/content/{attachment.id}?download=true',
+    'target': 'new',
+}
+        </field>
+    </record>
+
+    <!-- Server Action для проверки всех гипервизоров -->
+    <record id="action_test_all_hypervisors" model="ir.actions.server">
+        <field name="name">Test All Hypervisor Connections</field>
+        <field name="model_id" ref="model_hypervisor_server"/>
+        <field name="state">code</field>
+        <field name="code">
+results = []
+servers = model.search([])
+
+for server in servers:
+    try:
+        server.test_and_fetch_resources()
+        results.append(f"✓ {server.name}: Connected successfully")
+    except Exception as e:
+        results.append(f"✗ {server.name}: {str(e)}")
+
+message = "Hypervisor Connection Test Results:\n\n" + "\n".join(results)
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Connection Test Complete',
+        'message': message,
+        'type': 'info',
+        'sticky': True,
+    }
+}
+        </field>
+    </record>
+
+    <!-- Server Action для очистки старых логов -->
+    <record id="action_cleanup_audit_logs" model="ir.actions.server">
+        <field name="name">Cleanup Old Audit Logs</field>
+        <field name="model_id" ref="model_vm_rental_audit_log"/>
+        <field name="state">code</field>
+        <field name="code">
+from datetime import datetime, timedelta
+
+# Удаляем логи старше 90 дней
+cutoff_date = datetime.now() - timedelta(days=90)
+old_logs = model.search([('create_date', '&lt;', cutoff_date)])
+
+if old_logs:
+    count = len(old_logs)
+    old_logs.unlink()
+    message = f"Successfully deleted {count} old audit log entries"
+    msg_type = 'success'
+else:
+    message = "No old audit logs found to delete"
+    msg_type = 'info'
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Audit Log Cleanup',
+        'message': message,
+        'type': msg_type,
+        'sticky': False,
+    }
+}
+        </field>
+    </record>
+
+    <!-- Server Action для проверки состояния системы -->
+    <record id="action_system_health_check" model="ir.actions.server">
+        <field name="name">VM Rental System Health Check</field>
+        <field name="model_id" ref="model_vm_rental_machine"/>
+        <field name="state">code</field>
+        <field name="code">
+# Собираем статистику системы
+active_vms = model.search_count([('state', '=', 'active')])
+pending_vms = model.search_count([('state', '=', 'pending')])
+failed_vms = model.search_count([('state', '=', 'failed')])
+total_vms = model.search_count([])
+
+# Проверяем гипервизоры
+hypervisors = env['hypervisor.server'].search([])
+connected_hypervisors = len([h for h in hypervisors if h.status == 'connected'])
+
+# Проверяем cron задачи
+cron_jobs = env['ir.cron'].search([('name', 'ilike', 'VM Rental')])
+active_crons = len([c for c in cron_jobs if c.active])
+
+# Проверяем логи ошибок
+error_logs = env['vm_rental.audit_log'].search_count([
+    ('success', '=', False),
+    ('create_date', '&gt;=', (datetime.now() - timedelta(days=7)).strftime('%Y-%m-%d'))
+])
+
+health_report = f """
+System Health Report:
+
+📊 VM Statistics:
+• Active VMs: {active_vms}
+• Pending VMs: {pending_vms}
+• Failed VMs: {failed_vms}
+• Total VMs: {total_vms}
+
+🔗 Hypervisors:
+• Connected: {connected_hypervisors}/{len(hypervisors)}
+
+⚙️ Automation:
+• Active Cron Jobs: {active_crons}/{len(cron_jobs)}
+
+⚠️ Recent Errors:
+• Error logs (last 7 days): {error_logs}
+
+Status: {'🟢 Healthy' if failed_vms == 0 and error_logs < 10 else '🟡 Needs Attention' if failed_vms &lt; 5 else '🔴 Critical'}
+"""
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'System Health Check',
+        'message': health_report,
+        'type': 'info',
+        'sticky': True,
+    }
+}
+        </field>
+    </record>
+
+    <!-- Добавляем новые действия в меню Tools -->
+    <menuitem
+        id="menu_export_settings"
+        name="Export Settings"
+        parent="menu_vm_tools_submenu"
+        action="action_export_vm_settings"
+        sequence="30"/>
+
+    <menuitem
+        id="menu_test_all_hypervisors"
+        name="Test All Hypervisors"
+        parent="menu_vm_tools_submenu"
+        action="action_test_all_hypervisors"
+        sequence="40"/>
+
+    <menuitem
+        id="menu_cleanup_logs"
+        name="Cleanup Old Logs"
+        parent="menu_vm_tools_submenu"
+        action="action_cleanup_audit_logs"
+        sequence="50"/>
+
+    <menuitem
+        id="menu_health_check"
+        name="System Health Check"
+        parent="menu_vm_tools_submenu"
+        action="action_system_health_check"
+        sequence="60"/>
+
+</odoo>

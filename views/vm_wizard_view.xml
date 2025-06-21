@@ -44,44 +44,76 @@
         <field name="target">new</field>
     </record>
 
-    <!-- Визард для массовых операций -->
+    <!-- ИСПРАВЛЕННЫЙ Визард для массовых операций -->
     <record id="view_vm_bulk_operations_wizard" model="ir.ui.view">
         <field name="name">vm.bulk.operations.wizard.form</field>
         <field name="model">vm.bulk.operations.wizard</field>
         <field name="arch" type="xml">
             <form string="Bulk Operations">
-                <group>
-                    <group string="Operation Details">
-                        <field name="operation_type" widget="radio"/>
-                        <field name="vm_count" readonly="1" string="Selected VMs"/>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="operation_type" invisible="1"/>
+                            Bulk VM Operations
+                        </h1>
+                        <h2>
+                            <field name="vm_count" readonly="1"/> VM(s) selected
+                        </h2>
+                    </div>
+
+                    <group>
+                        <group string="Operation Details">
+                            <field name="operation_type" widget="radio" required="1"/>
+                        </group>
+
+                        <group string="Additional Settings">
+                            <!-- Конфигурация для apply_config -->
+                            <field name="target_category"
+                                   attrs="{'invisible': [('operation_type', '!=', 'apply_config')],
+                                           'required': [('operation_type', '=', 'apply_config')]}"
+                                   string="Target Configuration"/>
+
+                            <!-- Состояние для change_state -->
+                            <field name="target_state"
+                                   attrs="{'invisible': [('operation_type', '!=', 'change_state')],
+                                           'required': [('operation_type', '=', 'change_state')]}"
+                                   string="New State"/>
+
+                            <!-- Период для extend_subscription -->
+                            <field name="extend_months"
+                                   attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')],
+                                           'required': [('operation_type', '=', 'extend_subscription')]}"
+                                   string="Extend by (months)"/>
+                        </group>
                     </group>
 
-                    <group string="Configuration" attrs="{'invisible': [('operation_type', '!=', 'apply_config')]}">
-                        <field name="target_category" required="1" attrs="{'invisible': [('operation_type', '!=', 'apply_config')]}"/>
-                    </group>
-
-                    <group string="State Change" attrs="{'invisible': [('operation_type', '!=', 'change_state')]}">
-                        <field name="target_state" required="1" attrs="{'invisible': [('operation_type', '!=', 'change_state')]}"/>
-                    </group>
-
-                    <group string="Subscription Extension" attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')]}">
-                        <field name="extend_months" required="1" attrs="{'invisible': [('operation_type', '!=', 'extend_subscription')]}"/>
-                    </group>
-                </group>
-
-                <group string="Selected VMs">
-                    <field name="vm_ids" nolabel="1" readonly="1">
-                        <tree>
-                            <field name="name"/>
-                            <field name="state"/>
-                            <field name="vm_resource_category"/>
-                            <field name="partner_id"/>
-                        </tree>
-                    </field>
-                </group>
+                    <!-- ИСПРАВЛЕНО: Секция с выбранными VM -->
+                    <notebook>
+                        <page string="Selected Virtual Machines">
+                            <field name="vm_ids" nolabel="1" readonly="1" mode="tree">
+                                <tree decoration-success="state=='active'"
+                                      decoration-muted="state in ['stopped','suspended']"
+                                      decoration-danger="state=='failed'"
+                                      decoration-info="state=='pending'">
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="state" widget="badge"/>
+                                    <field name="vm_resource_category"/>
+                                    <field name="cores"/>
+                                    <field name="memory"/>
+                                    <field name="disk"/>
+                                    <field name="hypervisor_server_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
 
                 <footer>
-                    <button name="execute_operation" type="object" string="Execute Operation" class="btn-primary"/>
+                    <button name="execute_operation" type="object"
+                            string="Execute Operation"
+                            class="btn-primary"
+                            attrs="{'invisible': [('operation_type', '=', False)]}"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>

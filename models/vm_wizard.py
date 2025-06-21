@@ -144,7 +144,11 @@ class VmBulkOperationsWizard(models.TransientModel):
     extend_months = fields.Integer(string="Extend by Months", default=1)
 
     # Информация о выбранных VM
-    vm_ids = fields.Many2many('vm_rental.machine', string="Selected VMs")
+    vm_ids = fields.Many2many(
+        'vm_rental.machine',
+        string="Selected VMs",
+        readonly=True
+    )
     vm_count = fields.Integer(string="VM Count", compute='_compute_vm_count')
 
     @api.depends('vm_ids')
@@ -158,8 +162,10 @@ class VmBulkOperationsWizard(models.TransientModel):
         res = super().default_get(fields_list)
 
         active_ids = self.env.context.get('active_ids', [])
-        if active_ids:
-            res['vm_ids'] = [(6, 0, active_ids)]
+        if active_ids and 'vm_ids' in fields_list:
+            # Фильтруем только существующие VM
+            valid_vm_ids = self.env['vm_rental.machine'].browse(active_ids).exists().ids
+            res['vm_ids'] = [(6, 0, valid_vm_ids)]
 
         return res
 
@@ -199,6 +205,8 @@ class VmBulkOperationsWizard(models.TransientModel):
             message = _("Operation completed with %d successes and %d errors") % (success_count, error_count)
             if messages:
                 message += "\n\nErrors:\n" + "\n".join(messages[:5])
+                if len(messages) > 5:
+                    message += f"\n... and {len(messages) - 5} more errors"
             message_type = 'warning'
 
         return {
@@ -217,17 +225,20 @@ class VmBulkOperationsWizard(models.TransientModel):
         if vm.state == 'pending':
             vm.normalize_vm_resources()
         else:
-            raise UserError(_("Can only normalize resources for pending VMs"))
+            raise UserError(_("Can only normalize resources for pending VMs (VM: %s)") % vm.name)
 
     def _apply_config_to_vm(self, vm):
         """Применяет конфигурацию к VM"""
         if vm.state != 'pending':
-            raise UserError(_("Can only change configuration for pending VMs"))
+            raise UserError(_("Can only change configuration for pending VMs (VM: %s)") % vm.name)
 
         if not self.target_category:
             raise UserError(_("Target configuration not specified"))
 
         configs = VmResourceTrait.get_predefined_configs()
+        if self.target_category not in configs:
+            raise UserError(_("Invalid target configuration: %s") % self.target_category)
+
         config = configs[self.target_category]
         vm.write(config)
 
@@ -236,11 +247,21 @@ class VmBulkOperationsWizard(models.TransientModel):
         if not self.target_state:
             raise UserError(_("Target state not specified"))
 
+        # Дополнительные проверки логики состояний
+        if self.target_state == 'active' and vm.state not in ['stopped', 'suspended']:
+            raise UserError(_("Can only activate stopped or suspended VMs (VM: %s)") % vm.name)
+
+        if self.target_state == 'terminated' and vm.state in ['terminated', 'archived']:
+            raise UserError(_("VM %s is already terminated") % vm.name)
+
         vm.write({'state': self.target_state})
 
     def _extend_vm_subscription(self, vm):
         """Продлевает подписку VM"""
         if not self.extend_months or self.extend_months <= 0:
-            raise UserError(_("Invalid extension period"))
+            raise UserError(_("Invalid extension period: %s months") % self.extend_months)
+
+        if vm.state in ['terminated', 'archived']:
+            raise UserError(_("Cannot extend subscription for terminated/archived VM: %s") % vm.name)
 
         vm.extend_period(months=self.extend_months)

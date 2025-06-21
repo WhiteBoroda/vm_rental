@@ -7,83 +7,315 @@
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('settings')]" position="inside">
                 <div class="app_settings_block" data-string="VM Rental" string="VM Rental" data-key="vm_rental" name="vm_rental_settings">
-                    <h2>VM Rental Configuration</h2>
-                    
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_left_pane">
-                                <field name="vm_rental_default_trial_days"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="vm_rental_default_trial_days"/>
-                                <div class="text-muted">
-                                    Default duration for trial periods (in days)
-                                </div>
-                                <field name="vm_rental_default_trial_days" class="o_light_label"/>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_left_pane">
-                                <field name="vm_rental_auto_suspend"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="vm_rental_auto_suspend"/>
-                                <div class="text-muted">
-                                    Automatically suspend VMs when subscription expires
+
+                    <!-- Header Section -->
+                    <div class="row mt16">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fa fa-server fa-3x text-primary mr-3"></i>
+                                <div>
+                                    <h2 class="mb-0">VM Rental Configuration</h2>
+                                    <p class="text-muted mb-0">Configure virtual machine rental settings and resource limits</p>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <h3>Resource Limits</h3>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="vm_rental_max_cores"/>
-                                <field name="vm_rental_max_cores" class="o_light_label"/>
-                                <div class="text-muted">Maximum CPU cores per VM</div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="vm_rental_max_memory"/>
-                                <field name="vm_rental_max_memory" class="o_light_label"/>
-                                <div class="text-muted">Maximum memory per VM (MiB)</div>
-                            </div>
-                        </div>
-                        
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_right_pane">
-                                <label for="vm_rental_max_disk"/>
-                                <field name="vm_rental_max_disk" class="o_light_label"/>
-                                <div class="text-muted">Maximum disk size per VM (GiB)</div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <h3>Backup Settings</h3>
-                    <div class="row mt16 o_settings_container">
-                        <div class="col-12 col-lg-6 o_setting_box">
-                            <div class="o_setting_left_pane">
-                                <field name="vm_rental_auto_backup"/>
-                            </div>
-                            <div class="o_setting_right_pane">
-                                <label for="vm_rental_auto_backup"/>
-                                <div class="text-muted">
-                                    Enable automatic configuration backups
+
+                    <!-- Main Configuration -->
+                    <div class="row mt32">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-cog mr-2"></i>General Settings
+                                    </h5>
                                 </div>
-                                <div class="content-group" attrs="{'invisible': [('vm_rental_auto_backup', '=', False)]}">
-                                    <div class="mt16">
-                                        <label for="vm_rental_backup_retention_days" class="o_light_label"/>
-                                        <field name="vm_rental_backup_retention_days" class="oe_inline"/>
-                                        <span> days retention</span>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 col-lg-6 o_setting_box">
+                                            <div class="o_setting_left_pane">
+                                                <field name="vm_rental_default_trial_days"/>
+                                            </div>
+                                            <div class="o_setting_right_pane">
+                                                <label for="vm_rental_default_trial_days" class="font-weight-bold"/>
+                                                <div class="text-muted mb-2">
+                                                    Default duration for trial periods offered to new customers
+                                                </div>
+                                                <div class="input-group" style="max-width: 200px;">
+                                                    <field name="vm_rental_default_trial_days" class="form-control"/>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">days</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-lg-6 o_setting_box">
+                                            <div class="o_setting_left_pane">
+                                                <field name="vm_rental_auto_suspend"/>
+                                            </div>
+                                            <div class="o_setting_right_pane">
+                                                <label for="vm_rental_auto_suspend" class="font-weight-bold"/>
+                                                <div class="text-muted">
+                                                    Automatically suspend VMs when subscription expires
+                                                </div>
+                                                <small class="text-info">
+                                                    <i class="fa fa-info-circle mr-1"></i>
+                                                    Recommended for production environments
+                                                </small>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    <!-- Resource Limits -->
+                    <div class="row mt32">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-microchip mr-2"></i>Resource Limits
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="alert alert-info">
+                                        <i class="fa fa-lightbulb-o mr-2"></i>
+                                        <strong>Note:</strong> These limits apply to all VM configurations and help prevent resource abuse.
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-12 col-lg-4 o_setting_box">
+                                            <div class="text-center">
+                                                <i class="fa fa-microchip fa-2x text-primary mb-2"></i>
+                                                <h6 class="font-weight-bold">CPU Cores</h6>
+                                                <div class="input-group">
+                                                    <field name="vm_rental_max_cores" class="form-control text-center"/>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">cores</span>
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">Maximum CPU cores per VM</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-lg-4 o_setting_box">
+                                            <div class="text-center">
+                                                <i class="fa fa-memory fa-2x text-success mb-2"></i>
+                                                <h6 class="font-weight-bold">Memory</h6>
+                                                <div class="input-group">
+                                                    <field name="vm_rental_max_memory" class="form-control text-center"/>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">MiB</span>
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">Maximum memory per VM</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-lg-4 o_setting_box">
+                                            <div class="text-center">
+                                                <i class="fa fa-hdd-o fa-2x text-warning mb-2"></i>
+                                                <h6 class="font-weight-bold">Disk Space</h6>
+                                                <div class="input-group">
+                                                    <field name="vm_rental_max_disk" class="form-control text-center"/>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">GiB</span>
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">Maximum disk size per VM</small>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Resource Usage Tips -->
+                                    <div class="row mt-3">
+                                        <div class="col-12">
+                                            <div class="alert alert-light">
+                                                <h6 class="font-weight-bold mb-2">
+                                                    <i class="fa fa-graduation-cap mr-1"></i>Resource Recommendations:
+                                                </h6>
+                                                <div class="row">
+                                                    <div class="col-md-4">
+                                                        <strong>Development VMs:</strong><br/>
+                                                        <small>1-2 cores, 1-4 GB RAM</small>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <strong>Production VMs:</strong><br/>
+                                                        <small>4-8 cores, 8-16 GB RAM</small>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <strong>Enterprise VMs:</strong><br/>
+                                                        <small>8+ cores, 16+ GB RAM</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup Settings -->
+                    <div class="row mt32">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-shield mr-2"></i>Backup &amp; Maintenance
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 col-lg-6 o_setting_box">
+                                            <div class="o_setting_left_pane">
+                                                <field name="vm_rental_auto_backup"/>
+                                            </div>
+                                            <div class="o_setting_right_pane">
+                                                <label for="vm_rental_auto_backup" class="font-weight-bold"/>
+                                                <div class="text-muted mb-2">
+                                                    Enable automatic configuration backups for VM settings
+                                                </div>
+
+                                                <div class="content-group mt-3" attrs="{'invisible': [('vm_rental_auto_backup', '=', False)]}">
+                                                    <div class="alert alert-success">
+                                                        <i class="fa fa-check-circle mr-1"></i>
+                                                        Auto backup is enabled
+                                                    </div>
+                                                    <div class="form-group">
+                                                        <label for="vm_rental_backup_retention_days" class="font-weight-bold">Retention Period</label>
+                                                        <div class="input-group" style="max-width: 200px;">
+                                                            <field name="vm_rental_backup_retention_days" class="form-control"/>
+                                                            <div class="input-group-append">
+                                                                <span class="input-group-text">days</span>
+                                                            </div>
+                                                        </div>
+                                                        <small class="text-muted">How long to keep automatic backups</small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-lg-6">
+                                            <div class="card bg-light">
+                                                <div class="card-body">
+                                                    <h6 class="font-weight-bold">
+                                                        <i class="fa fa-info-circle text-primary mr-1"></i>Backup Information
+                                                    </h6>
+                                                    <ul class="list-unstyled mb-0">
+                                                        <li><i class="fa fa-check text-success mr-1"></i>Configuration changes are tracked</li>
+                                                        <li><i class="fa fa-check text-success mr-1"></i>Automatic cleanup of old backups</li>
+                                                        <li><i class="fa fa-check text-success mr-1"></i>Manual backup creation available</li>
+                                                        <li><i class="fa fa-check text-success mr-1"></i>Easy restoration from backup</li>
+                                                    </ul>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="row mt32 mb32">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-info text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-bolt mr-2"></i>Quick Actions
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-3 mb-3">
+                                            <a href="/web#action=vm_rental.action_hypervisor_server" class="btn btn-outline-primary btn-block">
+                                                <i class="fa fa-server mr-2"></i>
+                                                Manage Hypervisors
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <a href="/web#action=vm_rental.action_vm_instance" class="btn btn-outline-success btn-block">
+                                                <i class="fa fa-desktop mr-2"></i>
+                                                View All VMs
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <a href="/web#action=vm_rental.action_linking_job" class="btn btn-outline-warning btn-block">
+                                                <i class="fa fa-link mr-2"></i>
+                                                Link Existing VMs
+                                            </a>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <a href="/web#action=vm_rental.action_vm_resource_stats" class="btn btn-outline-info btn-block">
+                                                <i class="fa fa-bar-chart mr-2"></i>
+                                                Resource Stats
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <!-- Дополнительные действия -->
+                                    <div class="row mt-3">
+                                        <div class="col-md-3 mb-3">
+                                            <button type="button" onclick="window.open('/web#action=vm_rental.action_export_vm_settings')"
+                                                    class="btn btn-outline-secondary btn-block">
+                                                <i class="fa fa-download mr-2"></i>
+                                                Export Settings
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <button type="button" onclick="window.open('/web#action=vm_rental.action_test_all_hypervisors')"
+                                                    class="btn btn-outline-secondary btn-block">
+                                                <i class="fa fa-plug mr-2"></i>
+                                                Test All Connections
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <button type="button" onclick="window.open('/web#action=vm_rental.action_system_health_check')"
+                                                    class="btn btn-outline-secondary btn-block">
+                                                <i class="fa fa-heartbeat mr-2"></i>
+                                                Health Check
+                                            </button>
+                                        </div>
+                                        <div class="col-md-3 mb-3">
+                                            <button type="button" onclick="window.open('/web#action=vm_rental.action_cleanup_audit_logs')"
+                                                    class="btn btn-outline-secondary btn-block">
+                                                <i class="fa fa-trash mr-2"></i>
+                                                Cleanup Logs
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="alert alert-light mt-3">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <h6 class="font-weight-bold">
+                                                    <i class="fa fa-question-circle text-primary mr-1"></i>Need Help?
+                                                </h6>
+                                                <p class="mb-0">
+                                                    <a href="#" class="text-primary">View Documentation</a> •
+                                                    <a href="#" class="text-primary">Video Tutorials</a> •
+                                                    <a href="#" class="text-primary">Support Forum</a>
+                                                </p>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <h6 class="font-weight-bold">
+                                                    <i class="fa fa-code text-success mr-1"></i>Module Version
+                                                </h6>
+                                                <p class="mb-0">
+                                                    VM Rental v1.3.0 with Traits Architecture
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </xpath>
         </field>

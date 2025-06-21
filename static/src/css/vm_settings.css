@@ -1,0 +1,133 @@
+/* VM Rental Settings Styles */
+.app_settings_block[name="vm_rental_settings"] {
+    padding: 20px;
+}
+
+.app_settings_block[name="vm_rental_settings"] .card {
+    border: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    margin-bottom: 20px;
+}
+
+.app_settings_block[name="vm_rental_settings"] .card-header {
+    border-radius: 8px 8px 0 0;
+    border: none;
+    padding: 15px 20px;
+}
+
+.app_settings_block[name="vm_rental_settings"] .card-body {
+    padding: 20px;
+}
+
+/* Resource Limit Cards */
+.app_settings_block[name="vm_rental_settings"] .o_setting_box {
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.app_settings_block[name="vm_rental_settings"] .input-group {
+    max-width: 200px;
+    margin: 0 auto;
+}
+
+.app_settings_block[name="vm_rental_settings"] .input-group-text {
+    background-color: #f8f9fa;
+    border-color: #ced4da;
+    font-weight: 500;
+}
+
+/* Quick Action Buttons */
+.app_settings_block[name="vm_rental_settings"] .btn-outline-primary:hover,
+.app_settings_block[name="vm_rental_settings"] .btn-outline-success:hover,
+.app_settings_block[name="vm_rental_settings"] .btn-outline-warning:hover,
+.app_settings_block[name="vm_rental_settings"] .btn-outline-info:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    transition: all 0.3s ease;
+}
+
+/* Alert Styling */
+.app_settings_block[name="vm_rental_settings"] .alert {
+    border-radius: 6px;
+    border: none;
+}
+
+.app_settings_block[name="vm_rental_settings"] .alert-info {
+    background-color: #e7f3ff;
+    color: #0c63e4;
+}
+
+.app_settings_block[name="vm_rental_settings"] .alert-light {
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.app_settings_block[name="vm_rental_settings"] .alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+/* Icon Styling */
+.app_settings_block[name="vm_rental_settings"] .fa-2x {
+    font-size: 1.8em;
+}
+
+.app_settings_block[name="vm_rental_settings"] .fa-3x {
+    font-size: 2.5em;
+}
+
+/* Form Controls */
+.app_settings_block[name="vm_rental_settings"] .form-control {
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+}
+
+.app_settings_block[name="vm_rental_settings"] .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+/* Labels */
+.app_settings_block[name="vm_rental_settings"] label.font-weight-bold {
+    color: #495057;
+    margin-bottom: 5px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .app_settings_block[name="vm_rental_settings"] .col-lg-4,
+    .app_settings_block[name="vm_rental_settings"] .col-lg-6 {
+        margin-bottom: 20px;
+    }
+
+    .app_settings_block[name="vm_rental_settings"] .input-group {
+        max-width: 100%;
+    }
+}
+
+/* Hover effects for settings boxes */
+.app_settings_block[name="vm_rental_settings"] .o_setting_box:hover {
+    background-color: rgba(0,123,255,0.02);
+    border-radius: 6px;
+    transition: background-color 0.3s ease;
+}
+
+/* Custom checkbox styling for boolean fields */
+.app_settings_block[name="vm_rental_settings"] input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #007bff;
+}
+
+/* Resource recommendation styling */
+.app_settings_block[name="vm_rental_settings"] .alert-light strong {
+    color: #495057;
+    display: block;
+    margin-bottom: 3px;
+}
+
+.app_settings_block[name="vm_rental_settings"] .alert-light small {
+    color: #6c757d;
+    font-size: 0.875em;
+}
