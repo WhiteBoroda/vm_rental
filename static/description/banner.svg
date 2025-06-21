@@ -1,0 +1,125 @@
+<svg width="560" height="280" viewBox="0 0 560 280" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <defs>
+    <linearGradient id="bannerBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1E3A8A;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="serverBannerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#64748B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#475569;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="vmBannerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10B981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+    <filter id="bannerShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="3" dy="3" stdDeviation="4" flood-opacity="0.4"/>
+    </filter>
+    <pattern id="gridPattern" patternUnits="userSpaceOnUse" width="20" height="20">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ffffff" stroke-width="0.5" opacity="0.1"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="560" height="280" fill="url(#bannerBg)"/>
+  <rect width="560" height="280" fill="url(#gridPattern)"/>
+  
+  <!-- Left section - Servers and VMs -->
+  <g transform="translate(30, 40)">
+    <!-- Main server rack -->
+    <rect x="0" y="0" width="70" height="180" rx="8" fill="url(#serverBannerGradient)" filter="url(#bannerShadow)"/>
+    
+    <!-- Server panels -->
+    <rect x="6" y="12" width="58" height="22" rx="3" fill="#E2E8F0" opacity="0.9"/>
+    <rect x="6" y="42" width="58" height="22" rx="3" fill="#E2E8F0" opacity="0.9"/>
+    <rect x="6" y="72" width="58" height="22" rx="3" fill="#E2E8F0" opacity="0.9"/>
+    <rect x="6" y="102" width="58" height="22" rx="3" fill="#E2E8F0" opacity="0.9"/>
+    <rect x="6" y="132" width="58" height="22" rx="3" fill="#E2E8F0" opacity="0.9"/>
+    
+    <!-- Server indicators -->
+    <circle cx="12" cy="23" r="2.5" fill="#10B981"/>
+    <circle cx="19" cy="23" r="2.5" fill="#F59E0B"/>
+    <circle cx="26" cy="23" r="2.5" fill="#EF4444"/>
+    
+    <circle cx="12" cy="53" r="2.5" fill="#10B981"/>
+    <circle cx="19" cy="53" r="2.5" fill="#10B981"/>
+    <circle cx="26" cy="53" r="2.5" fill="#F59E0B"/>
+    
+    <circle cx="12" cy="83" r="2.5" fill="#10B981"/>
+    <circle cx="19" cy="83" r="2.5" fill="#10B981"/>
+    <circle cx="26" cy="83" r="2.5" fill="#10B981"/>
+    
+    <circle cx="12" cy="113" r="2.5" fill="#EF4444"/>
+    <circle cx="19" cy="113" r="2.5" fill="#F59E0B"/>
+    <circle cx="26" cy="113" r="2.5" fill="#F59E0B"/>
+    
+    <circle cx="12" cy="143" r="2.5" fill="#10B981"/>
+    <circle cx="19" cy="143" r="2.5" fill="#10B981"/>
+    <circle cx="26" cy="143" r="2.5" fill="#10B981"/>
+    
+    <!-- Server labels -->
+    <text x="34" y="26" fill="#1F2937" font-family="Arial, sans-serif" font-size="8" font-weight="bold">Proxmox</text>
+    <text x="34" y="56" fill="#1F2937" font-family="Arial, sans-serif" font-size="8" font-weight="bold">VMware</text>
+    <text x="34" y="86" fill="#1F2937" font-family="Arial, sans-serif" font-size="8" font-weight="bold">Node 3</text>
+    <text x="34" y="116" fill="#1F2937" font-family="Arial, sans-serif" font-size="8" font-weight="bold">Stby</text>
+    <text x="34" y="146" fill="#1F2937" font-family="Arial, sans-serif" font-size="8" font-weight="bold">Active</text>
+  </g>
+  
+  <!-- VM Clouds -->
+  <g transform="translate(130, 50)">
+    <!-- VM Cloud 1 -->
+    <ellipse cx="25" cy="35" rx="22" ry="16" fill="url(#vmBannerGradient)" opacity="0.8" filter="url(#bannerShadow)"/>
+    <ellipse cx="16" cy="31" rx="13" ry="10" fill="url(#vmBannerGradient)" opacity="0.8"/>
+    <ellipse cx="34" cy="31" rx="13" ry="10" fill="url(#vmBannerGradient)" opacity="0.8"/>
+    <text x="25" y="39" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">VM</text>
+    
+    <!-- VM Cloud 2 -->
+    <ellipse cx="25" cy="85" rx="22" ry="16" fill="url(#vmBannerGradient)" opacity="0.8" filter="url(#bannerShadow)"/>
+    <ellipse cx="16" cy="81" rx="13" ry="10" fill="url(#vmBannerGradient)" opacity="0.8"/>
+    <ellipse cx="34" cy="81" rx="13" ry="10" fill="url(#vmBannerGradient)" opacity="0.8"/>
+    <text x="25" y="89" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">VM</text>
+    
+    <!-- VM Cloud 3 -->
+    <ellipse cx="25" cy="135" rx="22" ry="16" fill="url(#vmBannerGradient)" opacity="0.8" filter="url(#bannerShadow)"/>
+    <ellipse cx="16" cy="131" rx="13" ry="10" fill="url(#vmBannerGradient)" opacity="0.8"/>
+    <ellipse cx="34" cy="131" rx="13" ry="10" fill="url(#vmBannerGradient)" opacity="0.8"/>
+    <text x="25" y="139" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="12" font-weight="bold">VM</text>
+  </g>
+  
+  <!-- Connection lines -->
+  <line x1="100" y1="85" x2="130" y2="85" stroke="#60A5FA" stroke-width="2" opacity="0.8"/>
+  <line x1="100" y1="135" x2="130" y2="135" stroke="#60A5FA" stroke-width="2" opacity="0.8"/>
+  <line x1="100" y1="185" x2="130" y2="185" stroke="#60A5FA" stroke-width="2" opacity="0.8"/>
+  
+  <!-- Right section - Title and features -->
+  <g transform="translate(220, 25)">
+    <!-- Main title -->
+    <text x="0" y="25" fill="white" font-family="Arial, sans-serif" font-size="28" font-weight="bold">VM RENTAL</text>
+    
+    <!-- Divider line -->
+    <line x1="0" y1="60" x2="180" y2="60" stroke="#60A5FA" stroke-width="2"/>
+    
+    <!-- Features list -->
+    <text x="0" y="80" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12" font-weight="bold">🚀 Traits Architecture</text>
+    <text x="0" y="98" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12" font-weight="bold">🎯 Smart Resource Management</text>
+    <text x="0" y="116" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12" font-weight="bold">⚡ Automation &amp; Monitoring</text>
+    <text x="0" y="134" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12" font-weight="bold">🔧 Multi-Hypervisor Support</text>
+    <text x="0" y="152" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12" font-weight="bold">🌐 Customer Portal</text>
+    <text x="0" y="170" fill="#E5E7EB" font-family="Arial, sans-serif" font-size="12" font-weight="bold">📊 Business Intelligence</text>
+    
+    <!-- Version badge -->
+    <rect x="0" y="185" width="50" height="18" rx="9" fill="#10B981"/>
+    <text x="25" y="196" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="11" font-weight="bold">v1.3.0</text>
+    
+    <!-- Company info (moved up and made smaller) -->
+    <text x="0" y="220" fill="#9CA3AF" font-family="Arial, sans-serif" font-size="10">by Yuri Varaksin</text>
+    <text x="0" y="235" fill="#9CA3AF" font-family="Arial, sans-serif" font-size="10">iodoo.info</text>
+  </g>
+  
+  <!-- Decorative elements -->
+  <circle cx="480" cy="50" r="20" fill="#F59E0B" opacity="0.3"/>
+  <circle cx="500" cy="70" r="12" fill="#EF4444" opacity="0.3"/>
+  <circle cx="460" cy="90" r="15" fill="#8B5CF6" opacity="0.3"/>
+</svg>
