@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vm_rental/data/vm_pricing_demo.xml -->
+<odoo>
+    <data noupdate="1">
+
+        <!-- Демо сервер гипервизора -->
+        <record id="demo_hypervisor_server_proxmox" model="hypervisor.server">
+            <field name="name">Demo Proxmox Server</field>
+            <field name="hypervisor_type">proxmox</field>
+            <field name="host">demo.proxmox.local</field>
+            <field name="user">root@pam</field>
+            <field name="token_name">demo_token</field>
+            <field name="token_value">demo_value</field>
+            <field name="verify_ssl">False</field>
+            <field name="status">not_tested</field>
+        </record>
+
+        <!-- Демо хранилища -->
+        <record id="demo_storage_local_lvm" model="hypervisor.storage">
+            <field name="name">local-lvm</field>
+            <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="storage_type">hdd</field>
+        </record>
+
+        <record id="demo_storage_ssd" model="hypervisor.storage">
+            <field name="name">ssd-storage</field>
+            <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="storage_type">ssd</field>
+        </record>
+
+        <record id="demo_storage_nvme" model="hypervisor.storage">
+            <field name="name">nvme-fast</field>
+            <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="storage_type">nvme</field>
+        </record>
+
+        <!-- Стандартный ценовой план -->
+        <record id="demo_pricing_standard" model="hypervisor.server.pricing">
+            <field name="name">Standard Pricing Plan</field>
+            <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="price_per_core">5.00</field>
+            <field name="price_per_gb_ram">2.00</field>
+            <field name="price_per_gb_disk">0.10</field>
+            <field name="os_multiplier">1.5</field>
+            <field name="bulk_discount_threshold">10</field>
+            <field name="bulk_discount_percent">15.0</field>
+            <field name="date_start" eval="(datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')"/>
+            <field name="priority">10</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Ценообразование для различных типов хранилищ -->
+        <record id="demo_storage_pricing_hdd" model="hypervisor.storage.pricing">
+            <field name="server_pricing_id" ref="demo_pricing_standard"/>
+            <field name="storage_id" ref="demo_storage_local_lvm"/>
+            <field name="storage_type">hdd</field>
+            <field name="price_per_gb">0.08</field>
+            <field name="performance_multiplier">1.0</field>
+            <field name="included_iops">1000</field>
+            <field name="price_per_additional_iops">0.001</field>
+        </record>
+
+        <record id="demo_storage_pricing_ssd" model="hypervisor.storage.pricing">
+            <field name="server_pricing_id" ref="demo_pricing_standard"/>
+            <field name="storage_id" ref="demo_storage_ssd"/>
+            <field name="storage_type">ssd</field>
+            <field name="price_per_gb">0.15</field>
+            <field name="performance_multiplier">1.5</field>
+            <field name="included_iops">3000</field>
+            <field name="price_per_additional_iops">0.0008</field>
+        </record>
+
+        <record id="demo_storage_pricing_nvme" model="hypervisor.storage.pricing">
+            <field name="server_pricing_id" ref="demo_pricing_standard"/>
+            <field name="storage_id" ref="demo_storage_nvme"/>
+            <field name="storage_type">nvme</field>
+            <field name="price_per_gb">0.25</field>
+            <field name="performance_multiplier">2.0</field>
+            <field name="included_iops">10000</field>
+            <field name="price_per_additional_iops">0.0005</field>
+        </record>
+
+        <!-- Бюджетный ценовой план -->
+        <record id="demo_pricing_budget" model="hypervisor.server.pricing">
+            <field name="name">Budget Pricing Plan</field>
+            <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="price_per_core">3.00</field>
+            <field name="price_per_gb_ram">1.50</field>
+            <field name="price_per_gb_disk">0.05</field>
+            <field name="os_multiplier">1.3</field>
+            <field name="bulk_discount_threshold">5</field>
+            <field name="bulk_discount_percent">10.0</field>
+            <field name="date_start" eval="(datetime.datetime.now() + datetime.timedelta(days=30)).strftime('%Y-%m-%d')"/>
+            <field name="priority">15</field>
+            <field name="active">False</field>
+        </record>
+
+        <!-- Премиум ценовой план -->
+        <record id="demo_pricing_premium" model="hypervisor.server.pricing">
+            <field name="name">Premium Pricing Plan</field>
+            <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="price_per_core">8.00</field>
+            <field name="price_per_gb_ram">3.00</field>
+            <field name="price_per_gb_disk">0.20</field>
+            <field name="os_multiplier">1.8</field>
+            <field name="bulk_discount_threshold">20</field>
+            <field name="bulk_discount_percent">20.0</field>
+            <field name="date_start" eval="(datetime.datetime.now() - datetime.timedelta(days=60)).strftime('%Y-%m-%d')"/>
+            <field name="date_end" eval="(datetime.datetime.now() - datetime.timedelta(days=31)).strftime('%Y-%m-%d')"/>
+            <field name="priority">5</field>
+            <field name="active">False</field>
+        </record>
+
+        <!-- Демо продукты с автоматическим ценообразованием -->
+        <record id="demo_vm_product_auto_priced" model="product.template">
+            <field name="name">VM Auto-Priced Standard</field>
+            <field name="type">service</field>
+            <field name="cores">2</field>
+            <field name="memory">2048</field>
+            <field name="disk">20</field>
+            <field name="hypervisor_server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="hypervisor_storage_id" ref="demo_storage_ssd"/>
+            <field name="auto_price_calculation">True</field>
+            <field name="has_trial_period">True</field>
+            <field name="trial_period_days">7</field>
+        </record>
+
+        <record id="demo_vm_product_nvme" model="product.template">
+            <field name="name">VM High-Performance NVMe</field>
+            <field name="type">service</field>
+            <field name="cores">4</field>
+            <field name="memory">8192</field>
+            <field name="disk">100</field>
+            <field name="hypervisor_server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="hypervisor_storage_id" ref="demo_storage_nvme"/>
+            <field name="auto_price_calculation">True</field>
+            <field name="has_trial_period">False</field>
+        </record>
+
+        <record id="demo_vm_product_budget" model="product.template">
+            <field name="name">VM Budget HDD</field>
+            <field name="type">service</field>
+            <field name="cores">1</field>
+            <field name="memory">1024</field>
+            <field name="disk">10</field>
+            <field name="hypervisor_server_id" ref="demo_hypervisor_server_proxmox"/>
+            <field name="hypervisor_storage_id" ref="demo_storage_local_lvm"/>
+            <field name="auto_price_calculation">True</field>
+            <field name="has_trial_period">True</field>
+            <field name="trial_period_days">3</field>
+        </record>
+
+    </data>
+</odoo>

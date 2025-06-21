@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vm_rental/security/vm_pricing_security.xml -->
+<odoo>
+    <data noupdate="1">
+
+        <!-- Группа для управления ценообразованием -->
+        <record id="group_vm_pricing_manager" model="res.groups">
+            <field name="name">VM Rental / Pricing Manager</field>
+            <field name="category_id" ref="base.module_category_hidden"/>
+            <field name="implied_ids" eval="[(4, ref('group_vm_rental_manager'))]"/>
+            <field name="comment">VM Rental pricing managers can create and modify pricing plans</field>
+        </record>
+
+        <!-- Правила доступа для ценообразования серверов -->
+        <record id="pricing_server_user_rule" model="ir.rule">
+            <field name="name">Server Pricing: User Read Access</field>
+            <field name="model_id" ref="model_hypervisor_server_pricing"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="pricing_server_manager_rule" model="ir.rule">
+            <field name="name">Server Pricing: Manager Full Access</field>
+            <field name="model_id" ref="model_hypervisor_server_pricing"/>
+            <field name="groups" eval="[(4, ref('group_vm_pricing_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Правила доступа для ценообразования хранилищ -->
+        <record id="pricing_storage_user_rule" model="ir.rule">
+            <field name="name">Storage Pricing: User Read Access</field>
+            <field name="model_id" ref="model_hypervisor_storage_pricing"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="pricing_storage_manager_rule" model="ir.rule">
+            <field name="name">Storage Pricing: Manager Full Access</field>
+            <field name="model_id" ref="model_hypervisor_storage_pricing"/>
+            <field name="groups" eval="[(4, ref('group_vm_pricing_manager'))]"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Правила доступа для калькулятора цен -->
+        <record id="pricing_calculator_user_rule" model="ir.rule">
+            <field name="name">Pricing Calculator: User Access</field>
+            <field name="model_id" ref="model_vm_pricing_calculator"/>
+            <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+            <field name="domain_force">[('create_uid', '=', user.id)]</field>
+        </record>
+
+    </data>
+</odoo>

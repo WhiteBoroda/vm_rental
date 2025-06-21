@@ -1,6 +1,6 @@
 {
     'name': 'VM Rental (Universal with Traits)',
-    'version': '1.3.2',
+    'version': '1.3.3',
     'summary': 'Advanced VM rental system with composition-based traits architecture',
     'description': """
 VM Rental Module with Advanced Traits Architecture
@@ -100,10 +100,15 @@ unprecedented flexibility while maintaining high performance and code clarity.
         # Settings and menus
         'views/res_config_settings_views.xml',
         'views/vm_settings_actions.xml',
+        # Pricing system views and security
+        'views/vm_pricing_views.xml',
+        'views/vm_pricing_menus.xml',
+        'security/vm_pricing_security.xml',
         'views/menus.xml',
 
         # Demo data
         'data/vm_traits_demo.xml',
+        'data/vm_pricing_demo.xml',
 
         # Cron jobs
         'data/cron_jobs.xml',

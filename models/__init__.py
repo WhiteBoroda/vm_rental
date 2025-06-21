@@ -12,3 +12,5 @@ from . import vm_snapshot
 from . import vm_audit_log
 from . import vm_config_backup
 from . import res_config_settings
+from . import vm_pricing
+from . import vm_pricing_extensions

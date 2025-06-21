@@ -208,4 +208,12 @@ action = {
         action="action_system_health_check"
         sequence="60"/>
 
+    <!-- НОВОЕ: Быстрый доступ к Configuration Wizard -->
+    <menuitem
+        id="menu_quick_config_wizard"
+        name="Quick Config Wizard"
+        parent="menu_vm_tools_submenu"
+        action="action_vm_config_wizard"
+        sequence="15"/>
+
 </odoo>

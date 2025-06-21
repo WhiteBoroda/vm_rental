@@ -8,28 +8,56 @@
         <field name="model">vm.config.wizard</field>
         <field name="arch" type="xml">
             <form string="VM Configuration Wizard">
+                <div class="oe_title">
+                    <h1>VM Configuration Wizard</h1>
+                    <p class="text-muted">Configure VM resources using predefined templates or custom values</p>
+                </div>
+
                 <group>
-                    <group string="Quick Configuration">
-                        <field name="config_type" widget="radio"/>
-                        <field name="predefined_config" attrs="{'invisible': [('config_type', '!=', 'predefined')], 'required': [('config_type', '=', 'predefined')]}"/>
-                        <field name="os_type" attrs="{'invisible': [('config_type', '!=', 'recommended')], 'required': [('config_type', '=', 'recommended')]}"/>
+                    <group string="Configuration Method">
+                        <field name="config_type" widget="radio" required="1"/>
+                        <field name="predefined_config"
+                               attrs="{'invisible': [('config_type', '!=', 'predefined')],
+                                       'required': [('config_type', '=', 'predefined')]}"
+                               string="Select Template"/>
+                        <field name="os_type"
+                               attrs="{'invisible': [('config_type', '!=', 'recommended')],
+                                       'required': [('config_type', '=', 'recommended')]}"
+                               string="Operating System"/>
                     </group>
-                    <group string="Custom Configuration" attrs="{'invisible': [('config_type', '!=', 'custom')]}">
-                        <field name="cores"/>
-                        <field name="memory"/>
-                        <field name="disk"/>
+
+                    <group string="Custom Resource Configuration"
+                           attrs="{'invisible': [('config_type', '!=', 'custom')]}">
+                        <label for="cores" class="oe_inline"/>
+                        <div class="o_row">
+                            <field name="cores" attrs="{'required': [('config_type', '=', 'custom')]}"/>
+                            <span>CPU Cores</span>
+                        </div>
+                        <label for="memory" class="oe_inline"/>
+                        <div class="o_row">
+                            <field name="memory" attrs="{'required': [('config_type', '=', 'custom')]}"/>
+                            <span>MiB RAM</span>
+                        </div>
+                        <label for="disk" class="oe_inline"/>
+                        <div class="o_row">
+                            <field name="disk" attrs="{'required': [('config_type', '=', 'custom')]}"/>
+                            <span>GiB Disk</span>
+                        </div>
                     </group>
                 </group>
 
-                <group string="Preview" attrs="{'invisible': [('config_type', '=', False)]}">
-                    <field name="resource_summary" readonly="1"/>
-                    <field name="resource_category" readonly="1"/>
-                    <field name="estimated_boot_time" readonly="1"/>
-                    <field name="estimated_price" readonly="1"/>
+                <group string="Configuration Preview" attrs="{'invisible': [('config_type', '=', False)]}">
+                    <field name="resource_summary" readonly="1" string="Resource Summary"/>
+                    <field name="resource_category" readonly="1" string="Category"/>
+                    <field name="estimated_boot_time" readonly="1" string="Est. Boot Time (sec)"/>
+                    <field name="estimated_price" readonly="1" string="Estimated Price Factor"/>
                 </group>
 
                 <footer>
-                    <button name="apply_configuration" type="object" string="Apply Configuration" class="btn-primary"/>
+                    <button name="apply_configuration" type="object"
+                            string="Apply Configuration"
+                            class="btn-primary"
+                            attrs="{'invisible': [('config_type', '=', False)]}"/>
                     <button string="Cancel" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
@@ -42,6 +70,12 @@
         <field name="res_model">vm.config.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <field name="context">{
+            'default_config_type': 'custom',
+            'default_cores': context.get('default_cores', 1),
+            'default_memory': context.get('default_memory', 1024),
+            'default_disk': context.get('default_disk', 10)
+        }</field>
     </record>
 
     <!-- ИСПРАВЛЕННЫЙ Визард для массовых операций -->

@@ -43,6 +43,26 @@ class VmConfigWizard(models.TransientModel):
     estimated_boot_time = fields.Integer(string="Est. Boot Time (sec)", compute='_compute_preview_fields')
     estimated_price = fields.Float(string="Estimated Price", compute='_compute_preview_fields')
 
+    @api.model
+    def default_get(self, fields_list):
+        """Получаем значения по умолчанию из контекста"""
+        res = super().default_get(fields_list)
+
+        # Получаем значения из контекста (переданные при открытии визарда)
+        context = self.env.context
+        if 'default_cores' in context:
+            res['cores'] = context.get('default_cores', 1)
+        if 'default_memory' in context:
+            res['memory'] = context.get('default_memory', 1024)
+        if 'default_disk' in context:
+            res['disk'] = context.get('default_disk', 10)
+
+        # Если есть значения из контекста, устанавливаем режим custom
+        if any(k in context for k in ['default_cores', 'default_memory', 'default_disk']):
+            res['config_type'] = 'custom'
+
+        return res
+
     @api.depends('config_type', 'predefined_config', 'os_type', 'cores', 'memory', 'disk')
     def _compute_preview_fields(self):
         """Вычисляет preview поля используя traits"""
@@ -90,18 +110,29 @@ class VmConfigWizard(models.TransientModel):
 
         if active_model and active_id:
             record = self.env[active_model].browse(active_id)
-            record.write({
+
+            # ИСПРАВЛЕНИЕ: Применяем конфигурацию к правильным полям
+            update_vals = {
                 'cores': cores,
                 'memory': memory,
                 'disk': disk,
-            })
+            }
+
+            # Для product.template добавляем дополнительные поля если нужно
+            if active_model == 'product.template':
+                # Обновляем цену на основе ресурсов
+                price_multiplier = VmResourceTrait.calculate_price_multiplier(cores, memory, disk)
+                base_price = record.list_price or 10.0
+                update_vals['list_price'] = base_price * price_multiplier
+
+            record.write(update_vals)
 
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
                 'params': {
-                    'title': _('Success'),
-                    'message': _('VM configuration applied successfully!'),
+                    'title': _('Configuration Applied'),
+                    'message': _('VM configuration updated: %d cores, %d MiB RAM, %d GiB disk') % (cores, memory, disk),
                     'type': 'success',
                 }
             }
