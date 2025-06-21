@@ -48,7 +48,7 @@
     <!-- Reports and Analytics -->
     <menuitem
         id="menu_vm_reports_submenu"
-        name="Reports & Analytics"
+        name="Reports &amp; Analytics"
         parent="menu_vm_rental_root"
         sequence="80"/>
 

@@ -68,10 +68,10 @@
         # Data and sequences
         'data/vm_sequence.xml',
         'data/mail_templates.xml',
-        'data/vm_traits_demo.xml',
 
         # Views (ordered by dependency)
         'views/hypervisor_server_views.xml',
+        'views/vm_wizard_view.xml',
         'views/vm_instance_view.xml',
         'views/vm_report_view.xml',
         'views/product_template_view.xml',
@@ -84,21 +84,22 @@
         'views/portal_vm_snapshots.xml',
         'views/portal_menu_templates.xml',
 
-        # Wizards
-        'views/vm_traits_wizard.xml',
-        'views/vm_bulk_operations_wizard.xml',
+        # Wizards (УПРОЩЕНО: используем только один файл)
         'wizards/link_existing_vm_wizard_view.xml',
 
         # Settings and menus
         'views/res_config_settings_views.xml',
         'views/menus.xml',
 
-        # Cron jobs (enhanced)
+        # Demo data
+        'data/vm_traits_demo.xml',
+
+        # Cron jobs
         'data/cron_jobs.xml',
 
         # Access rights (last)
         'security/ir.model.access.csv',
-    ],
+],
     'assets': {
         'web.assets_backend': [
             'vm_rental/static/src/js/vm_rental_settings.js',

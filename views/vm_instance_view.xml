@@ -34,7 +34,6 @@ if records:
                 <field name="partner_id"/>
                 <field name="state" widget="badge"
                        decoration-success="state=='active'"
-                       decoration-secondary="state=='stopped'"
                        decoration-warning="state=='suspended'"
                        decoration-info="state=='pending'"
                        decoration-danger="state=='failed'"/>
@@ -365,7 +364,7 @@ if records:
                                 </div>
                                 <div class="o_kanban_record_top_right">
                                     <span t-attf-class="badge badge-pill
-                                        #{record.state.raw_value == 'active' ? 'badge-success' :
+                                        # {record.state.raw_value == 'active' ? 'badge-success' :
                                           record.state.raw_value == 'pending' ? 'badge-info' :
                                           record.state.raw_value == 'failed' ? 'badge-danger' : 'badge-secondary'}">
                                         <field name="state"/>
@@ -376,7 +375,7 @@ if records:
                             <div class="o_kanban_record_body">
                                 <div class="row">
                                     <div class="col-6">
-                                        <span class="fa fa-server"/> <field name="hypervisor_vm_ref"/>
+                                        <span class="fa fa-server" title="Hypervisor"/> <field name="hypervisor_vm_ref"/>
                                     </div>
                                     <div class="col-6">
                                         <span t-attf-class="badge badge-light">
