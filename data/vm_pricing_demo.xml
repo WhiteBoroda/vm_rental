@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- vm_rental/data/vm_pricing_demo.xml -->
 <odoo>
     <data noupdate="1">
-
-        <!-- Демо сервер гипервизора -->
         <record id="demo_hypervisor_server_proxmox" model="hypervisor.server">
             <field name="name">Demo Proxmox Server</field>
             <field name="hypervisor_type">proxmox</field>
@@ -15,7 +12,6 @@
             <field name="status">not_tested</field>
         </record>
 
-        <!-- Демо хранилища -->
         <record id="demo_storage_local_lvm" model="hypervisor.storage">
             <field name="name">local-lvm</field>
             <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
@@ -34,7 +30,6 @@
             <field name="storage_type">nvme</field>
         </record>
 
-        <!-- Стандартный ценовой план -->
         <record id="demo_pricing_standard" model="hypervisor.server.pricing">
             <field name="name">Standard Pricing Plan</field>
             <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
@@ -44,12 +39,11 @@
             <field name="os_multiplier">1.5</field>
             <field name="bulk_discount_threshold">10</field>
             <field name="bulk_discount_percent">15.0</field>
-            <field name="date_start" eval="(datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')"/>
+            <field name="date_start">2024-01-01</field>
             <field name="priority">10</field>
             <field name="active">True</field>
         </record>
 
-        <!-- Ценообразование для различных типов хранилищ -->
         <record id="demo_storage_pricing_hdd" model="hypervisor.storage.pricing">
             <field name="server_pricing_id" ref="demo_pricing_standard"/>
             <field name="storage_id" ref="demo_storage_local_lvm"/>
@@ -80,7 +74,6 @@
             <field name="price_per_additional_iops">0.0005</field>
         </record>
 
-        <!-- Бюджетный ценовой план -->
         <record id="demo_pricing_budget" model="hypervisor.server.pricing">
             <field name="name">Budget Pricing Plan</field>
             <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
@@ -90,12 +83,11 @@
             <field name="os_multiplier">1.3</field>
             <field name="bulk_discount_threshold">5</field>
             <field name="bulk_discount_percent">10.0</field>
-            <field name="date_start" eval="(datetime.datetime.now() + datetime.timedelta(days=30)).strftime('%Y-%m-%d')"/>
+            <field name="date_start">2099-01-01</field>
             <field name="priority">15</field>
-            <field name="active">False</field>
+            <field name="active">True</field>
         </record>
 
-        <!-- Премиум ценовой план -->
         <record id="demo_pricing_premium" model="hypervisor.server.pricing">
             <field name="name">Premium Pricing Plan</field>
             <field name="server_id" ref="demo_hypervisor_server_proxmox"/>
@@ -105,13 +97,12 @@
             <field name="os_multiplier">1.8</field>
             <field name="bulk_discount_threshold">20</field>
             <field name="bulk_discount_percent">20.0</field>
-            <field name="date_start" eval="(datetime.datetime.now() - datetime.timedelta(days=60)).strftime('%Y-%m-%d')"/>
-            <field name="date_end" eval="(datetime.datetime.now() - datetime.timedelta(days=31)).strftime('%Y-%m-%d')"/>
+            <field name="date_start">2023-01-01</field>
+            <field name="date_end">2023-12-31</field>
             <field name="priority">5</field>
             <field name="active">False</field>
         </record>
 
-        <!-- Демо продукты с автоматическим ценообразованием -->
         <record id="demo_vm_product_auto_priced" model="product.template">
             <field name="name">VM Auto-Priced Standard</field>
             <field name="type">service</field>

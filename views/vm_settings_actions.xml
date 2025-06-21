@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Server Action для экспорта настроек VM Rental -->
     <record id="action_export_vm_settings" model="ir.actions.server">
         <field name="name">Export VM Rental Settings</field>
         <field name="model_id" ref="base.model_res_config_settings"/>
@@ -47,7 +46,6 @@ action = {
         </field>
     </record>
 
-    <!-- Server Action для проверки всех гипервизоров -->
     <record id="action_test_all_hypervisors" model="ir.actions.server">
         <field name="name">Test All Hypervisor Connections</field>
         <field name="model_id" ref="model_hypervisor_server"/>
@@ -59,9 +57,9 @@ servers = model.search([])
 for server in servers:
     try:
         server.test_and_fetch_resources()
-        results.append(f"✓ {server.name}: Connected successfully")
+        results.append("✓ %s: Connected successfully" % server.name)
     except Exception as e:
-        results.append(f"✗ {server.name}: {str(e)}")
+        results.append("✗ %s: %s" % (server.name, str(e)))
 
 message = "Hypervisor Connection Test Results:\n\n" + "\n".join(results)
 
@@ -78,14 +76,13 @@ action = {
         </field>
     </record>
 
-    <!-- Server Action для очистки старых логов -->
     <record id="action_cleanup_audit_logs" model="ir.actions.server">
         <field name="name">Cleanup Old Audit Logs</field>
         <field name="model_id" ref="model_vm_rental_audit_log"/>
         <field name="state">code</field>
         <field name="code">
 # Удаляем логи старше 90 дней
-cutoff_date = fields.Datetime.now() - timedelta(days=90)
+cutoff_date = fields.Datetime.now() - datetime.timedelta(days=90)
 old_logs = model.search([('create_date', '&lt;', cutoff_date)])
 
 if old_logs:
@@ -110,7 +107,6 @@ action = {
         </field>
     </record>
 
-    <!-- Server Action для проверки состояния системы -->
     <record id="action_system_health_check" model="ir.actions.server">
         <field name="name">VM Rental System Health Check</field>
         <field name="model_id" ref="model_vm_rental_machine"/>
@@ -179,7 +175,6 @@ action = {
         </field>
     </record>
 
-    <!-- Добавляем новые действия в меню Tools -->
     <menuitem
         id="menu_export_settings"
         name="Export Settings"
@@ -208,7 +203,6 @@ action = {
         action="action_system_health_check"
         sequence="60"/>
 
-    <!-- НОВОЕ: Быстрый доступ к Configuration Wizard -->
     <menuitem
         id="menu_quick_config_wizard"
         name="Quick Config Wizard"

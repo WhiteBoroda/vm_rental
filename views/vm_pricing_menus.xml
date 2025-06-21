@@ -1,31 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- vm_rental/views/vm_pricing_menus.xml -->
 <odoo>
 
-    <!-- Добавляем подменю для ценообразования -->
     <menuitem
         id="menu_vm_pricing_submenu"
         name="Pricing &amp; Billing"
         parent="menu_vm_rental_root"
         sequence="70"/>
-
-    <!-- Планы ценообразования серверов -->
     <menuitem
         id="menu_hypervisor_server_pricing"
         name="Server Pricing Plans"
         parent="menu_vm_pricing_submenu"
         action="action_hypervisor_server_pricing"
         sequence="10"/>
-
-    <!-- Калькулятор цен -->
     <menuitem
         id="menu_vm_pricing_calculator"
         name="Pricing Calculator"
         parent="menu_vm_pricing_submenu"
         action="action_vm_pricing_calculator"
         sequence="20"/>
-
-    <!-- Dashboard ценообразования -->
     <menuitem
         id="menu_pricing_dashboard"
         name="Pricing Dashboard"
@@ -33,7 +25,6 @@
         action="action_pricing_dashboard"
         sequence="30"/>
 
-    <!-- Server Actions для автоматизации ценообразования -->
     <record id="action_update_all_product_prices" model="ir.actions.server">
         <field name="name">Update All Product Prices</field>
         <field name="model_id" ref="product.model_product_template"/>
@@ -47,7 +38,7 @@ products = model.search([
 
 for product in products:
     if product.calculated_price > 0:
-        product.list_price = product.calculated_price
+        product.write({'list_price': product.calculated_price})
         updated_count += 1
 
 action = {
@@ -55,14 +46,13 @@ action = {
     'tag': 'display_notification',
     'params': {
         'title': 'Price Update Complete',
-        'message': f'Updated prices for {updated_count} VM products',
+        'message': 'Updated prices for %s VM products' % updated_count,
         'type': 'success',
         'sticky': False,
     }
 }
         </field>
     </record>
-
     <record id="action_create_default_pricing_plans" model="ir.actions.server">
         <field name="name">Create Default Pricing Plans</field>
         <field name="model_id" ref="model_hypervisor_server"/>
@@ -81,7 +71,7 @@ for server in servers:
     if not existing_pricing:
         # Создаем базовый план ценообразования
         pricing_plan = env['hypervisor.server.pricing'].create({
-            'name': f'Default Pricing - {server.name}',
+            'name': 'Default Pricing - %s' % server.name,
             'server_id': server.id,
             'price_per_core': 5.0,
             'price_per_gb_ram': 2.0,
@@ -99,14 +89,13 @@ action = {
     'tag': 'display_notification',
     'params': {
         'title': 'Default Pricing Plans Created',
-        'message': f'Created {created_count} default pricing plans',
+        'message': 'Created %s default pricing plans' % created_count,
         'type': 'success',
         'sticky': False,
     }
 }
         </field>
     </record>
-
     <record id="action_pricing_analysis_report" model="ir.actions.server">
         <field name="name">Pricing Analysis Report</field>
         <field name="model_id" ref="model_hypervisor_server_pricing"/>
@@ -138,23 +127,32 @@ total_vm_products = env['product.template'].search_count([
     ('hypervisor_server_id', '!=', False)
 ])
 
-report = f"""Pricing Analysis Report:
+coverage_percentage = (servers_with_pricing / total_servers * 100) if total_servers > 0 else 0
+auto_pricing_adoption = (auto_price_products / total_vm_products * 100) if total_vm_products > 0 else 0
+
+report = """Pricing Analysis Report:
 
 Server Coverage:
-• Servers with pricing: {servers_with_pricing}/{total_servers}
-• Coverage percentage: {(servers_with_pricing/total_servers*100) if total_servers > 0 else 0:.1f}%
+• Servers with pricing: %d/%d
+• Coverage percentage: %.1f%%
 
 Price Ranges:
-• CPU Core: ${min_core_price:.2f} - ${max_core_price:.2f} (avg: ${avg_core_price:.2f})
-• RAM per GB: ${avg_ram_price:.2f} average
-• Disk per GB: ${avg_disk_price:.4f} average
+• CPU Core: $%.2f - $%.2f (avg: $%.2f)
+• RAM per GB: $%.2f average
+• Disk per GB: $%.4f average
 
 Product Integration:
-• Auto-pricing products: {auto_price_products}/{total_vm_products}
-• Auto-pricing adoption: {(auto_price_products/total_vm_products*100) if total_vm_products > 0 else 0:.1f}%
+• Auto-pricing products: %d/%d
+• Auto-pricing adoption: %.1f%%
 
-Active Pricing Plans: {len(active_pricing)}
-"""
+Active Pricing Plans: %d
+""" % (
+    servers_with_pricing, total_servers, coverage_percentage,
+    min_core_price, max_core_price, avg_core_price,
+    avg_ram_price, avg_disk_price,
+    auto_price_products, total_vm_products, auto_pricing_adoption,
+    len(active_pricing)
+)
 
 action = {
     'type': 'ir.actions.client',
@@ -169,7 +167,6 @@ action = {
         </field>
     </record>
 
-    <!-- Добавляем новые действия в Tools меню -->
     <menuitem
         id="menu_update_product_prices"
         name="Update Product Prices"
@@ -191,7 +188,6 @@ action = {
         action="action_pricing_analysis_report"
         sequence="90"/>
 
-    <!-- Wizard для массового обновления цен -->
     <record id="view_mass_price_update_wizard" model="ir.ui.view">
         <field name="name">mass.price.update.wizard</field>
         <field name="model">vm.pricing.calculator</field>
@@ -199,7 +195,7 @@ action = {
             <form string="Mass Price Update">
                 <group>
                     <div class="alert alert-warning" role="alert">
-                        <i class="fa fa-warning mr-2"></i>
+                        <i class="fa fa-warning mr-2" title="Warning"></i>
                         <strong>Warning:</strong> This will update prices for all VM products with auto-calculation enabled.
                     </div>
 

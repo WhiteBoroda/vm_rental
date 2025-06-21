@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Основное меню -->
     <menuitem
         id="menu_vm_rental_root"
         name="VM Rental"
         sequence="10"/>
 
-    <!-- VM Management -->
     <menuitem
         id="menu_vm_instances"
         name="VM Instances"
@@ -21,7 +19,6 @@
         action="action_linking_job"
         sequence="20"/>
 
-    <!-- Configuration -->
     <menuitem
         id="menu_vm_config_wizard"
         name="Configuration Wizard"
@@ -29,7 +26,6 @@
         action="action_vm_config_wizard"
         sequence="25"/>
 
-    <!-- Bulk Operations -->
     <menuitem
         id="menu_vm_bulk_operations"
         name="Bulk Operations"
@@ -37,7 +33,6 @@
         action="action_vm_bulk_operations"
         sequence="30"/>
 
-    <!-- Infrastructure -->
     <menuitem
         id="menu_hypervisor_servers"
         name="Hypervisor Servers"
@@ -45,7 +40,6 @@
         action="action_hypervisor_server"
         sequence="50"/>
 
-    <!-- Reports and Analytics -->
     <menuitem
         id="menu_vm_reports_submenu"
         name="Reports &amp; Analytics"
@@ -59,14 +53,12 @@
         action="action_report_vm_admin"
         sequence="15"/>
 
-    <!-- Tools and Utilities -->
     <menuitem
         id="menu_vm_tools_submenu"
         name="Tools"
         parent="menu_vm_rental_root"
         sequence="90"/>
 
-    <!-- Автоматическое создание продуктов -->
     <record id="action_create_vm_products" model="ir.actions.server">
         <field name="name">Create VM Product Variants</field>
         <field name="model_id" ref="product.model_product_template"/>
@@ -90,7 +82,6 @@ action = {
         action="action_create_vm_products"
         sequence="10"/>
 
-    <!-- Статистика ресурсов -->
     <record id="action_vm_resource_stats" model="ir.actions.server">
         <field name="name">Show Resource Statistics</field>
         <field name="model_id" ref="model_vm_rental_machine"/>
@@ -99,16 +90,29 @@ action = {
 stats = model.get_resource_utilization_stats()
 distribution = model.get_hypervisor_distribution()
 
-message = f"""
+dist_lines = []
+for name, data in distribution.items():
+    dist_lines.append("• %s: %s VMs (%s)" % (name, data['count'], data['hypervisor_type']))
+
+message = """
 Resource Utilization Statistics:
-• Total Active VMs: {stats.get('total_vms', 0)}
-• Total CPU Cores: {stats.get('total_cores', 0)}
-• Total Memory: {stats.get('total_memory_gb', 0)} GB
-• Total Disk: {stats.get('total_disk_gb', 0)} GB
-• Average per VM: {stats.get('avg_cores', 0)} cores, {stats.get('avg_memory_mb', 0)} MB RAM
+• Total Active VMs: %s
+• Total CPU Cores: %s
+• Total Memory: %s GB
+• Total Disk: %s GB
+• Average per VM: %s cores, %s MB RAM
 
 Hypervisor Distribution:
-""" + '\n'.join([f"• {name}: {data['count']} VMs ({data['hypervisor_type']})" for name, data in distribution.items()])
+%s
+""" % (
+    stats.get('total_vms', 0),
+    stats.get('total_cores', 0),
+    stats.get('total_memory_gb', 0),
+    stats.get('total_disk_gb', 0),
+    stats.get('avg_cores', 0),
+    stats.get('avg_memory_mb', 0),
+    '\n'.join(dist_lines)
+)
 
 action = {
     'type': 'ir.actions.client',

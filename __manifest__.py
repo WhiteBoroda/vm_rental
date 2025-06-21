@@ -73,6 +73,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
     'data': [
         # Security
         'security/vm_security.xml',
+        'security/vm_pricing_security.xml',
         'security/ir.model.access.csv',
 
         # Data and sequences
@@ -103,7 +104,6 @@ unprecedented flexibility while maintaining high performance and code clarity.
         # Pricing system views and security
         'views/vm_pricing_views.xml',
         'views/vm_pricing_menus.xml',
-        'security/vm_pricing_security.xml',
         'views/menus.xml',
 
         # Demo data
