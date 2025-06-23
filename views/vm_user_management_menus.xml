@@ -1,0 +1,340 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vm_rental/views/vm_user_management_menus.xml -->
+<odoo>
+
+    <!-- Добавляем подменю для управления пользователями -->
+    <menuitem
+        id="menu_vm_user_management_submenu"
+        name="User Management"
+        parent="menu_vm_rental_root"
+        sequence="100"/>
+
+    <!-- User Access Report -->
+    <record id="action_vm_user_access_report" model="ir.actions.server">
+        <field name="name">User Access Report</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="code">
+# Подробный отчет по доступу пользователей
+vm_admin_group = env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
+vm_manager_group = env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
+
+admin_count = len(vm_admin_group.users) if vm_admin_group else 0
+manager_count = len(vm_manager_group.users) if vm_manager_group else 0
+total_internal = env['res.users'].search_count([('share', '=', False), ('active', '=', True)])
+total_portal = env['res.users'].search_count([('share', '=', True), ('active', '=', True)])
+
+# VM статистика по пользователям
+vm_owners = env['vm_rental.machine'].read_group(
+    [('state', '!=', 'terminated')],
+    ['partner_id'],
+    ['partner_id']
+)
+
+active_vms = env['vm_rental.machine'].search_count([('state', '=', 'active')])
+total_vms = env['vm_rental.machine'].search_count([])
+
+# Пользователи без VM доступа
+users_without_access = total_internal - admin_count - manager_count
+access_coverage = (admin_count + manager_count) / total_internal * 100 if total_internal > 0 else 0
+
+report = f"""VM Rental User Access Report:
+
+=== USER GROUPS ===
+• VM Administrators: {admin_count} users
+• VM Managers: {manager_count} users
+• Internal Users (total): {total_internal} users
+• Portal Users: {total_portal} users
+
+=== ACCESS ANALYSIS ===
+• Users with VM access: {admin_count + manager_count}
+• Users without VM access: {users_without_access}
+• Access coverage: {access_coverage:.1f}%
+
+=== VM STATISTICS ===
+• Total VMs: {total_vms}
+• Active VMs: {active_vms}
+• Unique VM owners: {len(vm_owners)}
+
+=== RECOMMENDATIONS ===
+""" + (
+    "✓ Good access coverage" if access_coverage >= 75 else
+    "⚠ Consider assigning VM access to more users" if access_coverage >= 50 else
+    "❌ Low access coverage - many users lack VM access"
+) + f"""
+
+=== ACCESS MATRIX ===
+Role                    | View VMs | Manage VMs | Hypervisors | Settings
+VM Administrator        |    ✓     |     ✓      |      ✓      |    ✓
+VM Manager             |    ✓     |     ✓      |    Edit     |    ✗
+Internal User          |    ✓     |     ✗      |      ✗      |    ✗
+Portal User            |   Own    |    Own     |      ✗      |    ✗
+
+Generated: {fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
+"""
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'VM User Access Report',
+        'message': report,
+        'type': 'info',
+        'sticky': True,
+    }
+}
+        </field>
+    </record>
+
+    <!-- Quick User Assignment Actions -->
+    <record id="action_assign_vm_manager_role" model="ir.actions.server">
+        <field name="name">Assign VM Manager Role</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="binding_model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="code">
+vm_manager_group = env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
+if vm_manager_group:
+    assigned_count = 0
+    for user in records.filtered(lambda u: not u.share and u.active):
+        if vm_manager_group not in user.groups_id:
+            user.groups_id = [(4, vm_manager_group.id)]
+            assigned_count += 1
+
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'title': 'VM Manager Role Assigned',
+            'message': f'Assigned VM Manager role to {assigned_count} users',
+            'type': 'success' if assigned_count > 0 else 'info',
+        }
+    }
+        </field>
+    </record>
+
+    <record id="action_assign_vm_admin_role" model="ir.actions.server">
+        <field name="name">Assign VM Administrator Role</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="binding_model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="code">
+vm_admin_group = env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
+if vm_admin_group:
+    assigned_count = 0
+    for user in records.filtered(lambda u: not u.share and u.active):
+        if vm_admin_group not in user.groups_id:
+            user.groups_id = [(4, vm_admin_group.id)]
+            assigned_count += 1
+
+    # Логируем критическое изменение
+    env['vm_rental.audit_log'].sudo().create({
+        'vm_id': False,
+        'action': 'admin_role_assigned',
+        'success': True,
+        'metadata': f'VM Admin role assigned to {assigned_count} users by {env.user.name}'
+    })
+
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'title': 'VM Administrator Role Assigned',
+            'message': f'Assigned VM Administrator role to {assigned_count} users',
+            'type': 'success' if assigned_count > 0 else 'info',
+        }
+    }
+        </field>
+    </record>
+
+    <record id="action_remove_vm_roles" model="ir.actions.server">
+        <field name="name">Remove VM Roles</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="binding_model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="code">
+vm_admin_group = env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
+vm_manager_group = env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
+
+removed_count = 0
+for user in records.filtered(lambda u: not u.share and u.active):
+    if vm_admin_group and vm_admin_group in user.groups_id:
+        user.groups_id = [(3, vm_admin_group.id)]
+        removed_count += 1
+    if vm_manager_group and vm_manager_group in user.groups_id:
+        user.groups_id = [(3, vm_manager_group.id)]
+        removed_count += 1
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'VM Roles Removed',
+        'message': f'Removed VM roles from {removed_count} user assignments',
+        'type': 'warning' if removed_count > 0 else 'info',
+    }
+}
+        </field>
+    </record>
+
+    <!-- Enhanced Users List View -->
+    <record id="view_users_tree_vm_rental" model="ir.ui.view">
+        <field name="name">res.users.tree.vm.rental</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='login_date']" position="after">
+                <field name="vm_rental_role" optional="show" string="VM Role"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- VM Users Dashboard -->
+    <record id="action_vm_users_dashboard" model="ir.actions.act_window">
+        <field name="name">VM Users Dashboard</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('share', '=', False), ('active', '=', True)]</field>
+        <field name="context">{
+            'search_default_vm_admins': 1,
+            'search_default_vm_managers': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage VM Rental user access
+            </p>
+            <p>
+                View and manage which users have access to VM Rental features.
+                Use the filters to see users by their VM access level.
+            </p>
+        </field>
+    </record>
+
+    <!-- Enhanced User Search View -->
+    <record id="view_users_search_vm_rental" model="ir.ui.view">
+        <field name="name">res.users.search.vm.rental</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_search"/>
+        <field name="arch" type="xml">
+            <xpath expr="//search" position="inside">
+                <separator/>
+                <filter string="VM Administrators" name="vm_admins"
+                        domain="[('groups_id.name', 'ilike', 'VM Rental / Administrator')]"/>
+                <filter string="VM Managers" name="vm_managers"
+                        domain="[('groups_id.name', 'ilike', 'VM Rental / Manager')]"/>
+                <filter string="Users without VM Access" name="no_vm_access"
+                        domain="[('groups_id.name', 'not ilike', 'VM Rental')]"/>
+                <separator/>
+                <group expand="0" string="VM Access">
+                    <filter string="VM Role" name="group_vm_role" context="{'group_by': 'vm_rental_role'}"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Меню для управления пользователями -->
+    <menuitem
+        id="menu_vm_users_dashboard"
+        name="VM Users Dashboard"
+        parent="menu_vm_user_management_submenu"
+        action="action_vm_users_dashboard"
+        sequence="10"/>
+
+    <menuitem
+        id="menu_vm_user_access_report"
+        name="User Access Report"
+        parent="menu_vm_user_management_submenu"
+        action="action_vm_user_access_report"
+        sequence="20"/>
+
+    <menuitem
+        id="menu_vm_user_role_assignment"
+        name="Bulk Role Assignment"
+        parent="menu_vm_user_management_submenu"
+        action="action_vm_user_role_assignment_wizard"
+        sequence="30"/>
+
+    <!-- User Statistics Action -->
+    <record id="action_vm_detailed_user_stats" model="ir.actions.server">
+        <field name="name">Detailed User Statistics</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="code">
+# Детальная статистика с группировкой
+user_stats = env['res.users'].read_group(
+    [('active', '=', True)],
+    ['share'],
+    ['share']
+)
+
+vm_admin_group = env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
+vm_manager_group = env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
+
+# Статистика по последней активности
+recent_logins = env['res.users'].search_count([
+    ('login_date', '>=', fields.Datetime.now() - timedelta(days=30)),
+    ('active', '=', True)
+])
+
+# VM активность
+vm_creators = env['vm_rental.machine'].read_group(
+    [('create_date', '>=', fields.Datetime.now() - timedelta(days=30))],
+    ['create_uid'],
+    ['create_uid']
+)
+
+report_data = {
+    'user_breakdown': user_stats,
+    'vm_admin_count': len(vm_admin_group.users) if vm_admin_group else 0,
+    'vm_manager_count': len(vm_manager_group.users) if vm_manager_group else 0,
+    'recent_logins': recent_logins,
+    'active_vm_creators': len(vm_creators),
+    'timestamp': fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+}
+
+# Форматируем отчет
+internal_users = next((stat['share_count'] for stat in user_stats if not stat['share']), 0)
+portal_users = next((stat['share_count'] for stat in user_stats if stat['share']), 0)
+
+detailed_report = f"""Detailed VM User Statistics:
+
+=== USER BREAKDOWN ===
+• Internal Users: {internal_users}
+• Portal Users: {portal_users}
+• VM Administrators: {report_data['vm_admin_count']}
+• VM Managers: {report_data['vm_manager_count']}
+
+=== ACTIVITY METRICS ===
+• Users logged in last 30 days: {recent_logins}
+• Users who created VMs last 30 days: {report_data['active_vm_creators']}
+• Activity rate: {(recent_logins / (internal_users + portal_users) * 100) if (internal_users + portal_users) > 0 else 0:.1f}%
+
+=== RECOMMENDATIONS ===
+• Consider enabling auto-assignment for new users
+• Review inactive users for access cleanup
+• Monitor VM creation patterns for capacity planning
+
+Generated: {report_data['timestamp']}
+"""
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Detailed User Statistics',
+        'message': detailed_report,
+        'type': 'info',
+        'sticky': True,
+    }
+}
+        </field>
+    </record>
+
+    <menuitem
+        id="menu_vm_detailed_user_stats"
+        name="Detailed Statistics"
+        parent="menu_vm_user_management_submenu"
+        action="action_vm_detailed_user_stats"
+        sequence="40"/>
+
+</odoo>

@@ -1,0 +1,463 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- vm_rental/views/vm_user_settings_views.xml -->
+<odoo>
+
+    <!-- Обновляем представление настроек VM Rental -->
+    <record id="res_config_settings_view_form_vm_rental_users" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.vm_rental.users</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="res_config_settings_view_form_vm_rental"/>
+        <field name="arch" type="xml">
+            <!-- Добавляем новую секцию для управления пользователями -->
+            <xpath expr="//div[@class='app_settings_block'][@name='vm_rental_settings']" position="inside">
+
+                <!-- User Management Section -->
+                <div class="row mt32">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-dark text-white">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-users mr-2"></i>User Access Management
+                                </h5>
+                            </div>
+                            <div class="card-body">
+
+                                <!-- Alert about access control importance -->
+                                <div class="alert alert-info" role="alert">
+                                    <i class="fa fa-shield mr-2"></i>
+                                    <strong>Access Control:</strong> Manage which users can access VM Rental features.
+                                    VM Managers can create and manage VMs, while VM Administrators have full system access.
+                                </div>
+
+                                <div class="row">
+                                    <!-- VM Managers -->
+                                    <div class="col-12 col-lg-6 o_setting_box">
+                                        <div class="o_setting_left_pane">
+                                            <i class="fa fa-user-circle-o fa-2x text-primary"></i>
+                                        </div>
+                                        <div class="o_setting_right_pane">
+                                            <label for="vm_rental_manager_users" class="font-weight-bold">VM Rental Managers</label>
+                                            <div class="text-muted mb-2">
+                                                Users who can manage VMs, pricing plans, and basic hypervisor operations
+                                            </div>
+                                            <field name="vm_rental_manager_users" widget="many2many_tags"
+                                                   options="{'no_create': True}"
+                                                   domain="[('share', '=', False), ('active', '=', True)]"/>
+                                            <small class="text-info">
+                                                <i class="fa fa-info-circle mr-1"></i>
+                                                Can create VMs, manage pricing, view reports
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <!-- VM Administrators -->
+                                    <div class="col-12 col-lg-6 o_setting_box">
+                                        <div class="o_setting_left_pane">
+                                            <i class="fa fa-user-secret fa-2x text-danger"></i>
+                                        </div>
+                                        <div class="o_setting_right_pane">
+                                            <label for="vm_rental_admin_users" class="font-weight-bold">VM Rental Administrators</label>
+                                            <div class="text-muted mb-2">
+                                                Users with full administrative access to all VM Rental features
+                                            </div>
+                                            <field name="vm_rental_admin_users" widget="many2many_tags"
+                                                   options="{'no_create': True}"
+                                                   domain="[('share', '=', False), ('active', '=', True)]"/>
+                                            <small class="text-danger">
+                                                <i class="fa fa-warning mr-1"></i>
+                                                Full access to hypervisors, settings, all VMs
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Portal Users Section -->
+                                <div class="row mt-3">
+                                    <div class="col-12 o_setting_box">
+                                        <div class="o_setting_left_pane">
+                                            <i class="fa fa-globe fa-2x text-success"></i>
+                                        </div>
+                                        <div class="o_setting_right_pane">
+                                            <label for="vm_portal_users" class="font-weight-bold">Portal Users with VMs</label>
+                                            <div class="text-muted mb-2">
+                                                Portal users who have virtual machines assigned to them
+                                            </div>
+                                            <field name="vm_portal_users" widget="many2many_tags" readonly="1"/>
+                                            <div class="mt-2">
+                                                <button name="action_sync_portal_users" type="object"
+                                                        string="Sync Portal Users"
+                                                        class="btn-secondary btn-sm"
+                                                        help="Refresh the list of portal users with VMs"/>
+                                            </div>
+                                            <small class="text-success">
+                                                <i class="fa fa-info-circle mr-1"></i>
+                                                Read-only: automatically managed based on VM assignments
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Quick Actions -->
+                                <div class="row mt-4">
+                                    <div class="col-12">
+                                        <div class="card bg-light">
+                                            <div class="card-header">
+                                                <h6 class="mb-0">
+                                                    <i class="fa fa-bolt text-warning mr-2"></i>Quick User Management Actions
+                                                </h6>
+                                            </div>
+                                            <div class="card-body">
+                                                <div class="row">
+                                                    <div class="col-md-4 mb-2">
+                                                        <button name="action_assign_vm_access_to_users" type="object"
+                                                                string="Assign Default Access"
+                                                                class="btn-outline-primary btn-block"
+                                                                help="Assign default VM access to users without VM permissions"/>
+                                                    </div>
+                                                    <div class="col-md-4 mb-2">
+                                                        <button name="action_sync_portal_users" type="object"
+                                                                string="Sync Portal Users"
+                                                                class="btn-outline-success btn-block"
+                                                                help="Refresh portal users list"/>
+                                                    </div>
+                                                    <div class="col-md-4 mb-2">
+                                                        <button name="action_remove_all_vm_access" type="object"
+                                                                string="Remove All Manager Access"
+                                                                class="btn-outline-danger btn-block"
+                                                                confirm="Are you sure you want to remove VM Manager access from all users?"
+                                                                help="Remove VM Manager access from all users (admins will remain)"/>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Automatic Access Assignment Section -->
+                <div class="row mt32">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-secondary text-white">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-magic mr-2"></i>Automatic Access Assignment
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-12 col-lg-6 o_setting_box">
+                                        <div class="o_setting_left_pane">
+                                            <field name="auto_assign_vm_access"/>
+                                        </div>
+                                        <div class="o_setting_right_pane">
+                                            <label for="auto_assign_vm_access" class="font-weight-bold"/>
+                                            <div class="text-muted mb-2">
+                                                Automatically assign VM access to newly created internal users
+                                            </div>
+                                            <small class="text-info">
+                                                <i class="fa fa-info-circle mr-1"></i>
+                                                New users will get the default access level specified below
+                                            </small>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-12 col-lg-6 o_setting_box">
+                                        <div class="o_setting_left_pane">
+                                            <i class="fa fa-user-plus fa-2x text-info"></i>
+                                        </div>
+                                        <div class="o_setting_right_pane">
+                                            <label for="default_vm_user_type" class="font-weight-bold">Default VM Access Level</label>
+                                            <div class="text-muted mb-2">
+                                                Default access level for newly created internal users
+                                            </div>
+                                            <field name="default_vm_user_type" widget="radio"
+                                                   attrs="{'invisible': [('auto_assign_vm_access', '=', False)]}"/>
+                                            <small class="text-warning" attrs="{'invisible': [('auto_assign_vm_access', '=', False)]}">
+                                                <i class="fa fa-warning mr-1"></i>
+                                                This setting affects all new internal users
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- User Statistics Section -->
+                <div class="row mt32 mb32">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-info text-white">
+                                <h5 class="mb-0">
+                                    <i class="fa fa-chart-bar mr-2"></i>User Statistics
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row text-center">
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card bg-primary text-white">
+                                            <div class="card-body">
+                                                <h3><i class="fa fa-user-secret fa-2x"></i></h3>
+                                                <h4>VM Administrators</h4>
+                                                <h2 id="vm_admin_count">-</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card bg-success text-white">
+                                            <div class="card-body">
+                                                <h3><i class="fa fa-user-circle-o fa-2x"></i></h3>
+                                                <h4>VM Managers</h4>
+                                                <h2 id="vm_manager_count">-</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card bg-warning text-white">
+                                            <div class="card-body">
+                                                <h3><i class="fa fa-users fa-2x"></i></h3>
+                                                <h4>Internal Users</h4>
+                                                <h2 id="internal_user_count">-</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3 mb-3">
+                                        <div class="card bg-info text-white">
+                                            <div class="card-body">
+                                                <h3><i class="fa fa-globe fa-2x"></i></h3>
+                                                <h4>Portal Users</h4>
+                                                <h2 id="portal_user_count">-</h2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- User Access Matrix -->
+                                <div class="mt-4">
+                                    <h6 class="font-weight-bold">
+                                        <i class="fa fa-table text-primary mr-2"></i>Access Rights Matrix
+                                    </h6>
+                                    <div class="table-responsive">
+                                        <table class="table table-sm table-bordered">
+                                            <thead class="thead-light">
+                                                <tr>
+                                                    <th>Feature</th>
+                                                    <th class="text-center">VM Administrator</th>
+                                                    <th class="text-center">VM Manager</th>
+                                                    <th class="text-center">Internal User</th>
+                                                    <th class="text-center">Portal User</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td><strong>Manage Own VMs</strong></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Create/Delete VMs</strong></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Manage Hypervisors</strong></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-warning"><i class="fa fa-pencil"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Pricing Management</strong></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-info"><i class="fa fa-eye"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>System Settings</strong></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>View All VMs</strong></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                </tr>
+                                                <tr>
+                                                    <td><strong>Console Access</strong></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="mt-2">
+                                        <small class="text-muted">
+                                            <i class="fa fa-check text-success"></i> Full Access &nbsp;&nbsp;
+                                            <i class="fa fa-pencil text-warning"></i> Edit Only &nbsp;&nbsp;
+                                            <i class="fa fa-eye text-info"></i> Read Only &nbsp;&nbsp;
+                                            <i class="fa fa-minus text-muted"></i> No Access
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Обновляем представление пользователя для отображения VM роли -->
+    <record id="view_users_form_vm_rental_role" model="ir.ui.view">
+        <field name="name">res.users.form.vm.rental.role</field>
+        <field name="model">res.users</field>
+        <field name="inherit_id" ref="base.view_users_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//page[@name='access_rights']" position="inside">
+                <group string="VM Rental Access" name="vm_rental_access">
+                    <field name="vm_rental_role" readonly="1"/>
+                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('vm_rental_role', '!=', 'none')]}">
+                        <i class="fa fa-info-circle mr-2"></i>
+                        This user has no VM Rental access. Add them to VM Rental groups in the
+                        <a href="/web#action=base.action_res_config_settings&amp;view_type=form" target="_blank">VM Rental Settings</a>.
+                    </div>
+                    <div class="alert alert-success" role="alert" attrs="{'invisible': [('vm_rental_role', '=', 'none')]}">
+                        <i class="fa fa-check-circle mr-2"></i>
+                        VM Rental Role: <strong><field name="vm_rental_role" nolabel="1" readonly="1"/></strong>
+                    </div>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Server Action для отображения статистики пользователей -->
+    <record id="action_vm_user_statistics" model="ir.actions.server">
+        <field name="name">VM User Statistics</field>
+        <field name="model_id" ref="base.model_res_users"/>
+        <field name="state">code</field>
+        <field name="code">
+# Статистика пользователей VM Rental
+vm_admin_group = env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
+vm_manager_group = env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
+
+vm_admins = len(vm_admin_group.users) if vm_admin_group else 0
+vm_managers = len(vm_manager_group.users) if vm_manager_group else 0
+
+internal_users = env['res.users'].search_count([('share', '=', False), ('active', '=', True)])
+portal_users = env['res.users'].search_count([('share', '=', True), ('active', '=', True)])
+
+# Портальные пользователи с VM
+portal_with_vms = env['res.users'].search_count([
+    ('share', '=', True),
+    ('active', '=', True),
+    ('partner_id.vm_instance_ids', '!=', False)
+])
+
+# Пользователи без VM доступа
+users_without_vm = internal_users - vm_admins - vm_managers
+
+report = f"""VM Rental User Statistics:
+
+User Groups:
+• VM Administrators: {vm_admins}
+• VM Managers: {vm_managers}
+• Internal Users (total): {internal_users}
+• Portal Users (total): {portal_users}
+• Portal Users with VMs: {portal_with_vms}
+
+Access Analysis:
+• Users with VM access: {vm_admins + vm_managers}
+• Users without VM access: {users_without_vm}
+• VM access coverage: {((vm_admins + vm_managers) / internal_users * 100) if internal_users > 0 else 0:.1f}%
+
+Active VMs: {env['vm_rental.machine'].search_count([('state', '=', 'active')])}
+Total VMs: {env['vm_rental.machine'].search_count([])}
+"""
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'VM User Statistics',
+        'message': report,
+        'type': 'info',
+        'sticky': True,
+    }
+}
+        </field>
+    </record>
+
+    <!-- Wizard для массового назначения ролей -->
+    <record id="view_vm_user_role_assignment_wizard" model="ir.ui.view">
+        <field name="name">vm.user.role.assignment.wizard</field>
+        <field name="model">res.config.settings</field>
+        <field name="arch" type="xml">
+            <form string="VM User Role Assignment">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Assign VM Roles to Users</h1>
+                        <h2>Bulk assignment of VM Rental access levels</h2>
+                    </div>
+
+                    <group>
+                        <group string="Selection Criteria">
+                            <field name="default_vm_user_type" string="Role to Assign" required="1"/>
+                            <label for="auto_assign_vm_access"/>
+                            <div>
+                                <field name="auto_assign_vm_access" nolabel="1"/>
+                                <div class="text-muted">
+                                    <small>Only assign to users without existing VM access</small>
+                                </div>
+                            </div>
+                        </group>
+                        <group string="Statistics">
+                            <span>Users without VM access:</span>
+                            <span id="users_without_access">Loading...</span>
+                            <span>Total internal users:</span>
+                            <span id="total_internal_users">Loading...</span>
+                        </group>
+                    </group>
+
+                    <div class="alert alert-warning" role="alert">
+                        <i class="fa fa-warning mr-2"></i>
+                        <strong>Warning:</strong> This will assign the selected role to all internal users
+                        who currently don't have VM Rental access.
+                    </div>
+                </sheet>
+
+                <footer>
+                    <button name="action_assign_vm_access_to_users" type="object"
+                            string="Assign Roles"
+                            class="btn-primary"
+                            confirm="Are you sure you want to assign VM roles to users without access?"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_vm_user_role_assignment_wizard" model="ir.actions.act_window">
+        <field name="name">Assign VM Roles to Users</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_vm_user_role_assignment_wizard"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
