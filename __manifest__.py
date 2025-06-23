@@ -71,7 +71,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
         'python': ['proxmoxer', 'pyvmomi', 'requests'],
     },
     'data': [
-        # Security
+        # Security (должно быть первым)
         'security/vm_security.xml',
         'security/vm_pricing_security.xml',
         'security/ir.model.access.csv',
@@ -98,21 +98,22 @@ unprecedented flexibility while maintaining high performance and code clarity.
         # Wizards
         'wizards/link_existing_vm_wizard_view.xml',
 
+        # Pricing system views and security
+        'views/vm_pricing_views.xml',
+        'views/vm_pricing_menus.xml',
+
         # Settings and menus
         'views/res_config_settings_views.xml',
         'views/vm_settings_actions.xml',
         'views/vm_user_management_menus.xml',
-        'views/vm_user_settings_views.xml'
-        # Pricing system views and security
-        'views/vm_pricing_views.xml',
-        'views/vm_pricing_menus.xml',
+        'views/vm_user_settings_views.xml',
         'views/menus.xml',
 
         # Demo data
         'data/vm_traits_demo.xml',
         'data/vm_pricing_demo.xml',
 
-        # Cron jobs
+        # Cron jobs (должно быть последним)
         'data/cron_jobs.xml',
     ],
     'assets': {

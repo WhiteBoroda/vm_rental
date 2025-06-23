@@ -217,7 +217,10 @@ def get_server_pricing_info(server_id, env):
 
 # Добавляем новые методы к существующему VmResourceTrait
 # Это нужно сделать после импорта оригинального VmResourceTrait
-from .vm_traits import VmResourceTrait
+try:
+    from .vm_traits import VmResourceTrait
+except ImportError:
+    VmResourceTrait = None
 
 # Расширяем класс VmResourceTrait новыми методами
 VmResourceTrait.calculate_vm_price = staticmethod(calculate_vm_price_extended)

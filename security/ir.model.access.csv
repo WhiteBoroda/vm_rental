@@ -42,3 +42,4 @@ access_vm_bulk_operations_wizard_user,vm.bulk.operations.wizard user,model_vm_bu
 access_vm_bulk_operations_wizard_manager,vm.bulk.operations.wizard manager,model_vm_bulk_operations_wizard,group_vm_rental_manager,1,1,1,1
 access_vm_pricing_calculator_user,vm.pricing.calculator user,model_vm_pricing_calculator,base.group_user,1,1,1,1
 access_vm_pricing_calculator_manager,vm.pricing.calculator manager,model_vm_pricing_calculator,group_vm_rental_manager,1,1,1,1
+access_vm_user_management_user,vm.user.management user,model_vm_user_management,base.group_user,1,1,1,1

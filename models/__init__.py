@@ -14,3 +14,4 @@ from . import vm_config_backup
 from . import res_config_settings
 from . import vm_pricing
 from . import vm_pricing_extensions
+from . import vm_user_management

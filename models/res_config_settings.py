@@ -1,5 +1,6 @@
 # models/res_config_settings.py
 from odoo import fields, models, api
+from datetime import timedelta
 
 
 class ResConfigSettings(models.TransientModel):
