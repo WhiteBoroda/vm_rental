@@ -9,7 +9,7 @@
         <field name="inherit_id" ref="res_config_settings_view_form_vm_rental"/>
         <field name="arch" type="xml">
             <!-- Добавляем новую секцию для управления пользователями -->
-            <xpath expr="//div[@class='app_settings_block'][@name='vm_rental_settings']" position="inside">
+            <xpath expr="//div[hasclass('app_settings_block')][hasclass('vm_rental_settings')]" position="inside">
 
                 <!-- User Management Section -->
                 <div class="row mt32">
@@ -17,14 +17,14 @@
                         <div class="card">
                             <div class="card-header bg-dark text-white">
                                 <h5 class="mb-0">
-                                    <i class="fa fa-users mr-2"></i>User Access Management
+                                    <i class="fa fa-users mr-2" title="User Management"></i>User Access Management
                                 </h5>
                             </div>
                             <div class="card-body">
 
                                 <!-- Alert about access control importance -->
                                 <div class="alert alert-info" role="alert">
-                                    <i class="fa fa-shield mr-2"></i>
+                                    <i class="fa fa-shield mr-2" title="Security"></i>
                                     <strong>Access Control:</strong> Manage which users can access VM Rental features.
                                     VM Managers can create and manage VMs, while VM Administrators have full system access.
                                 </div>
@@ -33,7 +33,7 @@
                                     <!-- VM Managers -->
                                     <div class="col-12 col-lg-6 o_setting_box">
                                         <div class="o_setting_left_pane">
-                                            <i class="fa fa-user-circle-o fa-2x text-primary"></i>
+                                            <i class="fa fa-user-circle-o fa-2x text-primary" title="VM Managers"></i>
                                         </div>
                                         <div class="o_setting_right_pane">
                                             <label for="vm_rental_manager_users" class="font-weight-bold">VM Rental Managers</label>
@@ -44,7 +44,7 @@
                                                    options="{'no_create': True}"
                                                    domain="[('share', '=', False), ('active', '=', True)]"/>
                                             <small class="text-info">
-                                                <i class="fa fa-info-circle mr-1"></i>
+                                                <i class="fa fa-info-circle mr-1" title="Information"></i>
                                                 Can create VMs, manage pricing, view reports
                                             </small>
                                         </div>
@@ -53,7 +53,7 @@
                                     <!-- VM Administrators -->
                                     <div class="col-12 col-lg-6 o_setting_box">
                                         <div class="o_setting_left_pane">
-                                            <i class="fa fa-user-secret fa-2x text-danger"></i>
+                                            <i class="fa fa-user-secret fa-2x text-danger" title="VM Administrators"></i>
                                         </div>
                                         <div class="o_setting_right_pane">
                                             <label for="vm_rental_admin_users" class="font-weight-bold">VM Rental Administrators</label>
@@ -64,7 +64,7 @@
                                                    options="{'no_create': True}"
                                                    domain="[('share', '=', False), ('active', '=', True)]"/>
                                             <small class="text-danger">
-                                                <i class="fa fa-warning mr-1"></i>
+                                                <i class="fa fa-warning mr-1" title="Warning"></i>
                                                 Full access to hypervisors, settings, all VMs
                                             </small>
                                         </div>
@@ -75,7 +75,7 @@
                                 <div class="row mt-3">
                                     <div class="col-12 o_setting_box">
                                         <div class="o_setting_left_pane">
-                                            <i class="fa fa-globe fa-2x text-success"></i>
+                                            <i class="fa fa-globe fa-2x text-success" title="Portal Users"></i>
                                         </div>
                                         <div class="o_setting_right_pane">
                                             <label for="vm_portal_users" class="font-weight-bold">Portal Users with VMs</label>
@@ -90,7 +90,7 @@
                                                         help="Refresh the list of portal users with VMs"/>
                                             </div>
                                             <small class="text-success">
-                                                <i class="fa fa-info-circle mr-1"></i>
+                                                <i class="fa fa-info-circle mr-1" title="Information"></i>
                                                 Read-only: automatically managed based on VM assignments
                                             </small>
                                         </div>
@@ -103,7 +103,7 @@
                                         <div class="card bg-light">
                                             <div class="card-header">
                                                 <h6 class="mb-0">
-                                                    <i class="fa fa-bolt text-warning mr-2"></i>Quick User Management Actions
+                                                    <i class="fa fa-bolt text-warning mr-2" title="Quick Actions"></i>Quick User Management Actions
                                                 </h6>
                                             </div>
                                             <div class="card-body">
@@ -143,7 +143,7 @@
                         <div class="card">
                             <div class="card-header bg-secondary text-white">
                                 <h5 class="mb-0">
-                                    <i class="fa fa-magic mr-2"></i>Automatic Access Assignment
+                                    <i class="fa fa-magic mr-2" title="Automatic Assignment"></i>Automatic Access Assignment
                                 </h5>
                             </div>
                             <div class="card-body">
@@ -158,7 +158,7 @@
                                                 Automatically assign VM access to newly created internal users
                                             </div>
                                             <small class="text-info">
-                                                <i class="fa fa-info-circle mr-1"></i>
+                                                <i class="fa fa-info-circle mr-1" title="Information"></i>
                                                 New users will get the default access level specified below
                                             </small>
                                         </div>
@@ -166,7 +166,7 @@
 
                                     <div class="col-12 col-lg-6 o_setting_box">
                                         <div class="o_setting_left_pane">
-                                            <i class="fa fa-user-plus fa-2x text-info"></i>
+                                            <i class="fa fa-user-plus fa-2x text-info" title="New User Access"></i>
                                         </div>
                                         <div class="o_setting_right_pane">
                                             <label for="default_vm_user_type" class="font-weight-bold">Default VM Access Level</label>
@@ -176,7 +176,7 @@
                                             <field name="default_vm_user_type" widget="radio"
                                                    attrs="{'invisible': [('auto_assign_vm_access', '=', False)]}"/>
                                             <small class="text-warning" attrs="{'invisible': [('auto_assign_vm_access', '=', False)]}">
-                                                <i class="fa fa-warning mr-1"></i>
+                                                <i class="fa fa-warning mr-1" title="Warning"></i>
                                                 This setting affects all new internal users
                                             </small>
                                         </div>
@@ -193,7 +193,7 @@
                         <div class="card">
                             <div class="card-header bg-info text-white">
                                 <h5 class="mb-0">
-                                    <i class="fa fa-chart-bar mr-2"></i>User Statistics
+                                    <i class="fa fa-chart-bar mr-2" title="Statistics"></i>User Statistics
                                 </h5>
                             </div>
                             <div class="card-body">
@@ -201,7 +201,7 @@
                                     <div class="col-md-3 mb-3">
                                         <div class="card bg-primary text-white">
                                             <div class="card-body">
-                                                <h3><i class="fa fa-user-secret fa-2x"></i></h3>
+                                                <h3><i class="fa fa-user-secret fa-2x" title="VM Administrators"></i></h3>
                                                 <h4>VM Administrators</h4>
                                                 <h2 id="vm_admin_count">-</h2>
                                             </div>
@@ -210,7 +210,7 @@
                                     <div class="col-md-3 mb-3">
                                         <div class="card bg-success text-white">
                                             <div class="card-body">
-                                                <h3><i class="fa fa-user-circle-o fa-2x"></i></h3>
+                                                <h3><i class="fa fa-user-circle-o fa-2x" title="VM Managers"></i></h3>
                                                 <h4>VM Managers</h4>
                                                 <h2 id="vm_manager_count">-</h2>
                                             </div>
@@ -219,7 +219,7 @@
                                     <div class="col-md-3 mb-3">
                                         <div class="card bg-warning text-white">
                                             <div class="card-body">
-                                                <h3><i class="fa fa-users fa-2x"></i></h3>
+                                                <h3><i class="fa fa-users fa-2x" title="Internal Users"></i></h3>
                                                 <h4>Internal Users</h4>
                                                 <h2 id="internal_user_count">-</h2>
                                             </div>
@@ -228,7 +228,7 @@
                                     <div class="col-md-3 mb-3">
                                         <div class="card bg-info text-white">
                                             <div class="card-body">
-                                                <h3><i class="fa fa-globe fa-2x"></i></h3>
+                                                <h3><i class="fa fa-globe fa-2x" title="Portal Users"></i></h3>
                                                 <h4>Portal Users</h4>
                                                 <h2 id="portal_user_count">-</h2>
                                             </div>
@@ -239,7 +239,7 @@
                                 <!-- User Access Matrix -->
                                 <div class="mt-4">
                                     <h6 class="font-weight-bold">
-                                        <i class="fa fa-table text-primary mr-2"></i>Access Rights Matrix
+                                        <i class="fa fa-table text-primary mr-2" title="Access Matrix"></i>Access Rights Matrix
                                     </h6>
                                     <div class="table-responsive">
                                         <table class="table table-sm table-bordered">
@@ -255,62 +255,62 @@
                                             <tbody>
                                                 <tr>
                                                     <td><strong>Manage Own VMs</strong></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Create/Delete VMs</strong></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Manage Hypervisors</strong></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-warning"><i class="fa fa-pencil"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-warning"><i class="fa fa-pencil" title="Edit Only"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Pricing Management</strong></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-info"><i class="fa fa-eye"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-info"><i class="fa fa-eye" title="Read Only"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>System Settings</strong></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>View All VMs</strong></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-muted"><i class="fa fa-minus"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-muted"><i class="fa fa-minus" title="No Access"></i></td>
                                                 </tr>
                                                 <tr>
                                                     <td><strong>Console Access</strong></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
-                                                    <td class="text-center text-success"><i class="fa fa-check"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
+                                                    <td class="text-center text-success"><i class="fa fa-check" title="Full Access"></i></td>
                                                 </tr>
                                             </tbody>
                                         </table>
                                     </div>
                                     <div class="mt-2">
                                         <small class="text-muted">
-                                            <i class="fa fa-check text-success"></i> Full Access &nbsp;&nbsp;
-                                            <i class="fa fa-pencil text-warning"></i> Edit Only &nbsp;&nbsp;
-                                            <i class="fa fa-eye text-info"></i> Read Only &nbsp;&nbsp;
-                                            <i class="fa fa-minus text-muted"></i> No Access
+                                            <i class="fa fa-check text-success" title="Full Access"></i> Full Access &#160;&#160;
+                                            <i class="fa fa-pencil text-warning" title="Edit Only"></i> Edit Only &#160;&#160;
+                                            <i class="fa fa-eye text-info" title="Read Only"></i> Read Only &#160;&#160;
+                                            <i class="fa fa-minus text-muted" title="No Access"></i> No Access
                                         </small>
                                     </div>
                                 </div>
@@ -333,12 +333,12 @@
                 <group string="VM Rental Access" name="vm_rental_access">
                     <field name="vm_rental_role" readonly="1"/>
                     <div class="alert alert-info" role="alert" attrs="{'invisible': [('vm_rental_role', '!=', 'none')]}">
-                        <i class="fa fa-info-circle mr-2"></i>
+                        <i class="fa fa-info-circle mr-2" title="Information"></i>
                         This user has no VM Rental access. Add them to VM Rental groups in the
                         <a href="/web#action=base.action_res_config_settings&amp;view_type=form" target="_blank">VM Rental Settings</a>.
                     </div>
                     <div class="alert alert-success" role="alert" attrs="{'invisible': [('vm_rental_role', '=', 'none')]}">
-                        <i class="fa fa-check-circle mr-2"></i>
+                        <i class="fa fa-check-circle mr-2" title="Success"></i>
                         VM Rental Role: <strong><field name="vm_rental_role" nolabel="1" readonly="1"/></strong>
                     </div>
                 </group>
@@ -435,7 +435,7 @@ action = {
                     </group>
 
                     <div class="alert alert-warning" role="alert">
-                        <i class="fa fa-warning mr-2"></i>
+                        <i class="fa fa-warning mr-2" title="Warning"></i>
                         <strong>Warning:</strong> This will assign the selected role to all internal users
                         who currently don't have VM Rental access.
                     </div>
