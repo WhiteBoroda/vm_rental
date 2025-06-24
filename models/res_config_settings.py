@@ -141,14 +141,14 @@ class ResConfigSettings(models.TransientModel):
     )
 
     # Настройки по умолчанию для новых пользователей
-    new_vm_user_type = fields.Selection([
+    vm_user_type = fields.Selection([
         ('none', 'No VM Access'),
         ('user', 'Basic User'),
         ('manager', 'VM Manager'),
         ('admin', 'VM Administrator')
-    ], string="Default VM Access for New Users",
+    ], string="VM Access for New Users",
         default='none',
-        config_parameter='vm_rental.default_user_type',
+        config_parameter='vm_rental.user_type',
         help="Default VM access level for newly created internal users")
 
     @api.model
@@ -272,7 +272,7 @@ class ResConfigSettings(models.TransientModel):
 
     def action_assign_vm_access_to_users(self):
         """Массовое назначение VM доступа пользователям"""
-        if not self.new_vm_user_type or self.new_vm_user_type == 'none':
+        if not self.vm_user_type or self.vm_user_type == 'none':
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
@@ -311,10 +311,10 @@ class ResConfigSettings(models.TransientModel):
 
         # Назначаем доступ в зависимости от выбранного типа
         assigned_count = 0
-        if self.new_vm_user_type == 'manager' and vm_manager_group:
+        if self.vm_user_type == 'manager' and vm_manager_group:
             vm_manager_group.users = [(4, uid) for uid in users_without_vm_access.ids]
             assigned_count = len(users_without_vm_access)
-        elif self.new_vm_user_type == 'admin' and vm_admin_group:
+        elif self.vm_user_type == 'admin' and vm_admin_group:
             vm_admin_group.users = [(4, uid) for uid in users_without_vm_access.ids]
             assigned_count = len(users_without_vm_access)
 
@@ -323,7 +323,7 @@ class ResConfigSettings(models.TransientModel):
             'tag': 'display_notification',
             'params': {
                 'title': 'Success',
-                'message': f'Assigned VM {self.new_vm_user_type} access to {assigned_count} users',
+                'message': f'Assigned VM {self.vm_user_type} access to {assigned_count} users',
                 'type': 'success',
             }
         }
@@ -350,7 +350,7 @@ class ResConfigSettings(models.TransientModel):
     def auto_assign_vm_access_to_new_user(self, user_id):
         """Автоматическое назначение VM доступа новому пользователю"""
         auto_assign = self.env['ir.config_parameter'].sudo().get_param('vm_rental.auto_assign_access', False)
-        default_type = self.env['ir.config_parameter'].sudo().get_param('vm_rental.default_user_type', 'none')
+        default_type = self.env['ir.config_parameter'].sudo().get_param('vm_rental.vm_user_type', 'none')
 
         if not auto_assign or default_type == 'none':
             return

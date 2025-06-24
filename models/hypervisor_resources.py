@@ -1,6 +1,10 @@
 # vm_rental/models/hypervisor_resources.py
 # -*- coding: utf-8 -*-
-from odoo import models, fields
+from odoo import models, fields, api, _
+import logging
+
+_logger = logging.getLogger(__name__)
+
 
 class HypervisorNode(models.Model):
     _name = 'hypervisor.node'
@@ -23,11 +27,12 @@ class HypervisorNode(models.Model):
         ('server_name_uniq', 'unique(server_id, name)', 'Node name must be unique per server!')
     ]
 
+
 class HypervisorStorage(models.Model):
     _name = 'hypervisor.storage'
     _description = 'Hypervisor Storage or Datastore'
     _order = 'name'
-    
+
     name = fields.Char(string="Storage/Datastore Name", required=True)
     server_id = fields.Many2one('hypervisor.server', string='Server', required=True, ondelete='cascade', index=True)
 
@@ -40,13 +45,21 @@ class HypervisorStorage(models.Model):
         string="Available on Nodes"
     )
 
+    # Поле для типа хранилища (добавлено для ценообразования)
+    storage_type = fields.Selection([
+        ('hdd', 'HDD (SATA)'),
+        ('ssd', 'SSD (SATA)'),
+        ('nvme', 'NVMe SSD'),
+        ('network', 'Network Storage'),
+        ('backup', 'Backup Storage'),
+    ], string="Storage Type", default='hdd')
+
+    pricing_ids = fields.One2many('hypervisor.storage.pricing', 'storage_id', string="Pricing")
+
     _sql_constraints = [
         ('server_name_uniq', 'unique(server_id, name)', 'Storage name must be unique per server!')
     ]
 
-
-# vm_rental/models/hypervisor_resources.py
-# ИСПРАВЛЕННАЯ модель HypervisorTemplate
 
 class HypervisorTemplate(models.Model):
     _name = 'hypervisor.template'
@@ -67,22 +80,6 @@ class HypervisorTemplate(models.Model):
     _sql_constraints = [
         ('server_vmid_uniq', 'unique(server_id, vmid)', 'Template ID/VolID must be unique per server!')
     ]
-
-    @api.model
-    def create(self, vals):
-        """ИСПРАВЛЕННЫЙ метод create с проверкой дубликатов"""
-        # Проверяем, существует ли уже такой шаблон
-        existing = self.search([
-            ('server_id', '=', vals.get('server_id')),
-            ('vmid', '=', vals.get('vmid'))
-        ], limit=1)
-
-        if existing:
-            _logger.warning(f"Template with vmid {vals.get('vmid')} already exists for server {vals.get('server_id')}")
-            # Возвращаем существующий шаблон вместо создания нового
-            return existing
-
-        return super().create(vals)
 
     @api.model_create_multi
     def create(self, vals_list):

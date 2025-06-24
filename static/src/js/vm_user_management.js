@@ -12,7 +12,7 @@ publicWidget.registry.VmUserManagement = publicWidget.Widget.extend({
     events: {
         'click .js_refresh_user_stats': '_onRefreshUserStats',
         'change input[name="auto_assign_vm_access"]': '_onAutoAssignChange',
-        'change select[name="new_vm_user_type"]': '_onDefaultTypeChange',
+        'change select[name="vm_user_type"]': '_onDefaultTypeChange',
     },
 
     start: function () {
@@ -110,7 +110,7 @@ publicWidget.registry.VmUserManagement = publicWidget.Widget.extend({
 
     _onAutoAssignChange: function (ev) {
         var $checkbox = $(ev.currentTarget);
-        var $defaultTypeField = this.$('select[name="new_vm_user_type"]').closest('.o_setting_box');
+        var $defaultTypeField = this.$('select[name="user_type"]').closest('.o_setting_box');
 
         if ($checkbox.is(':checked')) {
             $defaultTypeField.slideDown(300);

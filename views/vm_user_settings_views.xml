@@ -169,11 +169,11 @@
                                             <i class="fa fa-user-plus fa-2x text-info" title="New User Access"></i>
                                         </div>
                                         <div class="o_setting_right_pane">
-                                            <label for="new_vm_user_type" class="font-weight-bold">Default VM Access Level</label>
+                                            <label for="vm_user_type" class="font-weight-bold">Default VM Access Level</label>
                                             <div class="text-muted mb-2">
                                                 Default access level for newly created internal users
                                             </div>
-                                            <field name="new_vm_user_type" widget="radio"
+                                            <field name="vm_user_type" widget="radio"
                                                    attrs="{'invisible': [('auto_assign_vm_access', '=', False)]}"/>
                                             <small class="text-warning" attrs="{'invisible': [('auto_assign_vm_access', '=', False)]}">
                                                 <i class="fa fa-warning mr-1" title="Warning"></i>
