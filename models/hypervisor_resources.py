@@ -44,24 +44,69 @@ class HypervisorStorage(models.Model):
         ('server_name_uniq', 'unique(server_id, name)', 'Storage name must be unique per server!')
     ]
 
+
+# vm_rental/models/hypervisor_resources.py
+# ИСПРАВЛЕННАЯ модель HypervisorTemplate
+
 class HypervisorTemplate(models.Model):
     _name = 'hypervisor.template'
     _description = 'Hypervisor VM Template'
     _order = 'name'
 
     name = fields.Char(string='Template Name', required=True)
-    vmid = fields.Char(string="Template ID / VolID", required=True, index=True, help="The unique identifier for the template in the hypervisor (VMID for KVM, VolID for LXC).")
+    vmid = fields.Char(string="Template ID / VolID", required=True, index=True,
+                       help="The unique identifier for the template in the hypervisor (VMID for KVM, VolID for LXC).")
     server_id = fields.Many2one('hypervisor.server', string='Server', required=True, ondelete='cascade', index=True)
-    
+
     # НОВОЕ ПОЛЕ: Тип шаблона
     template_type = fields.Selection([
         ('qemu', 'KVM (Virtual Machine)'),
         ('lxc', 'LXC (Container)')
     ], string="Template Type", required=True, default='qemu')
-    
+
     _sql_constraints = [
         ('server_vmid_uniq', 'unique(server_id, vmid)', 'Template ID/VolID must be unique per server!')
     ]
+
+    @api.model
+    def create(self, vals):
+        """ИСПРАВЛЕННЫЙ метод create с проверкой дубликатов"""
+        # Проверяем, существует ли уже такой шаблон
+        existing = self.search([
+            ('server_id', '=', vals.get('server_id')),
+            ('vmid', '=', vals.get('vmid'))
+        ], limit=1)
+
+        if existing:
+            _logger.warning(f"Template with vmid {vals.get('vmid')} already exists for server {vals.get('server_id')}")
+            # Возвращаем существующий шаблон вместо создания нового
+            return existing
+
+        return super().create(vals)
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        """ИСПРАВЛЕННЫЙ метод create_multi с проверкой дубликатов"""
+        unique_vals_list = []
+
+        for vals in vals_list:
+            # Проверяем, существует ли уже такой шаблон
+            existing = self.search([
+                ('server_id', '=', vals.get('server_id')),
+                ('vmid', '=', vals.get('vmid'))
+            ], limit=1)
+
+            if not existing:
+                unique_vals_list.append(vals)
+            else:
+                _logger.warning(
+                    f"Skipping duplicate template: server_id={vals.get('server_id')}, vmid={vals.get('vmid')}")
+
+        if unique_vals_list:
+            return super().create(unique_vals_list)
+        else:
+            # Возвращаем пустой recordset если все шаблоны уже существуют
+            return self.browse([])
 
     def name_get(self):
         result = []
