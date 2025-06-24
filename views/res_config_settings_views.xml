@@ -7,8 +7,7 @@
         <field name="arch" type="xml">
             <xpath expr="//div[hasclass('settings')]" position="inside">
                 <div class="app_settings_block" data-string="VM Rental" string="VM Rental" data-key="vm_rental" name="vm_rental_settings">
-
-                    <!-- Header Section -->
+                                    <!-- Header Section -->
                     <div class="row mt16">
                         <div class="col-12">
                             <div class="d-flex align-items-center mb-3">

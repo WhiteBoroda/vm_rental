@@ -2,14 +2,14 @@
 <!-- vm_rental/views/vm_user_settings_views.xml -->
 <odoo>
 
-    <!-- Обновляем представление настроек VM Rental -->
+    <!-- Исправленное представление настроек управления пользователями -->
     <record id="res_config_settings_view_form_vm_rental_users" model="ir.ui.view">
         <field name="name">res.config.settings.view.form.inherit.vm_rental.users</field>
         <field name="model">res.config.settings</field>
         <field name="inherit_id" ref="res_config_settings_view_form_vm_rental"/>
         <field name="arch" type="xml">
-            <!-- Добавляем новую секцию для управления пользователями -->
-            <xpath expr="//div[hasclass('app_settings_block')][hasclass('vm_rental_settings')]" position="inside">
+            <!-- ИСПРАВЛЕНИЕ: Используем правильный селектор для существующего элемента -->
+            <xpath expr="//div[@name='vm_rental_settings']" position="inside">
 
                 <!-- User Management Section -->
                 <div class="row mt32">
@@ -169,11 +169,11 @@
                                             <i class="fa fa-user-plus fa-2x text-info" title="New User Access"></i>
                                         </div>
                                         <div class="o_setting_right_pane">
-                                            <label for="default_vm_user_type" class="font-weight-bold">Default VM Access Level</label>
+                                            <label for="new_vm_user_type" class="font-weight-bold">Default VM Access Level</label>
                                             <div class="text-muted mb-2">
                                                 Default access level for newly created internal users
                                             </div>
-                                            <field name="default_vm_user_type" widget="radio"
+                                            <field name="new_vm_user_type" widget="radio"
                                                    attrs="{'invisible': [('auto_assign_vm_access', '=', False)]}"/>
                                             <small class="text-warning" attrs="{'invisible': [('auto_assign_vm_access', '=', False)]}">
                                                 <i class="fa fa-warning mr-1" title="Warning"></i>
@@ -344,120 +344,6 @@
                 </group>
             </xpath>
         </field>
-    </record>
-
-    <!-- Server Action для отображения статистики пользователей -->
-    <record id="action_vm_user_statistics" model="ir.actions.server">
-        <field name="name">VM User Statistics</field>
-        <field name="model_id" ref="base.model_res_users"/>
-        <field name="state">code</field>
-        <field name="code">
-# Статистика пользователей VM Rental
-vm_admin_group = env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
-vm_manager_group = env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
-
-vm_admins = len(vm_admin_group.users) if vm_admin_group else 0
-vm_managers = len(vm_manager_group.users) if vm_manager_group else 0
-
-internal_users = env['res.users'].search_count([('share', '=', False), ('active', '=', True)])
-portal_users = env['res.users'].search_count([('share', '=', True), ('active', '=', True)])
-
-# Портальные пользователи с VM
-portal_with_vms = env['res.users'].search_count([
-    ('share', '=', True),
-    ('active', '=', True),
-    ('partner_id.vm_instance_ids', '!=', False)
-])
-
-# Пользователи без VM доступа
-users_without_vm = internal_users - vm_admins - vm_managers
-
-report = f"""VM Rental User Statistics:
-
-User Groups:
-• VM Administrators: {vm_admins}
-• VM Managers: {vm_managers}
-• Internal Users (total): {internal_users}
-• Portal Users (total): {portal_users}
-• Portal Users with VMs: {portal_with_vms}
-
-Access Analysis:
-• Users with VM access: {vm_admins + vm_managers}
-• Users without VM access: {users_without_vm}
-• VM access coverage: {((vm_admins + vm_managers) / internal_users * 100) if internal_users > 0 else 0:.1f}%
-
-Active VMs: {env['vm_rental.machine'].search_count([('state', '=', 'active')])}
-Total VMs: {env['vm_rental.machine'].search_count([])}
-"""
-
-action = {
-    'type': 'ir.actions.client',
-    'tag': 'display_notification',
-    'params': {
-        'title': 'VM User Statistics',
-        'message': report,
-        'type': 'info',
-        'sticky': True,
-    }
-}
-        </field>
-    </record>
-
-    <!-- Wizard для массового назначения ролей -->
-    <record id="view_vm_user_role_assignment_wizard" model="ir.ui.view">
-        <field name="name">vm.user.role.assignment.wizard</field>
-        <field name="model">res.config.settings</field>
-        <field name="arch" type="xml">
-            <form string="VM User Role Assignment">
-                <sheet>
-                    <div class="oe_title">
-                        <h1>Assign VM Roles to Users</h1>
-                        <h2>Bulk assignment of VM Rental access levels</h2>
-                    </div>
-
-                    <group>
-                        <group string="Selection Criteria">
-                            <field name="default_vm_user_type" string="Role to Assign" required="1"/>
-                            <label for="auto_assign_vm_access"/>
-                            <div>
-                                <field name="auto_assign_vm_access" nolabel="1"/>
-                                <div class="text-muted">
-                                    <small>Only assign to users without existing VM access</small>
-                                </div>
-                            </div>
-                        </group>
-                        <group string="Statistics">
-                            <span>Users without VM access:</span>
-                            <span id="users_without_access">Loading...</span>
-                            <span>Total internal users:</span>
-                            <span id="total_internal_users">Loading...</span>
-                        </group>
-                    </group>
-
-                    <div class="alert alert-warning" role="alert">
-                        <i class="fa fa-warning mr-2" title="Warning"></i>
-                        <strong>Warning:</strong> This will assign the selected role to all internal users
-                        who currently don't have VM Rental access.
-                    </div>
-                </sheet>
-
-                <footer>
-                    <button name="action_assign_vm_access_to_users" type="object"
-                            string="Assign Roles"
-                            class="btn-primary"
-                            confirm="Are you sure you want to assign VM roles to users without access?"/>
-                    <button string="Cancel" class="btn-secondary" special="cancel"/>
-                </footer>
-            </form>
-        </field>
-    </record>
-
-    <record id="action_vm_user_role_assignment_wizard" model="ir.actions.act_window">
-        <field name="name">Assign VM Roles to Users</field>
-        <field name="res_model">res.config.settings</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_vm_user_role_assignment_wizard"/>
-        <field name="target">new</field>
     </record>
 
 </odoo>

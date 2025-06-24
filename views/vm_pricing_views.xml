@@ -328,9 +328,20 @@
         </field>
     </record>
 
+    <!-- Обновленное действие для дашборда -->
+    <record id="action_pricing_dashboard" model="ir.actions.act_window">
+        <field name="name">Pricing Dashboard</field>
+        <field name="res_model">vm.pricing.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_pricing_dashboard_form"/>
+        <field name="target">current</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Исправленное представление дашборда -->
     <record id="view_pricing_dashboard_form" model="ir.ui.view">
         <field name="name">pricing.dashboard.form</field>
-        <field name="model">hypervisor.server.pricing</field>
+        <field name="model">vm.pricing.dashboard</field>
         <field name="arch" type="xml">
             <form string="Pricing Dashboard">
                 <sheet>
@@ -339,31 +350,74 @@
                         <h2>Overview of pricing across all hypervisor servers</h2>
                     </div>
 
+                    <!-- Кнопка обновления -->
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_refresh_dashboard" type="object"
+                                string="Refresh Statistics"
+                                class="btn-primary"
+                                help="Update dashboard statistics"/>
+                    </div>
+
+                    <!-- Статистические карточки -->
                     <div class="row mt-3">
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card bg-primary text-white">
                                 <div class="card-body text-center">
                                     <h3><i class="fa fa-server fa-2x" title="Servers with Pricing"></i></h3>
                                     <h4>Servers with Pricing</h4>
-                                    <h2 id="servers_count">-</h2>
+                                    <h2><field name="servers_with_pricing_count" readonly="1"/></h2>
+                                    <small>of <field name="total_servers_count" readonly="1"/> total</small>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card bg-success text-white">
                                 <div class="card-body text-center">
                                     <h3><i class="fa fa-dollar fa-2x" title="Average Price per Core"></i></h3>
                                     <h4>Avg Price/Core</h4>
-                                    <h2 id="avg_core_price">-</h2>
+                                    <h2>$<field name="avg_core_price" readonly="1"/></h2>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
+                        <div class="col-md-3">
                             <div class="card bg-info text-white">
                                 <div class="card-body text-center">
                                     <h3><i class="fa fa-memory fa-2x" title="Average Price per GB RAM"></i></h3>
                                     <h4>Avg Price/GB RAM</h4>
-                                    <h2 id="avg_ram_price">-</h2>
+                                    <h2>$<field name="avg_ram_price" readonly="1"/></h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-dark">
+                                <div class="card-body text-center">
+                                    <h3><i class="fa fa-hdd-o fa-2x" title="Average Price per GB Disk"></i></h3>
+                                    <h4>Avg Price/GB Disk</h4>
+                                    <h2>$<field name="avg_disk_price" readonly="1"/></h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Детальная информация -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fa fa-list mr-2" title="Active Plans"></i>Active Pricing Plans</h5>
+                                </div>
+                                <div class="card-body">
+                                    <field name="active_pricing_plans" readonly="1" widget="text"/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5><i class="fa fa-chart-bar mr-2" title="Coverage"></i>Server Coverage</h5>
+                                </div>
+                                <div class="card-body">
+                                    <field name="server_coverage_info" readonly="1" widget="text"/>
                                 </div>
                             </div>
                         </div>
@@ -378,6 +432,8 @@
                                             string="Price Calculator" class="btn btn-outline-primary"/>
                                     <button name="%(action_hypervisor_server_pricing)d" type="action"
                                             string="Manage Pricing Plans" class="btn btn-outline-secondary"/>
+                                    <button name="%(action_create_default_pricing_plans)d" type="action"
+                                            string="Create Default Plans" class="btn btn-outline-success"/>
                                 </div>
                             </div>
                         </div>
@@ -385,14 +441,6 @@
                 </sheet>
             </form>
         </field>
-    </record>
-
-    <record id="action_pricing_dashboard" model="ir.actions.act_window">
-        <field name="name">Pricing Dashboard</field>
-        <field name="res_model">hypervisor.server.pricing</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_pricing_dashboard_form"/>
-        <field name="target">current</field>
     </record>
 
 </odoo>

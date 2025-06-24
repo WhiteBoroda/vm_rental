@@ -27,6 +27,21 @@ class HypervisorServer(models.Model):
     node_ids = fields.One2many('hypervisor.node', 'server_id', string="Nodes/Clusters")
     storage_ids = fields.One2many('hypervisor.storage', 'server_id', string="Storages/Datastores")
     template_ids = fields.One2many('hypervisor.template', 'server_id', string="VM Templates")
+    pricing_ids = fields.One2many('hypervisor.server.pricing', 'server_id', string="Pricing Plans")
+    current_pricing_id = fields.Many2one('hypervisor.server.pricing', string="Current Pricing",
+                                         compute='_compute_current_pricing', store=False)
+
+    @api.depends('pricing_ids.active', 'pricing_ids.date_start', 'pricing_ids.date_end')
+    def _compute_current_pricing(self):
+        """Вычисляет текущий активный план ценообразования"""
+        for server in self:
+            pricing = self.env['hypervisor.server.pricing'].search([
+                ('server_id', '=', server.id),
+                ('active', '=', True),
+                ('date_start', '<=', fields.Date.today()),
+                '|', ('date_end', '=', False), ('date_end', '>=', fields.Date.today())
+            ], order='priority', limit=1)
+            server.current_pricing_id = pricing
 
     def _get_service_manager(self):
         self.ensure_one()
@@ -182,8 +197,7 @@ class HypervisorServer(models.Model):
     def clear_service_cache(self):
         """Очистка кеша при изменении конфигурации"""
         self._get_cached_service_manager.clear_cache(self)
-    
-    @api.model
+
     def write(self, vals):
         # Очищаем кеш при изменении критических полей
         critical_fields = {'host', 'user', 'token_name', 'token_value', 'vmware_user', 'vmware_password'}

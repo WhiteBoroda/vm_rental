@@ -251,3 +251,94 @@ class VmPricingCalculator(models.TransientModel):
             'view_mode': 'form',
             'target': 'current',
         }
+
+
+class VmPricingDashboard(models.TransientModel):
+    """Модель для дашборда ценообразования"""
+    _name = 'vm.pricing.dashboard'
+    _description = 'VM Pricing Dashboard'
+
+    # Статистические поля
+    servers_with_pricing_count = fields.Integer(string="Servers with Pricing", compute='_compute_dashboard_stats')
+    total_servers_count = fields.Integer(string="Total Servers", compute='_compute_dashboard_stats')
+    avg_core_price = fields.Float(string="Average Core Price", compute='_compute_dashboard_stats', digits=(12, 2))
+    avg_ram_price = fields.Float(string="Average RAM Price", compute='_compute_dashboard_stats', digits=(12, 2))
+    avg_disk_price = fields.Float(string="Average Disk Price", compute='_compute_dashboard_stats', digits=(12, 4))
+
+    # Информационные поля
+    active_pricing_plans = fields.Text(string="Active Plans", compute='_compute_dashboard_stats')
+    server_coverage_info = fields.Text(string="Server Coverage", compute='_compute_dashboard_stats')
+
+    @api.depends()
+    def _compute_dashboard_stats(self):
+        """Вычисляет статистику для дашборда"""
+        for record in self:
+            # Получаем активные планы ценообразования
+            active_pricing = self.env['hypervisor.server.pricing'].search([
+                ('active', '=', True),
+                ('date_start', '<=', fields.Date.today()),
+                '|', ('date_end', '=', False), ('date_end', '>=', fields.Date.today())
+            ])
+
+            # Подсчет серверов с ценообразованием
+            servers_with_pricing = set(active_pricing.mapped('server_id.id'))
+            record.servers_with_pricing_count = len(servers_with_pricing)
+
+            # Общее количество серверов
+            record.total_servers_count = self.env['hypervisor.server'].search_count([])
+
+            if active_pricing:
+                # Средние цены
+                record.avg_core_price = sum(active_pricing.mapped('price_per_core')) / len(active_pricing)
+                record.avg_ram_price = sum(active_pricing.mapped('price_per_gb_ram')) / len(active_pricing)
+                record.avg_disk_price = sum(active_pricing.mapped('price_per_gb_disk')) / len(active_pricing)
+
+                # Информация об активных планах
+                plans_info = []
+                for plan in active_pricing:
+                    plans_info.append(f"• {plan.name} ({plan.server_id.name})")
+                record.active_pricing_plans = "\n".join(plans_info[:10])  # Показываем первые 10
+                if len(active_pricing) > 10:
+                    record.active_pricing_plans += f"\n... и еще {len(active_pricing) - 10} планов"
+            else:
+                record.avg_core_price = 0
+                record.avg_ram_price = 0
+                record.avg_disk_price = 0
+                record.active_pricing_plans = "Нет активных планов ценообразования"
+
+            # Информация о покрытии серверов
+            coverage_percentage = (
+                        record.servers_with_pricing_count / record.total_servers_count * 100) if record.total_servers_count > 0 else 0
+            record.server_coverage_info = f"""Серверов с ценообразованием: {record.servers_with_pricing_count} из {record.total_servers_count}
+Покрытие: {coverage_percentage:.1f}%
+
+{'✓ Отличное покрытие' if coverage_percentage >= 80 else
+            '⚠ Среднее покрытие' if coverage_percentage >= 50 else
+            '❌ Низкое покрытие - настройте ценообразование для большего количества серверов'}"""
+
+    def action_refresh_dashboard(self):
+        """Обновляет статистику дашборда"""
+        self._compute_dashboard_stats()
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Dashboard Refreshed',
+                'message': 'Pricing dashboard statistics have been updated',
+                'type': 'success',
+            }
+        }
+
+    @api.model
+    def get_dashboard_data(self):
+        """API метод для получения данных дашборда"""
+        dashboard = self.create({})
+        return {
+            'servers_with_pricing': dashboard.servers_with_pricing_count,
+            'total_servers': dashboard.total_servers_count,
+            'avg_core_price': dashboard.avg_core_price,
+            'avg_ram_price': dashboard.avg_ram_price,
+            'avg_disk_price': dashboard.avg_disk_price,
+            'coverage_percentage': (
+                        dashboard.servers_with_pricing_count / dashboard.total_servers_count * 100) if dashboard.total_servers_count > 0 else 0
+        }

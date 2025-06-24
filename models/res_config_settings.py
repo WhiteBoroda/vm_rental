@@ -141,7 +141,7 @@ class ResConfigSettings(models.TransientModel):
     )
 
     # Настройки по умолчанию для новых пользователей
-    default_vm_user_type = fields.Selection([
+    new_vm_user_type = fields.Selection([
         ('none', 'No VM Access'),
         ('user', 'Basic User'),
         ('manager', 'VM Manager'),
@@ -272,7 +272,7 @@ class ResConfigSettings(models.TransientModel):
 
     def action_assign_vm_access_to_users(self):
         """Массовое назначение VM доступа пользователям"""
-        if not self.default_vm_user_type or self.default_vm_user_type == 'none':
+        if not self.new_vm_user_type or self.new_vm_user_type == 'none':
             return {
                 'type': 'ir.actions.client',
                 'tag': 'display_notification',
@@ -311,10 +311,10 @@ class ResConfigSettings(models.TransientModel):
 
         # Назначаем доступ в зависимости от выбранного типа
         assigned_count = 0
-        if self.default_vm_user_type == 'manager' and vm_manager_group:
+        if self.new_vm_user_type == 'manager' and vm_manager_group:
             vm_manager_group.users = [(4, uid) for uid in users_without_vm_access.ids]
             assigned_count = len(users_without_vm_access)
-        elif self.default_vm_user_type == 'admin' and vm_admin_group:
+        elif self.new_vm_user_type == 'admin' and vm_admin_group:
             vm_admin_group.users = [(4, uid) for uid in users_without_vm_access.ids]
             assigned_count = len(users_without_vm_access)
 
@@ -323,7 +323,7 @@ class ResConfigSettings(models.TransientModel):
             'tag': 'display_notification',
             'params': {
                 'title': 'Success',
-                'message': f'Assigned VM {self.default_vm_user_type} access to {assigned_count} users',
+                'message': f'Assigned VM {self.new_vm_user_type} access to {assigned_count} users',
                 'type': 'success',
             }
         }
