@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+    ДЕЙСТВИЯ ПО МЕНЮ - РАСПОЛОЖИТЬ ПОСЛЕДНИМ В МАНИФЕСТЕ
+    Все действия (actions) для меню, определенных в 000_main_menus.xml
+    -->
+
+    <!-- ===== VM MANAGEMENT ACTIONS ===== -->
+    <!-- VM Instances action -->
+    <record id="action_vm_instances" model="ir.actions.act_window">
+        <field name="name">VM Instances</field>
+        <field name="res_model">vm_rental.machine</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first VM Instance!
+            </p>
+            <p>
+                VM instances represent virtual machines managed through this system.
+            </p>
+        </field>
+    </record>
+
+    <!-- VM Orders action -->
+    <record id="action_vm_orders" model="ir.actions.act_window">
+        <field name="name">VM Orders</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('order_line.product_id.hypervisor_server_id', '!=', False)]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No VM orders yet!
+            </p>
+            <p>
+                VM orders contain products configured as virtual machines.
+            </p>
+        </field>
+    </record>
+
+    <!-- Link Existing VMs action -->
+    <record id="action_linking_job" model="ir.actions.act_window">
+        <field name="name">Link Existing VMs</field>
+        <field name="res_model">vm_rental.linking_job</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first linking job!
+            </p>
+            <p>
+                Link existing VMs from hypervisors to Odoo.
+            </p>
+        </field>
+    </record>
+
+    <!-- Configuration Wizard action -->
+    <record id="action_vm_config_wizard" model="ir.actions.act_window">
+        <field name="name">Configuration Wizard</field>
+        <field name="res_model">vm.config.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Welcome to Configuration Wizard!
+            </p>
+            <p>
+                Configure VM settings easily with this wizard.
+            </p>
+        </field>
+    </record>
+
+    <!-- Bulk Operations action -->
+    <record id="action_vm_bulk_operations" model="ir.actions.act_window">
+        <field name="name">Bulk Operations</field>
+        <field name="res_model">vm.bulk.operations.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Start bulk operations!
+            </p>
+            <p>
+                Perform operations on multiple VMs at once.
+            </p>
+        </field>
+    </record>
+
+    <!-- VM Snapshots action -->
+    <record id="action_vm_snapshots" model="ir.actions.act_window">
+        <field name="name">VM Snapshots</field>
+        <field name="res_model">vm.snapshot</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No snapshots created yet!
+            </p>
+            <p>
+                Snapshots allow you to save and restore VM states.
+            </p>
+        </field>
+    </record>
+
+    <!-- ===== HYPERVISOR ACTIONS ===== -->
+    <!-- Hypervisor Servers action -->
+    <record id="action_hypervisor_servers" model="ir.actions.act_window">
+        <field name="name">Hypervisor Servers</field>
+        <field name="res_model">hypervisor.server</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add your first hypervisor server!
+            </p>
+            <p>
+                Configure Proxmox, VMware or other hypervisor connections.
+            </p>
+        </field>
+    </record>
+
+    <!-- VM Templates action -->
+    <record id="action_vm_templates" model="ir.actions.act_window">
+        <field name="name">VM Templates</field>
+        <field name="res_model">hypervisor.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No templates available!
+            </p>
+            <p>
+                Templates are used to create new VM instances quickly.
+            </p>
+        </field>
+    </record>
+
+    <!-- ===== PRICING ACTIONS ===== -->
+    <!-- Pricing Plans action -->
+    <record id="action_vm_pricing_plans" model="ir.actions.act_window">
+        <field name="name">Pricing Plans</field>
+        <field name="res_model">hypervisor.server.pricing</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first pricing plan!
+            </p>
+            <p>
+                Pricing plans define costs for CPU, RAM, disk and other resources.
+            </p>
+        </field>
+    </record>
+
+    <!-- Pricing Calculator action -->
+    <record id="action_vm_pricing_calculator" model="ir.actions.act_window">
+        <field name="name">Pricing Calculator</field>
+        <field name="res_model">vm.pricing.calculator</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Calculate VM pricing!
+            </p>
+            <p>
+                Use the calculator to estimate costs for different VM configurations.
+            </p>
+        </field>
+    </record>
+
+    <!-- Pricing Dashboard action -->
+    <record id="action_vm_pricing_dashboard" model="ir.actions.act_window">
+        <field name="name">Pricing Dashboard</field>
+        <field name="res_model">vm.pricing.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Pricing dashboard overview!
+            </p>
+            <p>
+                Monitor pricing configuration and statistics.
+            </p>
+        </field>
+    </record>
+
+    <!-- ===== REPORTS ACTIONS ===== -->
+    <!-- VM Reports action -->
+    <record id="action_vm_reports" model="ir.actions.act_window">
+        <field name="name">VM Reports</field>
+        <field name="res_model">vm_rental.machine</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="domain">[]</field>
+        <field name="context">{'search_default_group_by_state': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Generate your first VM report!
+            </p>
+            <p>
+                Analyze VM usage, performance and billing data.
+            </p>
+        </field>
+    </record>
+
+    <!-- VM Admin Report action -->
+    <record id="action_vm_admin_report" model="ir.actions.act_window">
+        <field name="name">All Virtual Machines</field>
+        <field name="res_model">vm_rental.machine</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No VMs found!
+            </p>
+            <p>
+                This report shows all virtual machines in the system.
+            </p>
+        </field>
+    </record>
+
+    <!-- ===== USER MANAGEMENT ACTIONS ===== -->
+    <!-- VM Users Dashboard action -->
+    <record id="action_vm_users_dashboard" model="ir.actions.act_window">
+        <field name="name">VM Users Dashboard</field>
+        <field name="res_model">vm.user.manager</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Welcome to VM Users Dashboard!
+            </p>
+            <p>
+                Manage user access and permissions for VM functionality.
+                You can assign VM roles through the Settings.
+            </p>
+        </field>
+    </record>
+
+    <!-- VM Administrators action -->
+    <record id="action_vm_admins_list" model="ir.actions.act_window">
+        <field name="name">VM Administrators</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('groups_id', 'in', [ref('vm_rental.group_vm_rental_admin')])]</field>
+        <field name="context">{'default_groups_id': [(4, ref('vm_rental.group_vm_rental_admin'))]}</field>
+    </record>
+
+    <!-- VM Managers action -->
+    <record id="action_vm_managers_list" model="ir.actions.act_window">
+        <field name="name">VM Managers</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('groups_id', 'in', [ref('vm_rental.group_vm_rental_manager')])]</field>
+        <field name="context">{'default_groups_id': [(4, ref('vm_rental.group_vm_rental_manager'))]}</field>
+    </record>
+
+    <!-- Users without VM Access action -->
+    <record id="action_users_without_vm_access" model="ir.actions.act_window">
+        <field name="name">Users without VM Access</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('groups_id', 'not in', [ref('vm_rental.group_vm_rental_manager'), ref('vm_rental.group_vm_rental_admin')])]</field>
+    </record>
+
+    <!-- ===== TOOLS ACTIONS (Server Actions) ===== -->
+    <!-- Create VM Products server action -->
+    <record id="action_create_vm_products" model="ir.actions.server">
+        <field name="name">Create VM Product Variants</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="state">code</field>
+        <field name="code">
+created = model.create_vm_product_variants()
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Created VM Products',
+    'res_model': 'product.template',
+    'view_mode': 'tree,form',
+    'domain': [('id', 'in', created.ids)],
+}
+        </field>
+    </record>
+
+    <!-- Update All Product Prices server action -->
+    <record id="action_update_all_product_prices" model="ir.actions.server">
+        <field name="name">Update All Product Prices</field>
+        <field name="model_id" ref="product.model_product_template"/>
+        <field name="state">code</field>
+        <field name="code">
+updated_count = 0
+products = model.search([
+    ('hypervisor_server_id', '!=', False),
+    ('auto_price_calculation', '=', True)
+])
+
+for product in products:
+    if hasattr(product, 'calculated_price') and product.calculated_price > 0:
+        product.write({'list_price': product.calculated_price})
+        updated_count += 1
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Price Update Complete',
+        'message': 'Updated prices for %s VM products' % updated_count,
+        'type': 'success',
+        'sticky': False,
+    }
+}
+        </field>
+    </record>
+
+    <!-- VM Resource Statistics server action -->
+    <record id="action_vm_resource_stats" model="ir.actions.server">
+        <field name="name">Show Resource Statistics</field>
+        <field name="model_id" ref="model_vm_rental_machine"/>
+        <field name="state">code</field>
+        <field name="code">
+stats = model.get_resource_utilization_stats()
+message = """VM Resource Statistics:
+
+Active VMs: %(total_vms)d
+Total CPU Cores: %(total_cores)d
+Total RAM: %(total_memory_gb).1f GB
+Total Disk: %(total_disk_gb)d GB
+
+Average per VM:
+- CPU: %(avg_cores).1f cores
+- RAM: %(avg_memory_mb).0f MB
+- Disk: %(avg_disk_gb).0f GB
+""" % stats
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'VM Resource Statistics',
+        'message': message,
+        'type': 'info',
+        'sticky': True,
+    }
+}
+        </field>
+    </record>
+
+    <!-- VM User Settings action -->
+    <record id="action_vm_user_settings" model="ir.actions.act_window">
+        <field name="name">VM User Settings</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'vm_rental'}</field>
+    </record>
+
+    <!-- ===== BINDING ACTIONS TO MENUS ===== -->
+    <!-- VM Management -->
+    <menuitem id="menu_vm_instances" action="action_vm_instances"/>
+    <menuitem id="menu_vm_orders" action="action_vm_orders"/>
+    <menuitem id="menu_vm_snapshots" action="action_vm_snapshots"/>
+    <menuitem id="menu_link_existing_vms" action="action_linking_job"/>
+    <menuitem id="menu_vm_config_wizard" action="action_vm_config_wizard"/>
+    <menuitem id="menu_vm_bulk_operations" action="action_vm_bulk_operations"/>
+
+    <!-- Hypervisors -->
+    <menuitem id="menu_hypervisor_servers" action="action_hypervisor_servers"/>
+    <menuitem id="menu_hypervisor_templates" action="action_vm_templates"/>
+
+    <!-- Pricing & Billing -->
+    <menuitem id="menu_vm_pricing_plans" action="action_vm_pricing_plans"/>
+    <menuitem id="menu_vm_pricing_calculator" action="action_vm_pricing_calculator"/>
+    <menuitem id="menu_vm_pricing_dashboard" action="action_vm_pricing_dashboard"/>
+
+    <!-- Reports & Analytics -->
+    <menuitem id="menu_vm_reports" action="action_vm_reports"/>
+    <menuitem id="menu_vm_admin_report" action="action_vm_admin_report"/>
+
+    <!-- User Management -->
+    <menuitem id="menu_vm_users_dashboard" action="action_vm_users_dashboard"/>
+    <menuitem id="menu_vm_admins_list" action="action_vm_admins_list"/>
+    <menuitem id="menu_vm_managers_list" action="action_vm_managers_list"/>
+    <menuitem id="menu_users_without_vm_access" action="action_users_without_vm_access"/>
+    <menuitem id="menu_vm_user_settings" action="action_vm_user_settings"/>
+
+    <!-- Tools -->
+    <menuitem id="menu_create_vm_products" name="Create VM Products" parent="menu_vm_tools_submenu" action="action_create_vm_products" sequence="10"/>
+    <menuitem id="menu_update_product_prices" name="Update Product Prices" parent="menu_vm_tools_submenu" action="action_update_all_product_prices" sequence="20"/>
+    <menuitem id="menu_vm_resource_stats" name="Resource Statistics" parent="menu_vm_tools_submenu" action="action_vm_resource_stats" sequence="30"/>
+
+</odoo>

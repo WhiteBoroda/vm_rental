@@ -2,7 +2,7 @@
 
 {
     'name': 'VM Rental',
-    'version': '1.4.1',
+    'version': '1.4.2',
     'summary': 'Advanced VM rental system with composition-based traits architecture',
     'description': """
 VM Rental Module with Advanced Traits Architecture
@@ -63,7 +63,7 @@ Version 1.4.1 features a revolutionary traits-based architecture that provides
 unprecedented flexibility while maintaining high performance and code clarity.
 """,
     'author': 'Yuri Varaksin',
-    'website': 'http://iodoo.info',
+    'website': 'https://iodoo.info',
     'category': 'Tools',
     'license': 'LGPL-3',
     'depends': [
@@ -77,6 +77,9 @@ unprecedented flexibility while maintaining high performance and code clarity.
         'security/vm_security.xml',
         'security/vm_pricing_security.xml',
         'security/ir.model.access.csv',
+
+        # Main menu
+        'views/000_main_menus.xml',
 
         # Data and sequences
         'data/vm_sequence.xml',
@@ -95,26 +98,24 @@ unprecedented flexibility while maintaining high performance and code clarity.
         'views/portal_my_vms_template.xml',
         'views/portal_vm_console.xml',
         'views/portal_vm_snapshots.xml',
-        'views/portal_menu_templates.xml',
 
         # Wizards
         'wizards/link_existing_vm_wizard_view.xml',
 
         # Pricing system views and security
         'views/vm_pricing_views.xml',
-        'views/vm_pricing_menus.xml',
 
         # Settings and menus
         'views/res_config_settings_views.xml',     # ДОБАВЛЕНО - было пропущено
         'views/vm_settings_actions.xml',
         'views/vm_user_manager_views.xml',
-        'views/vm_user_management_menus.xml',
-        # 'views/vm_user_settings_views.xml',      # ЗАКОММЕНТИРОВАНО - содержит проблемные поля
-        'views/menus.xml',
 
         # Demo data
         'data/vm_traits_demo.xml',
         'data/vm_pricing_demo.xml',
+
+        # All menu actions
+        'views/zzz_menu_actions.xml',
 
         # Cron jobs (должно быть последним)
         'data/cron_jobs.xml',
@@ -128,7 +129,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
         ],
         'web.assets_frontend': [
             'vm_rental/static/src/css/portal.css',
-            'vm_rental/static/src/js/portal_vm_control.js',
+            'vm_rental/static/src/js/vm_portal_control.js',
             'vm_rental/static/src/js/vm_actions.js',
             'vm_rental/static/src/js/vm_snapshot_actions.js',
         ],
@@ -145,7 +146,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
     'version_info': {
         'major': 1,
         'minor': 4,
-        'patch': 1,
+        'patch': 2,
         'stage': 'stable',
     },
 
