@@ -16,3 +16,4 @@ from . import vm_pricing
 from . import vm_pricing_extensions
 from . import vm_user_management
 from . import vm_user_manager
+from . import res_users

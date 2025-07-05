@@ -21,27 +21,6 @@
         </field>
     </record>
 
-    <!-- VM Users Dashboard -->
-    <record id="action_vm_users_dashboard" model="ir.actions.act_window">
-        <field name="name">VM Users Dashboard</field>
-        <field name="res_model">res.users</field>
-        <field name="view_mode">tree,form</field>
-        <field name="domain">[('share', '=', False), ('active', '=', True)]</field>
-        <field name="context">{
-            'search_default_vm_admins': 1,
-            'search_default_vm_managers': 1
-        }</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Manage VM Rental user access
-            </p>
-            <p>
-                View and manage which users have access to VM Rental features.
-                Use the filters to see users by their VM access level.
-            </p>
-        </field>
-    </record>
-
     <!-- Enhanced User Search View -->
     <record id="view_users_search_vm_rental" model="ir.ui.view">
         <field name="name">res.users.search.vm.rental</field>
@@ -61,6 +40,27 @@
                     <filter string="VM Role" name="group_vm_role" context="{'group_by': 'vm_rental_role'}"/>
                 </group>
             </xpath>
+        </field>
+    </record>
+
+    <!-- VM Users Dashboard -->
+    <record id="action_vm_users_dashboard" model="ir.actions.act_window">
+        <field name="name">VM Users Dashboard</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('share', '=', False), ('active', '=', True)]</field>
+        <field name="context">{
+            'search_default_vm_admins': 1,
+            'search_default_vm_managers': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Manage VM Rental user access
+            </p>
+            <p>
+                View and manage which users have access to VM Rental features.
+                Use the filters to see users by their VM access level.
+            </p>
         </field>
     </record>
 

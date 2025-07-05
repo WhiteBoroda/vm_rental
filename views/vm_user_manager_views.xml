@@ -259,7 +259,7 @@
                                         </p>
                                     </div>
                                     <div class="col-md-4 text-right">
-                                        <button name="%(action_vm_user_manager)d" type="action"
+                                        <button name="%(vm_rental.action_vm_user_manager)d" type="action"
                                                 string="Open User Manager"
                                                 class="btn btn-primary btn-lg"
                                                 title="Open the VM User Access Manager"/>

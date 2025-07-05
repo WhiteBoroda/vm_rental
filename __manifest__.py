@@ -1,6 +1,6 @@
 {
-    'name': 'VM Rental (Universal with Traits)',
-    'version': '1.4.0',
+    'name': 'VM Rental',
+    'version': '1.4.1',
     'summary': 'Advanced VM rental system with composition-based traits architecture',
     'description': """
 VM Rental Module with Advanced Traits Architecture
@@ -104,8 +104,9 @@ unprecedented flexibility while maintaining high performance and code clarity.
 
         # Settings and menus
         'views/vm_settings_actions.xml',
-        'views/vm_user_management_menus.xml',
         'views/vm_user_manager_views.xml',
+        'views/vm_settings_actions.xml',
+        'views/vm_user_management_menus.xml',
         'views/menus.xml',
 
         # Demo data
@@ -119,6 +120,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
         'web.assets_backend': [
             'vm_rental/static/src/js/vm_rental_settings.js',
             'vm_rental/static/src/js/vm_user_management.js',
+            'vm_rental/static/src/js/vm_user_manager.js',
             'vm_rental/static/src/css/vm_settings.css',
         ],
         'web.assets_frontend': [
