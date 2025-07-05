@@ -1,6 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- Server Action для удаления VM из Odoo (перемещен сюда для правильных зависимостей) -->
+    <record id="action_server_forget_vm" model="ir.actions.server">
+        <field name="name">Forget VM from Odoo</field>
+        <field name="model_id" ref="model_vm_rental_machine"/>
+        <field name="binding_model_id" ref="model_vm_rental_machine"/>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    records.unlink()
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'VM Instances',
+        'res_model': 'vm_rental.machine',
+        'view_mode': 'tree,form',
+        'target': 'main',
+    }
+        </field>
+    </record>
+
+    <!-- Configuration Wizard action (перемещен сюда для правильных зависимостей) -->
+    <record id="action_vm_config_wizard" model="ir.actions.act_window">
+        <field name="name">VM Configuration Wizard</field>
+        <field name="res_model">vm.config.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{
+            'default_config_type': 'custom',
+            'default_cores': 1,
+            'default_memory': 1024,
+            'default_disk': 10
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Welcome to Configuration Wizard!
+            </p>
+            <p>
+                Configure VM settings easily with this wizard.
+            </p>
+        </field>
+    </record>
+
     <!-- Основной список VM -->
     <record id="view_vm_instance_tree" model="ir.ui.view">
         <field name="name">vm_rental.machine.tree</field>
