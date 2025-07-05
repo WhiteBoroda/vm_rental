@@ -45,3 +45,5 @@ access_vm_pricing_calculator_manager,vm.pricing.calculator manager,model_vm_pric
 access_vm_user_management_user,vm.user.management user,model_vm_user_management,base.group_user,1,1,1,1
 access_vm_pricing_dashboard_user,vm.pricing.dashboard user,model_vm_pricing_dashboard,base.group_user,1,1,1,1
 access_vm_pricing_dashboard_manager,vm.pricing.dashboard manager,model_vm_pricing_dashboard,group_vm_rental_manager,1,1,1,1
+access_vm_user_manager_admin,vm.user.manager admin,model_vm_user_manager,base.group_system,1,1,1,1
+access_vm_user_manager_manager,vm.user.manager manager,model_vm_user_manager,group_vm_rental_admin,1,1,1,1

@@ -71,36 +71,12 @@ class ResConfigSettings(models.TransientModel):
         help="Basic system statistics"
     )
 
-    vm_rental_admin_users = fields.Char(
-        string="VM Rental Administrators",
-        compute='_compute_vm_user_groups',
-        help="Users with VM admin access"
+    # User access summary (readonly information only)
+    vm_rental_user_access_summary = fields.Char(
+        string="User Access Summary",
+        compute='_compute_vm_rental_user_access_summary',
+        help="Summary of VM user access"
     )
-
-    vm_rental_manager_users = fields.Char(
-        string="VM Rental Managers",
-        compute='_compute_vm_user_groups',
-        help="Users with VM manager access"
-    )
-
-    @api.depends()
-    def _compute_vm_user_groups(self):
-        """Показывает пользователей из групп VM Rental"""
-        for record in self:
-            try:
-                admin_group = self.env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
-                manager_group = self.env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
-
-                admin_users = admin_group.users.mapped('name') if admin_group else []
-                manager_users = manager_group.users.mapped('name') if manager_group else []
-
-                record.vm_rental_admin_users = f"{len(admin_users)} users: {', '.join(admin_users[:3])}" + (
-                    "..." if len(admin_users) > 3 else "")
-                record.vm_rental_manager_users = f"{len(manager_users)} users: {', '.join(manager_users[:3])}" + (
-                    "..." if len(manager_users) > 3 else "")
-            except Exception:
-                record.vm_rental_admin_users = "Unable to load admin users"
-                record.vm_rental_manager_users = "Unable to load manager users"
 
     @api.depends()
     def _compute_vm_rental_module_version(self):
@@ -132,3 +108,25 @@ class ResConfigSettings(models.TransientModel):
                 record.vm_rental_system_stats = f"{total_vms} VMs total, {active_vms} active\n{hypervisors} hypervisor(s) configured"
             except Exception:
                 record.vm_rental_system_stats = "Statistics unavailable"
+
+    @api.depends()
+    def _compute_vm_rental_user_access_summary(self):
+        """Получает сводку по доступу пользователей"""
+        for record in self:
+            try:
+                admin_group = self.env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
+                manager_group = self.env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
+
+                admin_count = len(admin_group.users) if admin_group else 0
+                manager_count = len(manager_group.users) if manager_group else 0
+
+                total_internal = self.env['res.users'].search_count([
+                    ('share', '=', False),
+                    ('active', '=', True)
+                ])
+
+                access_coverage = ((admin_count + manager_count) / total_internal * 100) if total_internal > 0 else 0
+
+                record.vm_rental_user_access_summary = f"Admins: {admin_count}, Managers: {manager_count}, Coverage: {access_coverage:.1f}%"
+            except Exception:
+                record.vm_rental_user_access_summary = "User access information unavailable"
