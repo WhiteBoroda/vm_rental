@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="res_config_settings_view_form_vm_rental" model="ir.ui.view">
+        <field name="name">res.config.settings.view.form.inherit.vm_rental</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="base.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('settings')]" position="inside">
+                <div class="app_settings_block" data-string="VM Rental" string="VM Rental" data-key="vm_rental" name="vm_rental_settings">
+
+                    <!-- Header Section -->
+                    <div class="row mt16">
+                        <div class="col-12">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fa fa-server fa-3x text-primary mr-3" title="VM Rental Configuration"></i>
+                                <div>
+                                    <h2 class="mb-0">VM Rental Configuration</h2>
+                                    <p class="text-muted mb-0">Configure virtual machine rental settings and resource limits</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- General Settings -->
+                    <div class="row mt32">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-cog mr-2"></i>General Settings
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 col-lg-6 o_setting_box">
+                                            <div class="o_setting_left_pane">
+                                                <field name="vm_rental_default_trial_days"/>
+                                            </div>
+                                            <div class="o_setting_right_pane">
+                                                <label for="vm_rental_default_trial_days" class="font-weight-bold"/>
+                                                <div class="text-muted mb-2">
+                                                    Default duration for trial periods offered to new customers
+                                                </div>
+                                                <div class="input-group" style="max-width: 200px;">
+                                                    <field name="vm_rental_default_trial_days" class="form-control"/>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text">days</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-lg-6 o_setting_box">
+                                            <div class="o_setting_left_pane">
+                                                <field name="vm_rental_auto_suspend"/>
+                                            </div>
+                                            <div class="o_setting_right_pane">
+                                                <label for="vm_rental_auto_suspend" class="font-weight-bold"/>
+                                                <div class="text-muted">
+                                                    Automatically suspend VMs when subscription expires
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resource Limits -->
+                    <div class="row mt32">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-microchip mr-2"></i>Resource Limits
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 col-lg-4 mb-4">
+                                            <div class="card bg-light h-100">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title font-weight-bold">CPU Cores</h6>
+                                                    <field name="vm_rental_max_cores"/>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-lg-4 mb-4">
+                                            <div class="card bg-light h-100">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title font-weight-bold">Memory (MiB)</h6>
+                                                    <field name="vm_rental_max_memory"/>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-lg-4 mb-4">
+                                            <div class="card bg-light h-100">
+                                                <div class="card-body text-center">
+                                                    <h6 class="card-title font-weight-bold">Disk (GiB)</h6>
+                                                    <field name="vm_rental_max_disk"/>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Backup Settings -->
+                    <div class="row mt32 mb32">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header bg-warning text-dark">
+                                    <h5 class="mb-0">
+                                        <i class="fa fa-shield mr-2"></i>Backup Settings
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-12 col-lg-6 o_setting_box">
+                                            <div class="o_setting_left_pane">
+                                                <field name="vm_rental_auto_backup"/>
+                                            </div>
+                                            <div class="o_setting_right_pane">
+                                                <label for="vm_rental_auto_backup" class="font-weight-bold"/>
+                                                <div class="text-muted mb-2">
+                                                    Enable automatic configuration backups
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-12 col-lg-6 o_setting_box">
+                                            <div class="o_setting_left_pane">
+                                                <field name="vm_rental_backup_retention_days"/>
+                                            </div>
+                                            <div class="o_setting_right_pane">
+                                                <label for="vm_rental_backup_retention_days" class="font-weight-bold"/>
+                                                <div class="text-muted">
+                                                    How long to keep automatic backups (days)
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </xpath>
+        </field>
+    </record>
+</odoo>
