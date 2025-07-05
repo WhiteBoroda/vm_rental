@@ -75,6 +75,28 @@
         </field>
     </record>
 
+    <!-- Configuration Wizard action -->
+    <record id="action_vm_config_wizard" model="ir.actions.act_window">
+        <field name="name">VM Configuration Wizard</field>
+        <field name="res_model">vm.config.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{
+            'default_config_type': 'custom',
+            'default_cores': 1,
+            'default_memory': 1024,
+            'default_disk': 10
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Welcome to Configuration Wizard!
+            </p>
+            <p>
+                Configure VM settings easily with this wizard.
+            </p>
+        </field>
+    </record>
+
     <!-- Bulk Operations action -->
     <record id="action_vm_bulk_operations" model="ir.actions.act_window">
         <field name="name">Bulk Operations</field>
@@ -311,23 +333,6 @@
             <p>
                 Manage user access and permissions for VM functionality.
                 You can assign VM roles through the Settings.
-            </p>
-        </field>
-    </record>
-
-    <!-- VM User Manager action -->
-    <record id="action_vm_user_manager" model="ir.actions.act_window">
-        <field name="name">VM User Manager</field>
-        <field name="res_model">vm.user.manager</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="context">{}</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Configure VM user access!
-            </p>
-            <p>
-                Manage which users have access to VM functionality.
             </p>
         </field>
     </record>
@@ -576,34 +581,35 @@ action = {
 
     <!-- ===== BINDING ACTIONS TO MENUS ===== -->
     <!-- VM Management -->
-    <menuitem id="menu_vm_instances" action="action_vm_instances"/>
-    <menuitem id="menu_vm_orders" action="action_vm_orders"/>
-    <menuitem id="menu_vm_snapshots" action="action_vm_snapshots"/>
-    <menuitem id="menu_link_existing_vms" action="action_linking_job"/>
-    <menuitem id="menu_vm_config_wizard" action="action_vm_config_wizard"/>
-    <menuitem id="menu_vm_bulk_operations" action="action_vm_bulk_operations"/>
+    <menuitem id="menu_vm_instances" name="VM Instances" parent="menu_vm_management" action="action_vm_instances" sequence="10"/>
+    <menuitem id="menu_vm_orders" name="VM Orders" parent="menu_vm_management" action="action_vm_orders" sequence="20"/>
+    <menuitem id="menu_vm_snapshots" name="VM Snapshots" parent="menu_vm_management" action="action_vm_snapshots" sequence="30"/>
+    <menuitem id="menu_link_existing_vms" name="Link Existing VMs" parent="menu_vm_management" action="action_linking_job" sequence="40"/>
+    <menuitem id="menu_vm_config_wizard" name="Configuration Wizard" parent="menu_vm_management" action="action_vm_config_wizard" sequence="50"/>
+    <menuitem id="menu_vm_bulk_operations" name="Bulk Operations" parent="menu_vm_management" action="action_vm_bulk_operations" sequence="60"/>
 
     <!-- Hypervisors -->
-    <menuitem id="menu_hypervisor_servers" action="action_hypervisor_servers"/>
-    <menuitem id="menu_hypervisor_templates" action="action_vm_templates"/>
+    <menuitem id="menu_hypervisor_servers" name="Hypervisor Servers" parent="menu_hypervisors" action="action_hypervisor_servers" sequence="10"/>
+    <menuitem id="menu_hypervisor_templates" name="VM Templates" parent="menu_hypervisors" action="action_vm_templates" sequence="20"/>
 
     <!-- Pricing & Billing -->
-    <menuitem id="menu_vm_pricing_plans" action="action_vm_pricing_plans"/>
-    <menuitem id="menu_vm_storage_pricing" action="action_hypervisor_storage_pricing"/>
-    <menuitem id="menu_vm_pricing_calculator" action="action_vm_pricing_calculator"/>
-    <menuitem id="menu_vm_pricing_dashboard" action="action_vm_pricing_dashboard"/>
+    <menuitem id="menu_vm_pricing_plans" name="Pricing Plans" parent="menu_pricing_billing" action="action_vm_pricing_plans" sequence="10"/>
+    <menuitem id="menu_vm_storage_pricing" name="Storage Pricing" parent="menu_pricing_billing" action="action_hypervisor_storage_pricing" sequence="15"/>
+    <menuitem id="menu_vm_pricing_calculator" name="Pricing Calculator" parent="menu_pricing_billing" action="action_vm_pricing_calculator" sequence="20"/>
+    <menuitem id="menu_vm_pricing_dashboard" name="Pricing Dashboard" parent="menu_pricing_billing" action="action_vm_pricing_dashboard" sequence="30"/>
     <menuitem id="menu_mass_price_update" name="Mass Price Update" parent="menu_pricing_billing" action="action_mass_price_update_wizard" sequence="40"/>
 
     <!-- Reports & Analytics -->
-    <menuitem id="menu_vm_reports" action="action_vm_reports"/>
-    <menuitem id="menu_vm_admin_report" action="action_vm_admin_report"/>
+    <menuitem id="menu_vm_reports" name="VM Reports" parent="menu_reports_analytics" action="action_vm_reports" sequence="10"/>
+    <menuitem id="menu_vm_admin_report" name="All Virtual Machines" parent="menu_reports_analytics" action="action_vm_admin_report" sequence="20"/>
 
     <!-- User Management -->
-    <menuitem id="menu_vm_users_dashboard" action="action_vm_users_dashboard"/>
-    <menuitem id="menu_vm_admins_list" action="action_vm_admins_list"/>
-    <menuitem id="menu_vm_managers_list" action="action_vm_managers_list"/>
-    <menuitem id="menu_users_without_vm_access" action="action_users_without_vm_access"/>
-    <menuitem id="menu_vm_user_settings" action="action_vm_user_settings"/>
+    <menuitem id="menu_vm_users_dashboard" name="VM Users Dashboard" parent="menu_vm_user_management_submenu" action="action_vm_users_dashboard" sequence="10"/>
+    <menuitem id="menu_vm_admins_list" name="VM Administrators" parent="menu_vm_user_management_submenu" action="action_vm_admins_list" sequence="20"/>
+    <menuitem id="menu_vm_managers_list" name="VM Managers" parent="menu_vm_user_management_submenu" action="action_vm_managers_list" sequence="30"/>
+    <menuitem id="menu_users_without_vm_access" name="Users without VM Access" parent="menu_vm_user_management_submenu" action="action_users_without_vm_access" sequence="40"/>
+    <menuitem id="menu_vm_user_settings" name="VM User Settings" parent="menu_vm_user_management_submenu" action="action_vm_user_settings" sequence="50"/>
+    <menuitem id="menu_vm_user_manager" name="User Access Manager" parent="menu_vm_user_management_submenu" action="action_vm_user_manager" sequence="5" groups="base.group_system"/>
 
     <!-- Tools -->
     <menuitem id="menu_create_vm_products" name="Create VM Products" parent="menu_vm_tools_submenu" action="action_create_vm_products" sequence="10"/>
@@ -611,8 +617,5 @@ action = {
     <menuitem id="menu_create_default_pricing" name="Create Default Pricing Plans" parent="menu_vm_tools_submenu" action="action_create_default_pricing_plans" sequence="30"/>
     <menuitem id="menu_pricing_analysis" name="Pricing Analysis Report" parent="menu_vm_tools_submenu" action="action_pricing_analysis_report" sequence="40"/>
     <menuitem id="menu_vm_resource_stats" name="Resource Statistics" parent="menu_vm_tools_submenu" action="action_vm_resource_stats" sequence="50"/>
-
-    <!-- Additional menus from other files -->
-    <menuitem id="menu_vm_user_manager" name="User Access Manager" parent="menu_vm_user_management_submenu" action="action_vm_user_manager" sequence="5" groups="base.group_system"/>
 
 </odoo>
