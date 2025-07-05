@@ -71,30 +71,37 @@ class ResConfigSettings(models.TransientModel):
         help="Basic system statistics"
     )
 
-    vm_rental_admin_users = fields.Many2many(
-        'res.users',
-        'vm_rental_admin_users_rel',
+    vm_rental_admin_users = fields.Char(
         string="VM Rental Administrators",
-        domain="[('share', '=', False), ('active', '=', True)]",
-        help="Users with full administrative access to VM Rental"
+        compute='_compute_vm_user_groups',
+        help="Users with VM admin access"
     )
 
-    vm_rental_manager_users = fields.Many2many(
-        'res.users',
-        'vm_rental_manager_users_rel',
+    vm_rental_manager_users = fields.Char(
         string="VM Rental Managers",
-        domain="[('share', '=', False), ('active', '=', True)]",
-        help="Users who can create and manage VMs"
+        compute='_compute_vm_user_groups',
+        help="Users with VM manager access"
     )
 
-    vm_portal_users = fields.Many2many(
-        'res.users',
-        'vm_rental_portal_users_rel',
-        string="Portal Users with VM Access",
-        domain="[('share', '=', True), ('active', '=', True)]",
-        help="Portal users who can access their VMs"
-    )
-    
+    @api.depends()
+    def _compute_vm_user_groups(self):
+        """Показывает пользователей из групп VM Rental"""
+        for record in self:
+            try:
+                admin_group = self.env.ref('vm_rental.group_vm_rental_admin', raise_if_not_found=False)
+                manager_group = self.env.ref('vm_rental.group_vm_rental_manager', raise_if_not_found=False)
+
+                admin_users = admin_group.users.mapped('name') if admin_group else []
+                manager_users = manager_group.users.mapped('name') if manager_group else []
+
+                record.vm_rental_admin_users = f"{len(admin_users)} users: {', '.join(admin_users[:3])}" + (
+                    "..." if len(admin_users) > 3 else "")
+                record.vm_rental_manager_users = f"{len(manager_users)} users: {', '.join(manager_users[:3])}" + (
+                    "..." if len(manager_users) > 3 else "")
+            except Exception:
+                record.vm_rental_admin_users = "Unable to load admin users"
+                record.vm_rental_manager_users = "Unable to load manager users"
+
     @api.depends()
     def _compute_vm_rental_module_version(self):
         """Получает версию модуля из манифеста"""
