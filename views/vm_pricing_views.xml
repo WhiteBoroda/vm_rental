@@ -1,344 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <record id="view_hypervisor_server_pricing_tree" model="ir.ui.view">
-        <field name="name">hypervisor.server.pricing.tree</field>
-        <field name="model">hypervisor.server.pricing</field>
-        <field name="arch" type="xml">
-            <tree string="Server Pricing Plans" decoration-success="active==True" decoration-muted="active==False">
-                <field name="name"/>
-                <field name="server_id"/>
-                <field name="price_per_core" string="$/Core"/>
-                <field name="price_per_gb_ram" string="$/GB RAM"/>
-                <field name="price_per_gb_disk" string="$/GB Disk"/>
-                <field name="os_multiplier" string="OS Mult."/>
-                <field name="bulk_discount_percent" string="Bulk %"/>
-                <field name="date_start"/>
-                <field name="date_end"/>
-                <field name="priority"/>
-                <field name="active"/>
-            </tree>
-        </field>
-    </record>
+    <!-- СНАЧАЛА определяем все представления, ПОТОМ действия -->
 
-    <record id="view_hypervisor_server_pricing_form" model="ir.ui.view">
-        <field name="name">hypervisor.server.pricing.form</field>
-        <field name="model">hypervisor.server.pricing</field>
-        <field name="arch" type="xml">
-            <form string="Server Pricing Plan">
-                <sheet>
-                    <div class="oe_title">
-                        <h1>
-                            <field name="name" placeholder="e.g., Standard Pricing Plan"/>
-                        </h1>
-                    </div>
-
-                    <group>
-                        <group string="General">
-                            <field name="server_id"/>
-                            <field name="priority"/>
-                            <field name="active"/>
-                        </group>
-                        <group string="Validity Period">
-                            <field name="date_start"/>
-                            <field name="date_end"/>
-                        </group>
-                    </group>
-
-                    <group>
-                        <group string="Base Resource Pricing (per month)">
-                            <label for="price_per_core" class="oe_inline"/>
-                            <div class="o_row">
-                                <span>$</span>
-                                <field name="price_per_core" nolabel="1" class="oe_inline"/>
-                                <span>per CPU Core</span>
-                            </div>
-
-                            <label for="price_per_gb_ram" class="oe_inline"/>
-                            <div class="o_row">
-                                <span>$</span>
-                                <field name="price_per_gb_ram" nolabel="1" class="oe_inline"/>
-                                <span>per GB RAM</span>
-                            </div>
-
-                            <label for="price_per_gb_disk" class="oe_inline"/>
-                            <div class="o_row">
-                                <span>$</span>
-                                <field name="price_per_gb_disk" nolabel="1" class="oe_inline"/>
-                                <span>per GB Disk (default)</span>
-                            </div>
-                        </group>
-
-                        <group string="Additional Charges">
-                            <field name="os_multiplier" help="Multiplier for Windows/paid OS licenses"/>
-                        </group>
-                    </group>
-
-                    <group>
-                        <group string="Volume Discounts">
-                            <field name="bulk_discount_threshold" help="Minimum VMs for bulk discount"/>
-                            <field name="bulk_discount_percent" help="Discount percentage for bulk orders"/>
-                        </group>
-                    </group>
-
-                    <notebook>
-                        <page string="Storage Pricing">
-                            <field name="storage_pricing_ids">
-                                <tree editable="bottom">
-                                    <field name="storage_id" domain="[('server_id', '=', parent.server_id)]"/>
-                                    <field name="storage_type"/>
-                                    <field name="price_per_gb"/>
-                                    <field name="performance_multiplier"/>
-                                    <field name="included_iops"/>
-                                    <field name="price_per_additional_iops"/>
-                                </tree>
-                            </field>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="action_hypervisor_server_pricing" model="ir.actions.act_window">
-        <field name="name">Server Pricing Plans</field>
-        <field name="res_model">hypervisor.server.pricing</field>
-        <field name="view_mode">tree,form</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Create pricing plans for your hypervisor servers
-            </p>
-            <p>
-                Set different prices for CPU, RAM, and storage based on server capabilities.
-                You can create multiple pricing plans with different validity periods.
-            </p>
-        </field>
-    </record>
-
-    <record id="view_hypervisor_storage_pricing_tree" model="ir.ui.view">
-        <field name="name">hypervisor.storage.pricing.tree</field>
-        <field name="model">hypervisor.storage.pricing</field>
-        <field name="arch" type="xml">
-            <tree string="Storage Pricing">
-                <field name="storage_id"/>
-                <field name="storage_type"/>
-                <field name="price_per_gb"/>
-                <field name="performance_multiplier"/>
-                <field name="included_iops"/>
-                <field name="price_per_additional_iops"/>
-            </tree>
-        </field>
-    </record>
-
-    <record id="view_vm_pricing_calculator_form" model="ir.ui.view">
-        <field name="name">vm.pricing.calculator.form</field>
-        <field name="model">vm.pricing.calculator</field>
-        <field name="arch" type="xml">
-            <form string="VM Pricing Calculator">
-                <sheet>
-                    <div class="oe_title">
-                        <h1>VM Pricing Calculator</h1>
-                        <h2>Calculate costs for virtual machine configurations</h2>
-                    </div>
-
-                    <group>
-                        <group string="VM Configuration">
-                            <field name="cores"/>
-                            <field name="memory_gb"/>
-                            <field name="disk_gb"/>
-                            <field name="os_type"/>
-                        </group>
-                        <group string="Infrastructure">
-                            <field name="server_id"/>
-                            <field name="storage_id" domain="[('server_id', '=', server_id)]"/>
-                        </group>
-                    </group>
-
-                    <group>
-                        <group string="Billing Options">
-                            <field name="vm_count"/>
-                            <field name="billing_period"/>
-                        </group>
-                        <group string="Pricing Results">
-                            <field name="base_price" readonly="1"/>
-                            <field name="storage_price" readonly="1"/>
-                            <field name="os_surcharge" readonly="1" attrs="{'invisible': [('os_surcharge', '=', 0)]}"/>
-                            <field name="bulk_discount" readonly="1" attrs="{'invisible': [('bulk_discount', '=', 0)]}"/>
-                            <field name="total_monthly" readonly="1" class="oe_subtotal_footer_separator"/>
-                            <field name="total_price" readonly="1" class="oe_subtotal_footer"/>
-                        </group>
-                    </group>
-
-                    <group string="Price Breakdown" col="1">
-                        <field name="price_breakdown" readonly="1" nolabel="1" widget="text"/>
-                    </group>
-
-                    <div class="oe_button_box" name="button_box">
-                        <button name="action_create_product" type="object"
-                                string="Create Product"
-                                class="btn-primary"
-                                attrs="{'invisible': [('total_monthly', '=', 0)]}"/>
-                    </div>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="action_vm_pricing_calculator" model="ir.actions.act_window">
-        <field name="name">VM Pricing Calculator</field>
-        <field name="res_model">vm.pricing.calculator</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Calculate VM pricing based on resources and infrastructure
-            </p>
-        </field>
-    </record>
-
-    <record id="view_hypervisor_server_form_pricing" model="ir.ui.view">
-        <field name="name">hypervisor.server.form.pricing</field>
-        <field name="model">hypervisor.server</field>
-        <field name="inherit_id" ref="view_hypervisor_server_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//notebook" position="inside">
-                <page string="Pricing" name="pricing">
-                    <div class="alert alert-info" role="alert" attrs="{'invisible': [('current_pricing_id', '!=', False)]}">
-                        <i class="fa fa-info-circle mr-2" title="Information"></i>
-                        <strong>No active pricing plan found.</strong>
-                        Create a pricing plan to enable automatic price calculation for VM products.
-                    </div>
-
-                    <div class="alert alert-success" role="alert" attrs="{'invisible': [('current_pricing_id', '=', False)]}">
-                        <i class="fa fa-check-circle mr-2" title="Success"></i>
-                        <strong>Active Pricing Plan:</strong>
-                        <field name="current_pricing_id" readonly="1" nolabel="1" class="oe_inline"/>
-                    </div>
-
-                    <field name="pricing_ids">
-                        <tree decoration-success="active==True" decoration-muted="active==False">
-                            <field name="name"/>
-                            <field name="price_per_core"/>
-                            <field name="price_per_gb_ram"/>
-                            <field name="price_per_gb_disk"/>
-                            <field name="date_start"/>
-                            <field name="date_end"/>
-                            <field name="priority"/>
-                            <field name="active"/>
-                        </tree>
-                    </field>
-
-                    <div class="mt-3">
-                        <button name="%(action_vm_pricing_calculator)d" type="action"
-                                string="Open Price Calculator"
-                                class="btn-primary"
-                                context="{'default_server_id': id}"
-                                attrs="{'invisible': [('current_pricing_id', '=', False)]}"/>
-                    </div>
-                </page>
-            </xpath>
-        </field>
-    </record>
-
-    <record id="view_hypervisor_storage_form_pricing" model="ir.ui.view">
-        <field name="name">hypervisor.storage.form.pricing</field>
-        <field name="model">hypervisor.storage</field>
-        <field name="arch" type="xml">
-            <form string="Hypervisor Storage">
-                <sheet>
-                    <group>
-                        <group string="General Information">
-                            <field name="name"/>
-                            <field name="server_id"/>
-                            <field name="storage_type"/>
-                        </group>
-                        <group string="Availability">
-                            <field name="node_ids" widget="many2many_tags"/>
-                        </group>
-                    </group>
-
-                    <notebook>
-                        <page string="Pricing">
-                            <field name="pricing_ids">
-                                <tree editable="bottom">
-                                    <field name="server_pricing_id"/>
-                                    <field name="price_per_gb"/>
-                                    <field name="performance_multiplier"/>
-                                    <field name="included_iops"/>
-                                    <field name="price_per_additional_iops"/>
-                                </tree>
-                            </field>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <record id="view_product_template_form_pricing" model="ir.ui.view">
-        <field name="name">product.template.form.vm.pricing</field>
-        <field name="model">product.template</field>
-        <field name="inherit_id" ref="product_template_form_view_vm_rental"/>
-        <field name="arch" type="xml">
-            <xpath expr="//group[@name='vm_rental']" position="inside">
-                <group string="Automatic Pricing" attrs="{'invisible': [('hypervisor_server_id', '=', False)]}">
-                    <field name="auto_price_calculation"/>
-                    <field name="calculated_price" readonly="1"
-                           attrs="{'invisible': [('auto_price_calculation', '=', False)]}"/>
-
-                    <div class="oe_button_box" attrs="{'invisible': [('calculated_price', '=', 0)]}">
-                        <button name="action_update_price_from_calculation" type="object"
-                                string="Update Sale Price"
-                                class="btn-secondary"
-                                help="Set sale price to calculated price"/>
-                    </div>
-                </group>
-
-                <group string="Price Breakdown" col="1"
-                       attrs="{'invisible': ['|', ('auto_price_calculation', '=', False), ('price_breakdown', '=', False)]}">
-                    <field name="price_breakdown" readonly="1" nolabel="1" widget="text"/>
-                </group>
-            </xpath>
-        </field>
-    </record>
-
-    <record id="view_hypervisor_server_pricing_search" model="ir.ui.view">
-        <field name="name">hypervisor.server.pricing.search</field>
-        <field name="model">hypervisor.server.pricing</field>
-        <field name="arch" type="xml">
-            <search string="Server Pricing">
-                <field name="name"/>
-                <field name="server_id"/>
-
-                <separator/>
-                <filter string="Active" name="active" domain="[('active', '=', True)]"/>
-                <filter string="Inactive" name="inactive" domain="[('active', '=', False)]"/>
-                <filter string="Current" name="current"
-                        domain="[('date_start', '&lt;=', context_today()), '|', ('date_end', '=', False), ('date_end', '&gt;=', context_today())]"/>
-                <filter string="Expired" name="expired"
-                        domain="[('date_end', '&lt;', context_today())]"/>
-
-                <separator/>
-                <group expand="0" string="Group By">
-                    <filter string="Server" name="group_server" context="{'group_by': 'server_id'}"/>
-                    <filter string="Active Status" name="group_active" context="{'group_by': 'active'}"/>
-                    <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
-                </group>
-            </search>
-        </field>
-    </record>
-
-    <!-- Обновленное действие для дашборда -->
-    <record id="action_pricing_dashboard" model="ir.actions.act_window">
-        <field name="name">Pricing Dashboard</field>
-        <field name="res_model">vm.pricing.dashboard</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_pricing_dashboard_form"/>
-        <field name="target">current</field>
-        <field name="context">{}</field>
-    </record>
-
-    <!-- Исправленное представление дашборда -->
+    <!-- Представление дашборда ценообразования -->
     <record id="view_pricing_dashboard_form" model="ir.ui.view">
         <field name="name">pricing.dashboard.form</field>
         <field name="model">vm.pricing.dashboard</field>
@@ -414,7 +79,7 @@
                         <div class="col-md-6">
                             <div class="card">
                                 <div class="card-header">
-                                    <h5><i class="fa fa-chart-bar mr-2" title="Coverage"></i>Server Coverage</h5>
+                                    <h5><i class="fa fa-server mr-2" title="Server Coverage"></i>Server Coverage</h5>
                                 </div>
                                 <div class="card-body">
                                     <field name="server_coverage_info" readonly="1" widget="text"/>
@@ -422,24 +87,225 @@
                             </div>
                         </div>
                     </div>
+                </sheet>
+            </form>
+        </field>
+    </record>
 
-                    <div class="row mt-4">
-                        <div class="col-12">
-                            <div class="alert alert-info" role="alert">
-                                <h5><i class="fa fa-calculator mr-2" title="Calculator"></i>Quick Actions</h5>
-                                <div class="btn-group" role="group">
-                                    <button name="%(action_vm_pricing_calculator)d" type="action"
-                                            string="Price Calculator" class="btn btn-outline-primary"/>
-                                    <button name="%(action_hypervisor_server_pricing)d" type="action"
-                                            string="Manage Pricing Plans" class="btn btn-outline-secondary"/>
-                                    <button name="%(action_create_default_pricing_plans)d" type="action"
-                                            string="Create Default Plans" class="btn btn-outline-success"/>
-                                </div>
+    <!-- Представления ценообразования серверов -->
+    <record id="view_hypervisor_server_pricing_tree" model="ir.ui.view">
+        <field name="name">hypervisor.server.pricing.tree</field>
+        <field name="model">hypervisor.server.pricing</field>
+        <field name="arch" type="xml">
+            <tree string="Server Pricing">
+                <field name="name"/>
+                <field name="server_id"/>
+                <field name="price_per_core"/>
+                <field name="price_per_gb_ram"/>
+                <field name="price_per_gb_disk"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="active"/>
+                <field name="priority"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hypervisor_server_pricing_form" model="ir.ui.view">
+        <field name="name">hypervisor.server.pricing.form</field>
+        <field name="model">hypervisor.server.pricing</field>
+        <field name="arch" type="xml">
+            <form string="Server Pricing">
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name" placeholder="Pricing Plan Name"/></h1>
+                    </div>
+
+                    <group>
+                        <group string="Basic Information">
+                            <field name="server_id"/>
+                            <field name="active"/>
+                            <field name="priority"/>
+                        </group>
+                        <group string="Validity Period">
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                        </group>
+                    </group>
+
+                    <group string="Resource Pricing">
+                        <group string="Compute">
+                            <label for="price_per_core" class="oe_inline"/>
+                            <div class="o_row">
+                                <span>$</span>
+                                <field name="price_per_core" nolabel="1" class="oe_inline"/>
+                                <span>per CPU Core</span>
                             </div>
-                        </div>
+
+                            <label for="price_per_gb_ram" class="oe_inline"/>
+                            <div class="o_row">
+                                <span>$</span>
+                                <field name="price_per_gb_ram" nolabel="1" class="oe_inline"/>
+                                <span>per GB RAM</span>
+                            </div>
+
+                            <label for="price_per_gb_disk" class="oe_inline"/>
+                            <div class="o_row">
+                                <span>$</span>
+                                <field name="price_per_gb_disk" nolabel="1" class="oe_inline"/>
+                                <span>per GB Disk</span>
+                            </div>
+                        </group>
+
+                        <group string="Additional Options">
+                            <field name="os_multiplier" help="Multiplier for Windows/paid OS licenses"/>
+                            <field name="bulk_discount_threshold" help="Minimum VMs for bulk discount"/>
+                            <field name="bulk_discount_percent" help="Discount percentage for bulk orders"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Представления ценообразования хранилищ -->
+    <record id="view_hypervisor_storage_pricing_tree" model="ir.ui.view">
+        <field name="name">hypervisor.storage.pricing.tree</field>
+        <field name="model">hypervisor.storage.pricing</field>
+        <field name="arch" type="xml">
+            <tree string="Storage Pricing">
+                <field name="server_pricing_id"/>
+                <field name="storage_id"/>
+                <field name="price_per_gb"/>
+                <field name="performance_multiplier"/>
+                <field name="included_iops"/>
+                <field name="price_per_additional_iops"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_hypervisor_storage_pricing_form" model="ir.ui.view">
+        <field name="name">hypervisor.storage.pricing.form</field>
+        <field name="model">hypervisor.storage.pricing</field>
+        <field name="arch" type="xml">
+            <form string="Storage Pricing">
+                <sheet>
+                    <group>
+                        <group string="Basic Information">
+                            <field name="server_pricing_id"/>
+                            <field name="storage_id"/>
+                        </group>
+                        <group string="Pricing">
+                            <field name="price_per_gb"/>
+                            <field name="performance_multiplier"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="IOPS">
+                            <field name="included_iops"/>
+                            <field name="price_per_additional_iops"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- VM Pricing Calculator - только существующие поля -->
+    <record id="view_vm_pricing_calculator_form" model="ir.ui.view">
+        <field name="name">vm.pricing.calculator.form</field>
+        <field name="model">vm.pricing.calculator</field>
+        <field name="arch" type="xml">
+            <form string="VM Pricing Calculator">
+                <sheet>
+                    <div class="oe_title">
+                        <h1>VM Pricing Calculator</h1>
+                        <h2>Calculate costs for virtual machine configurations</h2>
+                    </div>
+
+                    <group>
+                        <group string="VM Configuration">
+                            <field name="cores"/>
+                            <field name="memory_gb"/>
+                            <field name="disk_gb"/>
+                            <field name="os_type"/>
+                        </group>
+                        <group string="Infrastructure">
+                            <field name="server_id"/>
+                            <field name="storage_id"/>
+                            <field name="billing_period"/>
+                        </group>
+                    </group>
+
+                    <!-- Результаты расчета - только если поле total_monthly существует -->
+                    <group string="Pricing Results" attrs="{'invisible': [('total_monthly', '=', 0)]}">
+                        <field name="total_monthly" readonly="1" class="o_field_monetary"/>
+                    </group>
+
+                    <!-- Action Buttons -->
+                    <div class="oe_button_box" attrs="{'invisible': [('total_monthly', '=', 0)]}">
+                        <button name="action_create_product" type="object"
+                                string="Create Product"
+                                class="btn-primary"/>
                     </div>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <!-- ТЕПЕРЬ определяем действия (после всех представлений) -->
+
+    <!-- Действие для дашборда ценообразования -->
+    <record id="action_pricing_dashboard" model="ir.actions.act_window">
+        <field name="name">Pricing Dashboard</field>
+        <field name="res_model">vm.pricing.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_pricing_dashboard_form"/>
+        <field name="target">current</field>
+        <field name="context">{}</field>
+    </record>
+
+    <!-- Действие для ценообразования серверов -->
+    <record id="action_hypervisor_server_pricing" model="ir.actions.act_window">
+        <field name="name">Server Pricing</field>
+        <field name="res_model">hypervisor.server.pricing</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No pricing plans configured yet!
+            </p>
+            <p>
+                Create pricing plans to set resource costs for your hypervisor servers.
+                You can create multiple pricing plans with different validity periods.
+            </p>
+        </field>
+    </record>
+
+    <!-- Действие для ценообразования хранилищ -->
+    <record id="action_hypervisor_storage_pricing" model="ir.actions.act_window">
+        <field name="name">Storage Pricing</field>
+        <field name="res_model">hypervisor.storage.pricing</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No storage pricing configured yet!
+            </p>
+            <p>
+                Configure pricing for different storage types and performance tiers.
+            </p>
+        </field>
+    </record>
+
+    <!-- Действие для калькулятора цен -->
+    <record id="action_vm_pricing_calculator" model="ir.actions.act_window">
+        <field name="name">VM Pricing Calculator</field>
+        <field name="res_model">vm.pricing.calculator</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Calculate VM pricing based on resources and infrastructure
+            </p>
         </field>
     </record>
 

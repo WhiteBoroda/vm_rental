@@ -1,3 +1,5 @@
+# __manifest__.py
+
 {
     'name': 'VM Rental',
     'version': '1.4.1',
@@ -57,7 +59,7 @@ Enterprise-grade virtual machine rental and management system featuring:
 * Snapshot management with restore capabilities
 * Subscription tracking and renewal notifications
 
-Version 1.3.0 features a revolutionary traits-based architecture that provides
+Version 1.4.1 features a revolutionary traits-based architecture that provides
 unprecedented flexibility while maintaining high performance and code clarity.
 """,
     'author': 'Yuri Varaksin',
@@ -103,10 +105,11 @@ unprecedented flexibility while maintaining high performance and code clarity.
         'views/vm_pricing_menus.xml',
 
         # Settings and menus
+        'views/res_config_settings_views.xml',     # ДОБАВЛЕНО - было пропущено
         'views/vm_settings_actions.xml',
         'views/vm_user_manager_views.xml',
-        'views/vm_settings_actions.xml',
         'views/vm_user_management_menus.xml',
+        # 'views/vm_user_settings_views.xml',      # ЗАКОММЕНТИРОВАНО - содержит проблемные поля
         'views/menus.xml',
 
         # Demo data
@@ -125,6 +128,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
         ],
         'web.assets_frontend': [
             'vm_rental/static/src/css/portal.css',
+            'vm_rental/static/src/js/portal_vm_control.js',
             'vm_rental/static/src/js/vm_actions.js',
             'vm_rental/static/src/js/vm_snapshot_actions.js',
         ],
@@ -141,7 +145,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
     'version_info': {
         'major': 1,
         'minor': 4,
-        'patch': 0,
+        'patch': 1,
         'stage': 'stable',
     },
 
