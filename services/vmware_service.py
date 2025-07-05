@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 from pyVim import connect
 from pyVmomi import vim, vmodl
-from .base_service import BaseHypervisorService
+from .base_service import BaseHypervisorService, HypervisorOperationError
 from odoo.exceptions import UserError
 import logging
 import ssl
@@ -345,3 +345,29 @@ class VmwareService(BaseHypervisorService):
         task = vm.Destroy_Task()
         self._wait_for_task(task)
         return True
+
+    def get_vm_config(self, vm_uuid):
+        """Получает конфигурацию существующей VM в VMware"""
+        try:
+            vm = self._get_vm_by_uuid(vm_uuid)
+            if not vm:
+                raise HypervisorOperationError(f"VM with UUID {vm_uuid} not found")
+
+            # Получаем конфигурацию
+            config = vm.summary.config
+
+            # Вычисляем размер диска (сумма всех дисков)
+            total_disk_gb = 0
+            for device in vm.config.hardware.device:
+                if hasattr(device, 'capacityInKB'):
+                    total_disk_gb += int(device.capacityInKB / 1024 / 1024)  # KB -> GB
+
+            return {
+                'cores': config.numCpu,
+                'memory': config.memorySizeMB,
+                'disk': total_disk_gb or 20,  # Если не удалось вычислить, берем 20GB
+                'vm_type': 'vmware'
+            }
+        except Exception as e:
+            _logger.error(f"Failed to get VMware VM config for {vm_uuid}: {e}")
+            raise HypervisorOperationError(f"Cannot get VM {vm_uuid} configuration: {e}")

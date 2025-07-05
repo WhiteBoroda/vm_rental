@@ -124,3 +124,18 @@ class BaseHypervisorService:
     def delete_vm(self, node, vm_id):
         """Deletes a virtual machine from the hypervisor."""
         raise NotImplementedError()
+
+    # --- НОВЫЕ АБСТРАКТНЫЕ МЕТОДЫ ---":
+
+    def get_vm_config(self, node_or_uuid, vm_id=None):
+        """
+        Получает конфигурацию существующей VM
+
+        Args:
+            node_or_uuid: Для Proxmox - имя ноды, для VMware - UUID VM
+            vm_id: Для Proxmox - ID VM, для VMware не используется
+
+        Returns:
+            dict: Словарь с ключами cores, memory, disk, vm_type
+        """
+        raise NotImplementedError()

@@ -191,3 +191,56 @@ class ProxmoxService(BaseHypervisorService):
         """
         # Proxmox API for deletion returns the task ID
         return self._execute(self.connection.nodes(node).qemu(vm_id).delete)
+
+    def get_vm_config(self, node, vm_id):
+        """Получает конфигурацию существующей VM"""
+        try:
+            # Пытаемся получить конфигурацию QEMU VM
+            config = self._execute(self.connection.nodes(node).qemu(vm_id).config.get)
+            if config:
+                return {
+                    'cores': int(config.get('cores', 1)),
+                    'memory': int(config.get('memory', 1024)),
+                    'disk': self._extract_disk_size(config),
+                    'vm_type': 'qemu'
+                }
+        except Exception:
+            pass
+
+        try:
+            # Пытаемся получить конфигурацию LXC контейнера
+            config = self._execute(self.connection.nodes(node).lxc(vm_id).config.get)
+            if config:
+                return {
+                    'cores': int(config.get('cores', 1)),
+                    'memory': int(config.get('memory', 512)),
+                    'disk': self._extract_lxc_disk_size(config),
+                    'vm_type': 'lxc'
+                }
+        except Exception as e:
+            _logger.error(f"Failed to get VM config for {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot get VM {vm_id} configuration: {e}")
+
+    def _extract_disk_size(self, config):
+        """Извлекает размер диска из конфигурации QEMU VM"""
+        for key, value in config.items():
+            if key.startswith(('scsi', 'ide', 'sata', 'virtio')):
+                # Формат: "storage:size" или "storage:vm-xxx-disk-x,size=xxG"
+                if 'size=' in str(value):
+                    size_part = str(value).split('size=')[1].split(',')[0]
+                    if size_part.endswith('G'):
+                        return int(size_part[:-1])
+                elif ':' in str(value):
+                    parts = str(value).split(':')
+                    if len(parts) > 1 and parts[1].endswith('G'):
+                        return int(parts[1][:-1])
+        return 10  # Значение по умолчанию
+
+    def _extract_lxc_disk_size(self, config):
+        """Извлекает размер диска из конфигурации LXC контейнера"""
+        rootfs = config.get('rootfs', '')
+        if 'size=' in rootfs:
+            size_part = rootfs.split('size=')[1].split(',')[0]
+            if size_part.endswith('G'):
+                return int(size_part[:-1])
+        return 8  # Значение по умолчанию для LXC

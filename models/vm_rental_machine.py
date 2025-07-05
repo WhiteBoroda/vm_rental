@@ -119,13 +119,6 @@ class VmInstance(models.Model):
         self.ensure_one()
         return VmResourceTrait.get_resource_summary(self.cores, self.memory, self.disk)
 
-    def normalize_vm_resources(self):
-        """Нормализует ресурсы VM к стандартным значениям"""
-        self.ensure_one()
-        normalized = VmResourceTrait.normalize_resources(self.cores, self.memory, self.disk)
-        self.write(normalized)
-        return normalized
-
     @api.depends('partner_id', 'partner_id.user_ids')
     def _compute_user_id(self):
         for vm in self:
@@ -797,3 +790,48 @@ class VmInstance(models.Model):
             'target': 'new',
             'context': {'default_hypervisor_server_id': self.env.context.get('active_id')},
         }
+
+    def update_resources_from_hypervisor(self):
+        """Обновляет ресурсы VM из конфигурации гипервизора"""
+        self.ensure_one()
+
+        if not self.hypervisor_server_id or not self.hypervisor_vm_ref:
+            raise UserError(_("VM is not linked to hypervisor"))
+
+        try:
+            service = self._get_hypervisor_service()
+
+            if self.hypervisor_server_id.hypervisor_type == 'proxmox':
+                vm_config = service.get_vm_config(self.hypervisor_node_name, self.hypervisor_vm_ref)
+            else:  # VMware
+                vm_config = service.get_vm_config(self.hypervisor_vm_ref)
+
+            old_summary = self.get_vm_resource_summary()
+
+            self.write({
+                'cores': vm_config['cores'],
+                'memory': vm_config['memory'],
+                'disk': vm_config['disk'],
+            })
+
+            new_summary = self.get_vm_resource_summary()
+
+            self.message_post(
+                body=_("VM resources updated from hypervisor: %s → %s") % (old_summary, new_summary),
+                message_type='notification'
+            )
+
+            return {
+                'type': 'ir.actions.client',
+                'tag': 'display_notification',
+                'params': {
+                    'title': _('Resources Updated'),
+                    'message': _('VM resources synchronized from hypervisor: %s') % new_summary,
+                    'type': 'success',
+                    'sticky': False,
+                }
+            }
+
+        except Exception as e:
+            _logger.error(f"Failed to update resources for VM {self.name}: {e}")
+            raise UserError(_("Failed to update VM resources: %s") % str(e))

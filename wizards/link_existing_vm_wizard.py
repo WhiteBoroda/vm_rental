@@ -1,6 +1,7 @@
 # vm_rental/wizards/link_existing_vm_wizard.py
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
+from ..services.base_service import HypervisorOperationError
 import logging
 
 _logger = logging.getLogger(__name__)
@@ -75,17 +76,51 @@ class VmLinkingJob(models.Model):
         if not vms_to_link:
             raise UserError(_("Please select at least one VM to link."))
 
+        service = self.hypervisor_server_id._get_service_manager()
         created_vms = self.env['vm_rental.machine']
+
         for vm_line in vms_to_link:
-            vals = {
-                'name': vm_line.name,
-                'partner_id': self.partner_id.id,
-                'hypervisor_server_id': self.hypervisor_server_id.id,
-                'hypervisor_vm_ref': vm_line.vmid,
-                'hypervisor_node_name': vm_line.node,
-                'state': 'active' if vm_line.status in ['running', 'poweredOn'] else 'stopped',
-                'start_date': fields.Date.today(),
-            }
+            try:
+                # ИСПРАВЛЕНИЕ: Получаем реальную конфигурацию VM
+                if self.hypervisor_server_id.hypervisor_type == 'proxmox':
+                    vm_config = service.get_vm_config(vm_line.node, vm_line.vmid)
+                else:  # VMware
+                    vm_config = service.get_vm_config(vm_line.vmid)
+
+                vals = {
+                    'name': vm_line.name,
+                    'partner_id': self.partner_id.id,
+                    'hypervisor_server_id': self.hypervisor_server_id.id,
+                    'hypervisor_vm_ref': vm_line.vmid,
+                    'hypervisor_node_name': vm_line.node,
+                    'state': 'active' if vm_line.status in ['running', 'poweredOn'] else 'stopped',
+                    'start_date': fields.Date.today(),
+                    # ИСПРАВЛЕНИЕ: Используем реальные ресурсы VM
+                    'cores': vm_config['cores'],
+                    'memory': vm_config['memory'],
+                    'disk': vm_config['disk'],
+                }
+
+                _logger.info(f"Linking VM {vm_line.name} with config: {vm_config}")
+
+            except HypervisorOperationError as e:
+                _logger.error(f"Failed to get config for VM {vm_line.name}: {e}")
+                # Fallback к значениям по умолчанию если не удалось получить конфигурацию
+                vals = {
+                    'name': vm_line.name,
+                    'partner_id': self.partner_id.id,
+                    'hypervisor_server_id': self.hypervisor_server_id.id,
+                    'hypervisor_vm_ref': vm_line.vmid,
+                    'hypervisor_node_name': vm_line.node,
+                    'state': 'active' if vm_line.status in ['running', 'poweredOn'] else 'stopped',
+                    'start_date': fields.Date.today(),
+                    # Значения по умолчанию при ошибке
+                    'cores': 1,
+                    'memory': 1024,
+                    'disk': 10,
+                }
+                _logger.warning(f"Using default resources for VM {vm_line.name} due to error: {e}")
+
             created_vms |= self.env['vm_rental.machine'].create(vals)
 
         self.write({'state': 'done'})
