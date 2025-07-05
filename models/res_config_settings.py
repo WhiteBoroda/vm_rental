@@ -71,7 +71,7 @@ class ResConfigSettings(models.TransientModel):
         help="Basic system statistics"
     )
 
-    # User access summary (readonly information only)
+    # ТОЛЬКО информационные поля - БЕЗ Many2many
     vm_rental_user_access_summary = fields.Char(
         string="User Access Summary",
         compute='_compute_vm_rental_user_access_summary',

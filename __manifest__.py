@@ -103,7 +103,6 @@ unprecedented flexibility while maintaining high performance and code clarity.
         'views/vm_pricing_menus.xml',
 
         # Settings and menus
-        'views/res_config_settings_views.xml',
         'views/vm_settings_actions.xml',
         'views/vm_user_management_menus.xml',
         'views/vm_user_manager_views.xml',
