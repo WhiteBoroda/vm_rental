@@ -64,19 +64,6 @@
         </field>
     </record>
 
-    <!-- Действие для визарда -->
-    <record id="action_vm_config_wizard" model="ir.actions.act_window">
-        <field name="name">VM Configuration Wizard</field>
-        <field name="res_model">vm.config.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="context">{
-            'default_config_type': 'custom',
-            'default_cores': context.get('default_cores', 1),
-            'default_memory': context.get('default_memory', 1024),
-            'default_disk': context.get('default_disk', 10)
-        }</field>
-    </record>
 
     <!-- ИСПРАВЛЕННЫЙ Визард для массовых операций -->
     <record id="view_vm_bulk_operations_wizard" model="ir.ui.view">
@@ -152,15 +139,6 @@
                 </footer>
             </form>
         </field>
-    </record>
-
-    <record id="action_vm_bulk_operations" model="ir.actions.act_window">
-        <field name="name">Bulk Operations</field>
-        <field name="res_model">vm.bulk.operations.wizard</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="binding_model_id" ref="model_vm_rental_machine"/>
-        <field name="binding_view_types">list</field>
     </record>
 
 </odoo>

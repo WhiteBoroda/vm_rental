@@ -98,6 +98,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
         'views/portal_my_vms_template.xml',
         'views/portal_vm_console.xml',
         'views/portal_vm_snapshots.xml',
+        'views/portal_menu_templates.xml'
 
         # Wizards
         'wizards/link_existing_vm_wizard_view.xml',

@@ -69,10 +69,4 @@
         </field>
     </record>
 
-    <record id="action_hypervisor_server" model="ir.actions.act_window">
-        <field name="name">Hypervisor Servers</field>
-        <field name="res_model">hypervisor.server</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-    
 </odoo>

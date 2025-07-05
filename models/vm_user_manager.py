@@ -118,7 +118,7 @@ class VmUserManager(models.TransientModel):
             # Логируем изменения
             self.env['vm_rental.audit_log'].sudo().create({
                 'vm_id': False,
-                'action': 'user_groups_updated',
+                'action': 'user_group_update',
                 'success': True,
                 'metadata': f'VM user groups updated by {self.env.user.name}. '
                             f'Admins: {len(self.admin_users)}, Managers: {len(self.manager_users)}'

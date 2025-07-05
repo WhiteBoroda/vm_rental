@@ -22,6 +22,7 @@ class VmAuditLog(models.Model):
         ('snapshot_rollback', 'Snapshot Rollback'),
         ('extend', 'Period Extended'),
         ('terminate', 'Terminated'),
+        ('user_group_update', 'User Group Updated'),
     ], string="Action", required=True, index=True)
     
     success = fields.Boolean(string="Success", default=True)

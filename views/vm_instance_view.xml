@@ -411,22 +411,4 @@ if records:
         </field>
     </record>
 
-    <!-- Действие для VM Instances -->
-    <record id="action_vm_instance" model="ir.actions.act_window">
-        <field name="name">VM Instances</field>
-        <field name="res_model">vm_rental.machine</field>
-        <field name="view_mode">kanban,tree,form</field>
-        <field name="search_view_id" ref="view_vm_instance_search"/>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Create your first Virtual Machine!
-            </p>
-            <p>
-                Virtual machines can be created manually or automatically from sales orders.
-                Use the Configuration Wizard for quick setup with predefined templates.
-            </p>
-        </field>
-        <field name="context">{'search_default_active': 1}</field>
-    </record>
-
 </odoo>

@@ -32,6 +32,7 @@
 
     <!-- Pricing & Billing подменю -->
     <menuitem id="menu_vm_pricing_plans" name="Pricing Plans" parent="menu_pricing_billing" sequence="10"/>
+    <menuitem id="menu_vm_storage_pricing" name="Storage Pricing" parent="menu_pricing_billing" sequence="15"/>
     <menuitem id="menu_vm_pricing_calculator" name="Pricing Calculator" parent="menu_pricing_billing" sequence="20"/>
     <menuitem id="menu_vm_pricing_dashboard" name="Pricing Dashboard" parent="menu_pricing_billing" sequence="30"/>
 
@@ -41,55 +42,5 @@
 
     <!-- User Management подменю -->
     <menuitem id="menu_vm_user_management_submenu" name="VM Users" parent="menu_vm_user_management" sequence="10"/>
-
-    <!-- ===== PORTAL MENUS ===== -->
-    <!-- Portal breadcrumbs menu -->
-    <template id="portal_my_home_menu_vm" name="Portal layout : VM menu entries" inherit_id="portal.portal_breadcrumbs" priority="40">
-        <xpath expr="//ol[hasclass('o_portal_submenu')]" position="inside">
-            <li class="breadcrumb-item">
-                <a t-attf-href="/my/vms?{{ keep_query() }}">Virtual Machines</a>
-            </li>
-        </xpath>
-    </template>
-
-    <!-- Portal home page entry -->
-    <template id="portal_my_home_vm" name="Portal My Home : VM entries" inherit_id="portal.portal_my_home" priority="40">
-        <xpath expr="//div[hasclass('o_portal_docs')]" position="inside">
-            <t t-call="portal.portal_docs_entry">
-                <t t-set="title">Virtual Machines</t>
-                <t t-set="url" t-value="'/my/vms'"/>
-                <t t-set="placeholder_count" t-value="'vms_count'"/>
-            </t>
-        </xpath>
-    </template>
-
-    <!-- Portal sidebar -->
-    <template id="portal_layout_vm" name="Portal layout : VM pages" inherit_id="portal.portal_sidebar">
-        <xpath expr="//div[hasclass('o_portal_sidebar')]" position="inside">
-            <t t-if="page_name and 'vm' in page_name">
-                <div class="card">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fa fa-server mr-2" title="VM Management"></i>VM Management
-                        </h5>
-                    </div>
-                    <div class="list-group list-group-flush">
-                        <a href="/my/vms" t-attf-class="list-group-item list-group-item-action #{'active' if page_name == 'vms' else ''}">
-                            <i class="fa fa-list mr-2" title="All VMs"></i>All Virtual Machines
-                        </a>
-                        <a href="/my/vms?filterby=active" class="list-group-item list-group-item-action">
-                            <i class="fa fa-play-circle mr-2" title="Active VMs"></i>Active VMs
-                        </a>
-                        <a href="/my/vms?filterby=stopped" class="list-group-item list-group-item-action">
-                            <i class="fa fa-stop-circle mr-2" title="Stopped VMs"></i>Stopped VMs
-                        </a>
-                        <a href="/my/vms?filterby=suspended" class="list-group-item list-group-item-action">
-                            <i class="fa fa-pause-circle mr-2" title="Suspended VMs"></i>Suspended VMs
-                        </a>
-                    </div>
-                </div>
-            </t>
-        </xpath>
-    </template>
 
 </odoo>

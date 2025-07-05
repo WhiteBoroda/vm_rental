@@ -6,7 +6,24 @@
     -->
 
     <!-- ===== VM MANAGEMENT ACTIONS ===== -->
-    <!-- VM Instances action -->
+    <!-- ОСНОВНОЙ VM Instances action (отсутствовал!) -->
+    <record id="action_vm_instance" model="ir.actions.act_window">
+        <field name="name">VM Instances</field>
+        <field name="res_model">vm_rental.machine</field>
+        <field name="view_mode">tree,form,kanban</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Create your first VM Instance!
+            </p>
+            <p>
+                VM instances represent virtual machines managed through this system.
+            </p>
+        </field>
+    </record>
+
+    <!-- VM Instances action (альтернативное имя) -->
     <record id="action_vm_instances" model="ir.actions.act_window">
         <field name="name">VM Instances</field>
         <field name="res_model">vm_rental.machine</field>
@@ -20,6 +37,25 @@
             <p>
                 VM instances represent virtual machines managed through this system.
             </p>
+        </field>
+    </record>
+
+    <!-- Server Action - Forget VM from Odoo -->
+    <record id="action_server_forget_vm" model="ir.actions.server">
+        <field name="name">Forget VM from Odoo</field>
+        <field name="model_id" ref="model_vm_rental_machine"/>
+        <field name="binding_model_id" ref="model_vm_rental_machine"/>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    records.unlink()
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'VM Instances',
+        'res_model': 'vm_rental.machine',
+        'view_mode': 'tree,form',
+        'target': 'main',
+    }
         </field>
     </record>
 
@@ -49,20 +85,27 @@
         <field name="context">{}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Create your first linking job!
+                Create a linking job to import existing VMs
             </p>
             <p>
-                Link existing VMs from hypervisors to Odoo.
+                Use this feature to import VMs that already exist on your hypervisors
+                into Odoo for management.
             </p>
         </field>
     </record>
 
     <!-- Configuration Wizard action -->
     <record id="action_vm_config_wizard" model="ir.actions.act_window">
-        <field name="name">Configuration Wizard</field>
+        <field name="name">VM Configuration Wizard</field>
         <field name="res_model">vm.config.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <field name="context">{
+            'default_config_type': 'custom',
+            'default_cores': 1,
+            'default_memory': 1024,
+            'default_disk': 10
+        }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Welcome to Configuration Wizard!
@@ -79,6 +122,8 @@
         <field name="res_model">vm.bulk.operations.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <field name="binding_model_id" ref="model_vm_rental_machine"/>
+        <field name="binding_view_types">list</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Start bulk operations!
@@ -109,6 +154,23 @@
     <!-- ===== HYPERVISOR ACTIONS ===== -->
     <!-- Hypervisor Servers action -->
     <record id="action_hypervisor_servers" model="ir.actions.act_window">
+        <field name="name">Hypervisor Servers</field>
+        <field name="res_model">hypervisor.server</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Add your first hypervisor server!
+            </p>
+            <p>
+                Configure Proxmox, VMware or other hypervisor connections.
+            </p>
+        </field>
+    </record>
+
+    <!-- Alternative action name for compatibility -->
+    <record id="action_hypervisor_server" model="ir.actions.act_window">
         <field name="name">Hypervisor Servers</field>
         <field name="res_model">hypervisor.server</field>
         <field name="view_mode">tree,form</field>
@@ -175,8 +237,41 @@
         </field>
     </record>
 
+    <!-- Mass Price Update Wizard action -->
+    <record id="action_mass_price_update_wizard" model="ir.actions.act_window">
+        <field name="name">Mass Price Update Wizard</field>
+        <field name="res_model">vm.pricing.calculator</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{'default_operation': 'mass_update'}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Update prices for multiple VM products at once
+            </p>
+            <p>
+                This wizard helps you update prices for all VM products with auto-calculation enabled.
+            </p>
+        </field>
+    </record>
+
     <!-- Pricing Dashboard action -->
     <record id="action_vm_pricing_dashboard" model="ir.actions.act_window">
+        <field name="name">Pricing Dashboard</field>
+        <field name="res_model">vm.pricing.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Pricing dashboard overview!
+            </p>
+            <p>
+                Monitor pricing configuration and statistics.
+            </p>
+        </field>
+    </record>
+
+    <!-- Alternative action name for compatibility -->
+    <record id="action_pricing_dashboard" model="ir.actions.act_window">
         <field name="name">Pricing Dashboard</field>
         <field name="res_model">vm.pricing.dashboard</field>
         <field name="view_mode">form</field>
@@ -226,6 +321,23 @@
         </field>
     </record>
 
+    <!-- Alternative action name for compatibility -->
+    <record id="action_report_vm_admin" model="ir.actions.act_window">
+        <field name="name">All Virtual Machines</field>
+        <field name="res_model">vm_rental.machine</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[]</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No VMs found!
+            </p>
+            <p>
+                This report shows all virtual machines in the system.
+            </p>
+        </field>
+    </record>
+
     <!-- ===== USER MANAGEMENT ACTIONS ===== -->
     <!-- VM Users Dashboard action -->
     <record id="action_vm_users_dashboard" model="ir.actions.act_window">
@@ -240,6 +352,23 @@
             <p>
                 Manage user access and permissions for VM functionality.
                 You can assign VM roles through the Settings.
+            </p>
+        </field>
+    </record>
+
+    <!-- VM User Manager action -->
+    <record id="action_vm_user_manager" model="ir.actions.act_window">
+        <field name="name">VM User Manager</field>
+        <field name="res_model">vm.user.manager</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure VM user access!
+            </p>
+            <p>
+                Manage which users have access to VM functionality.
             </p>
         </field>
     </record>
@@ -296,13 +425,15 @@ action = {
         <field name="code">
 updated_count = 0
 products = model.search([
-    ('hypervisor_server_id', '!=', False),
-    ('auto_price_calculation', '=', True)
+    ('hypervisor_server_id', '!=', False)
 ])
 
 for product in products:
-    if hasattr(product, 'calculated_price') and product.calculated_price > 0:
-        product.write({'list_price': product.calculated_price})
+    # Простая логика обновления цен - можно расширить позже
+    if hasattr(product, 'list_price') and product.list_price == 0:
+        # Базовая цена на основе ресурсов
+        base_price = (product.cores or 1) * 5 + (product.memory or 1024) / 1024 * 2 + (product.disk or 10) * 0.1
+        product.write({'list_price': base_price})
         updated_count += 1
 
 action = {
@@ -318,25 +449,149 @@ action = {
         </field>
     </record>
 
+    <!-- Create Default Pricing Plans server action -->
+    <record id="action_create_default_pricing_plans" model="ir.actions.server">
+        <field name="name">Create Default Pricing Plans</field>
+        <field name="model_id" ref="model_hypervisor_server"/>
+        <field name="state">code</field>
+        <field name="code">
+created_count = 0
+servers = model.search([])
+
+for server in servers:
+    # Проверяем, есть ли уже план ценообразования
+    existing_pricing = env['hypervisor.server.pricing'].search([
+        ('server_id', '=', server.id),
+        ('active', '=', True)
+    ], limit=1)
+
+    if not existing_pricing:
+        # Создаем базовый план ценообразования
+        pricing_plan = env['hypervisor.server.pricing'].create({
+            'name': 'Default Pricing - %s' % server.name,
+            'server_id': server.id,
+            'price_per_core': 5.0,
+            'price_per_gb_ram': 2.0,
+            'price_per_gb_disk': 0.1,
+            'os_multiplier': 1.5,  # 50% доплата за Windows
+            'bulk_discount_threshold': 10,
+            'bulk_discount_percent': 10.0,
+            'priority': 10,
+            'active': True,
+        })
+        created_count += 1
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Default Pricing Plans Created',
+        'message': 'Created %s default pricing plans' % created_count,
+        'type': 'success',
+        'sticky': False,
+    }
+}
+        </field>
+    </record>
+
+    <!-- Pricing Analysis Report server action -->
+    <record id="action_pricing_analysis_report" model="ir.actions.server">
+        <field name="name">Pricing Analysis Report</field>
+        <field name="model_id" ref="model_hypervisor_server_pricing"/>
+        <field name="state">code</field>
+        <field name="code">
+active_pricing = model.search([('active', '=', True)])
+total_servers = env['hypervisor.server'].search_count([])
+servers_with_pricing = len(set(active_pricing.mapped('server_id.id')))
+coverage_percentage = (servers_with_pricing / total_servers * 100) if total_servers > 0 else 0
+
+# Анализ цен
+core_prices = active_pricing.mapped('price_per_core')
+ram_prices = active_pricing.mapped('price_per_gb_ram')
+disk_prices = active_pricing.mapped('price_per_gb_disk')
+
+min_core_price = min(core_prices) if core_prices else 0
+max_core_price = max(core_prices) if core_prices else 0
+avg_core_price = sum(core_prices) / len(core_prices) if core_prices else 0
+avg_ram_price = sum(ram_prices) / len(ram_prices) if ram_prices else 0
+avg_disk_price = sum(disk_prices) / len(disk_prices) if disk_prices else 0
+
+# Продукты с автоценообразованием
+auto_price_products = env['product.template'].search_count([('auto_price_calculation', '=', True)])
+total_vm_products = env['product.template'].search_count([('hypervisor_server_id', '!=', False)])
+auto_pricing_adoption = (auto_price_products / total_vm_products * 100) if total_vm_products > 0 else 0
+
+report = """Pricing Analysis Report:
+
+=== SERVER COVERAGE ===
+• Servers with pricing: %d/%d (%.1f%%)
+• Active pricing plans: %d
+
+=== PRICE ANALYSIS ===
+• CPU Core prices: $%.2f - $%.2f (avg: $%.2f)
+• RAM prices: avg $%.2f per GB
+• Disk prices: avg $%.4f per GB
+
+=== PRODUCT ADOPTION ===
+• VM products with auto-pricing: %d/%d (%.1f%%)
+
+Generated: %s
+""" % (
+    servers_with_pricing, total_servers, coverage_percentage,
+    len(active_pricing),
+    min_core_price, max_core_price, avg_core_price,
+    avg_ram_price, avg_disk_price,
+    auto_price_products, total_vm_products, auto_pricing_adoption,
+    fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+)
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Pricing Analysis Report',
+        'message': report,
+        'type': 'info',
+        'sticky': True,
+    }
+}
+        </field>
+    </record>
+
     <!-- VM Resource Statistics server action -->
     <record id="action_vm_resource_stats" model="ir.actions.server">
         <field name="name">Show Resource Statistics</field>
         <field name="model_id" ref="model_vm_rental_machine"/>
         <field name="state">code</field>
         <field name="code">
-stats = model.get_resource_utilization_stats()
-message = """VM Resource Statistics:
+active_vms = model.search([('state', '=', 'active')])
 
-Active VMs: %(total_vms)d
-Total CPU Cores: %(total_cores)d
-Total RAM: %(total_memory_gb).1f GB
-Total Disk: %(total_disk_gb)d GB
+if not active_vms:
+    message = "No active VMs found in the system."
+else:
+    total_cores = sum(active_vms.mapped('cores'))
+    total_memory = sum(active_vms.mapped('memory'))
+    total_disk = sum(active_vms.mapped('disk'))
+
+    avg_cores = total_cores / len(active_vms) if active_vms else 0
+    avg_memory = total_memory / len(active_vms) if active_vms else 0
+    avg_disk = total_disk / len(active_vms) if active_vms else 0
+
+    message = """VM Resource Statistics:
+
+Active VMs: %d
+Total CPU Cores: %d
+Total RAM: %.1f GB
+Total Disk: %d GB
 
 Average per VM:
-- CPU: %(avg_cores).1f cores
-- RAM: %(avg_memory_mb).0f MB
-- Disk: %(avg_disk_gb).0f GB
-""" % stats
+- CPU: %.1f cores
+- RAM: %.0f MB
+- Disk: %.0f GB
+""" % (
+    len(active_vms), total_cores, total_memory / 1024, total_disk,
+    avg_cores, avg_memory, avg_disk
+)
 
 action = {
     'type': 'ir.actions.client',
@@ -375,8 +630,10 @@ action = {
 
     <!-- Pricing & Billing -->
     <menuitem id="menu_vm_pricing_plans" action="action_vm_pricing_plans"/>
+    <menuitem id="menu_vm_storage_pricing" action="action_hypervisor_storage_pricing"/>
     <menuitem id="menu_vm_pricing_calculator" action="action_vm_pricing_calculator"/>
     <menuitem id="menu_vm_pricing_dashboard" action="action_vm_pricing_dashboard"/>
+    <menuitem id="menu_mass_price_update" name="Mass Price Update" parent="menu_pricing_billing" action="action_mass_price_update_wizard" sequence="40"/>
 
     <!-- Reports & Analytics -->
     <menuitem id="menu_vm_reports" action="action_vm_reports"/>
@@ -392,6 +649,11 @@ action = {
     <!-- Tools -->
     <menuitem id="menu_create_vm_products" name="Create VM Products" parent="menu_vm_tools_submenu" action="action_create_vm_products" sequence="10"/>
     <menuitem id="menu_update_product_prices" name="Update Product Prices" parent="menu_vm_tools_submenu" action="action_update_all_product_prices" sequence="20"/>
-    <menuitem id="menu_vm_resource_stats" name="Resource Statistics" parent="menu_vm_tools_submenu" action="action_vm_resource_stats" sequence="30"/>
+    <menuitem id="menu_create_default_pricing" name="Create Default Pricing Plans" parent="menu_vm_tools_submenu" action="action_create_default_pricing_plans" sequence="30"/>
+    <menuitem id="menu_pricing_analysis" name="Pricing Analysis Report" parent="menu_vm_tools_submenu" action="action_pricing_analysis_report" sequence="40"/>
+    <menuitem id="menu_vm_resource_stats" name="Resource Statistics" parent="menu_vm_tools_submenu" action="action_vm_resource_stats" sequence="50"/>
+
+    <!-- Additional menus from other files -->
+    <menuitem id="menu_vm_user_manager" name="User Access Manager" parent="menu_vm_user_management_submenu" action="action_vm_user_manager" sequence="5" groups="base.group_system"/>
 
 </odoo>

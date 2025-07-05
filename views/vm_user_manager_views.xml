@@ -214,23 +214,6 @@
         </field>
     </record>
 
-    <!-- Action for VM User Manager -->
-    <record id="action_vm_user_manager" model="ir.actions.act_window">
-        <field name="name">VM User Manager</field>
-        <field name="res_model">vm.user.manager</field>
-        <field name="view_mode">form</field>
-        <field name="target">new</field>
-        <field name="context">{}</field>
-    </record>
-
-    <!-- Menu Item -->
-    <menuitem
-        id="menu_vm_user_manager"
-        name="User Access Manager"
-        parent="menu_vm_user_management_submenu"
-        action="action_vm_user_manager"
-        sequence="5"
-        groups="base.group_system"/>
 
     <!-- Button in res.config.settings to open VM User Manager -->
     <record id="res_config_settings_view_form_vm_rental_user_manager" model="ir.ui.view">

@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="action_report_vm_admin" model="ir.actions.act_window">
-        <field name="name">All Virtual Machines</field>
-        <field name="res_model">vm_rental.machine</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-
     <record id="view_vm_instance_tree_inherit_report" model="ir.ui.view">
         <field name="name">vm_rental.machine.tree.report</field>
         <field name="model">vm_rental.machine</field>
