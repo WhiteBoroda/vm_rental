@@ -71,6 +71,30 @@ class ResConfigSettings(models.TransientModel):
         help="Basic system statistics"
     )
 
+    vm_rental_admin_users = fields.Many2many(
+        'res.users',
+        'vm_rental_admin_users_rel',
+        string="VM Rental Administrators",
+        domain="[('share', '=', False), ('active', '=', True)]",
+        help="Users with full administrative access to VM Rental"
+    )
+
+    vm_rental_manager_users = fields.Many2many(
+        'res.users',
+        'vm_rental_manager_users_rel',
+        string="VM Rental Managers",
+        domain="[('share', '=', False), ('active', '=', True)]",
+        help="Users who can create and manage VMs"
+    )
+
+    vm_portal_users = fields.Many2many(
+        'res.users',
+        'vm_rental_portal_users_rel',
+        string="Portal Users with VM Access",
+        domain="[('share', '=', True), ('active', '=', True)]",
+        help="Portal users who can access their VMs"
+    )
+    
     @api.depends()
     def _compute_vm_rental_module_version(self):
         """Получает версию модуля из манифеста"""
