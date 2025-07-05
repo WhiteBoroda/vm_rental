@@ -26,7 +26,7 @@
             <field name="model_id" ref="model_vm_rental_machine"/>
             <field name="groups" eval="[(4, ref('base.group_portal'))]"/>
             <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>  <!-- ИСПРАВЛЕНИЕ: разрешаем write -->
+            <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>
             <field name="domain_force">[
@@ -37,9 +37,24 @@
 
         <!-- Менеджеры видят все VM (без изменений) -->
         <record id="vm_instance_manager_rule" model="ir.rule">
-            <field name="name">VM Instance Manager Rule</field>
+            <field name="name">VM Instance: Manager Access</field>
             <field name="model_id" ref="model_vm_rental_machine"/>
             <field name="groups" eval="[(4, ref('group_vm_rental_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="vm_instance_admin_rule" model="ir.rule">
+            <field name="name">VM Instance: Admin Access</field>
+            <field name="model_id" ref="model_vm_rental_machine"/>
+            <field name="groups" eval="[(4, ref('group_vm_rental_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
             <field name="domain_force">[(1, '=', 1)]</field>
         </record>
 
@@ -95,7 +110,7 @@
             ]</field>
         </record>
 
-        <!-- ===== ПРАВИЛА ДОСТУПА ДЛЯ CONFIG BACKUPS (без изменений) ===== -->
+        <!-- ===== ПРАВИЛА ДОСТУПА ДЛЯ CONFIG BACKUPS  ===== -->
 
         <record id="vm_config_backup_user_rule" model="ir.rule">
             <field name="name">VM Config Backup: User can see own VM backups</field>
@@ -108,12 +123,38 @@
             <field name="domain_force">[('vm_id.partner_id', '=', user.partner_id.id)]</field>
         </record>
 
-        <!-- ===== ПРАВИЛА ДОСТУПА ДЛЯ HYPERVISOR RESOURCES (без изменений) ===== -->
+        <!-- ===== ПРАВИЛА ДОСТУПА ДЛЯ HYPERVISOR RESOURCES  ===== -->
+
+        <record id="hypervisor_server_manager_rule" model="ir.rule">
+            <field name="name">Hypervisor Server: Manager Access</field>
+            <field name="model_id" ref="model_hypervisor_server"/>
+            <field name="groups" eval="[(4, ref('group_vm_rental_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
 
         <record id="hypervisor_server_admin_rule" model="ir.rule">
-            <field name="name">Hypervisor Server: Admin Full Access</field>
+            <field name="name">Hypervisor Server: Admin Access</field>
             <field name="model_id" ref="model_hypervisor_server"/>
+            <field name="groups" eval="[(4, ref('group_vm_rental_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <record id="vm_user_manager_rule" model="ir.rule">
+            <field name="name">VM User Manager: System Admin Only</field>
+            <field name="model_id" ref="model_vm_user_manager"/>
             <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
             <field name="domain_force">[(1, '=', 1)]</field>
         </record>
 

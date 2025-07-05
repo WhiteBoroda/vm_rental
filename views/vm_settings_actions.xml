@@ -1,35 +1,146 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- ОБНОВЛЕННОЕ действие для VM User Settings - теперь использует vm.rental.config -->
+    <record id="action_vm_user_settings" model="ir.actions.act_window">
+        <field name="name">VM Rental Settings</field>
+        <field name="res_model">vm.rental.config</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'form_view_initial_mode': 'edit'}</field>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure VM Rental Settings
+            </p>
+            <p>
+                Create and manage VM Rental configuration including resource limits,
+                trial periods, backup settings and audit options.
+            </p>
+        </field>
+    </record>
+
+    <!-- Server action для экспорта настроек -->
     <record id="action_export_vm_settings" model="ir.actions.server">
         <field name="name">Export VM Rental Settings</field>
-        <field name="model_id" ref="base.model_res_config_settings"/>
+        <field name="model_id" eval="ref('model_vm_rental_config')"/>
         <field name="state">code</field>
         <field name="code">
-# Получаем текущие настройки
-settings_text = """VM Rental Settings Export
+# Получаем активную конфигурацию
+config = model.get_config()
 
-Default Trial Days: %s
-Auto-suspend Expired VMs: %s
-Maximum CPU Cores: %s
-Maximum Memory (MiB): %s
-Maximum Disk (GiB): %s
-Auto Backup: %s
-Backup Retention Days: %s
+if config:
+    result = config.action_export_config()
+    action = result
+else:
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'title': 'No Configuration Found',
+            'message': 'Please create a VM Rental configuration first.',
+            'type': 'warning',
+            'sticky': False,
+        }
+    }
+        </field>
+    </record>
 
-Exported by: %s
-Company: %s
-Export date: %s
+    <!-- Server action для сброса настроек -->
+    <record id="action_reset_vm_settings" model="ir.actions.server">
+        <field name="name">Reset VM Rental Settings</field>
+        <field name="model_id" eval="ref('model_vm_rental_config')"/>
+        <field name="state">code</field>
+        <field name="code">
+# Получаем активную конфигурацию
+config = model.get_config()
+
+if config:
+    result = config.action_reset_to_defaults()
+    action = result
+else:
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'title': 'No Configuration Found',
+            'message': 'Please create a VM Rental configuration first.',
+            'type': 'warning',
+            'sticky': False,
+        }
+    }
+        </field>
+    </record>
+
+    <!-- Server action для проверки здоровья системы -->
+    <record id="action_system_health_check" model="ir.actions.server">
+        <field name="name">VM Rental System Health Check</field>
+        <field name="model_id" eval="ref('model_vm_rental_machine')"/>
+        <field name="state">code</field>
+        <field name="code">
+# Собираем статистику системы
+active_vms = model.search_count([('state', '=', 'active')])
+pending_vms = model.search_count([('state', '=', 'pending')])
+failed_vms = model.search_count([('state', '=', 'failed')])
+total_vms = model.search_count([])
+
+# Проверяем гипервизоры
+hypervisors = env['hypervisor.server'].search([])
+connected_hypervisors = len([h for h in hypervisors if h.status == 'connected'])
+
+# Проверяем конфигурацию
+vm_config = env['vm.rental.config'].get_config()
+config_status = "Active" if vm_config and vm_config.active else "Not Configured"
+
+# Проверяем аудит логи
+error_logs = env['vm_rental.audit_log'].search_count([('success', '=', False)])
+
+# Определяем общий статус
+if failed_vms == 0 and error_logs &lt; 10 and vm_config:
+    status = 'System Healthy'
+    status_type = 'success'
+elif failed_vms &lt; 5:
+    status = 'Needs Attention'
+    status_type = 'warning'
+else:
+    status = 'Critical Issues'
+    status_type = 'danger'
+
+health_report = """VM Rental System Health Check
+
+════════════════════════════════════════
+
+SYSTEM STATUS: %s
+
+VM STATISTICS
+▸ Active VMs: %d
+▸ Pending VMs: %d
+▸ Failed VMs: %d
+▸ Total VMs: %d
+
+INFRASTRUCTURE
+▸ Total Hypervisors: %d
+▸ Connected Hypervisors: %d
+▸ Configuration Status: %s
+
+AUDIT &amp; LOGS
+▸ Recent Error Logs: %d
+▸ Audit Logging: %s
+
+════════════════════════════════════════
+
+Health Check completed: %s
 """ % (
-    env['ir.config_parameter'].sudo().get_param('vm_rental.default_trial_days', '7'),
-    env['ir.config_parameter'].sudo().get_param('vm_rental.auto_suspend', 'True'),
-    env['ir.config_parameter'].sudo().get_param('vm_rental.max_cores', '64'),
-    env['ir.config_parameter'].sudo().get_param('vm_rental.max_memory', '131072'),
-    env['ir.config_parameter'].sudo().get_param('vm_rental.max_disk', '10240'),
-    env['ir.config_parameter'].sudo().get_param('vm_rental.auto_backup', 'False'),
-    env['ir.config_parameter'].sudo().get_param('vm_rental.backup_retention_days', '30'),
-    env.user.name,
-    env.company.name,
+    status,
+    active_vms,
+    pending_vms,
+    failed_vms,
+    total_vms,
+    len(hypervisors),
+    connected_hypervisors,
+    config_status,
+    error_logs,
+    'Enabled' if vm_config and vm_config.enable_audit_logging else 'Disabled',
     fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 )
 
@@ -37,61 +148,42 @@ action = {
     'type': 'ir.actions.client',
     'tag': 'display_notification',
     'params': {
-        'title': 'VM Rental Settings',
-        'message': settings_text,
-        'type': 'info',
+        'title': 'System Health Check',
+        'message': health_report,
+        'type': status_type,
         'sticky': True,
     }
 }
         </field>
     </record>
 
-    <record id="action_test_all_hypervisors" model="ir.actions.server">
-        <field name="name">Test All Hypervisor Connections</field>
-        <field name="model_id" ref="model_hypervisor_server"/>
-        <field name="state">code</field>
-        <field name="code">
-results = []
-servers = model.search([])
-
-for server in servers:
-    try:
-        server.test_and_fetch_resources()
-        results.append("✓ %s: Connected successfully" % server.name)
-    except Exception as e:
-        results.append("✗ %s: %s" % (server.name, str(e)))
-
-message = "Hypervisor Connection Test Results:\n\n" + "\n".join(results)
-
-action = {
-    'type': 'ir.actions.client',
-    'tag': 'display_notification',
-    'params': {
-        'title': 'Connection Test Complete',
-        'message': message,
-        'type': 'info',
-        'sticky': True,
-    }
-}
-        </field>
-    </record>
-
+    <!-- Server action для очистки audit logs -->
     <record id="action_cleanup_audit_logs" model="ir.actions.server">
         <field name="name">Cleanup Old Audit Logs</field>
-        <field name="model_id" ref="model_vm_rental_audit_log"/>
+        <field name="model_id" eval="ref('model_vm_rental_audit_log')"/>
         <field name="state">code</field>
         <field name="code">
-# Удаляем логи старше 90 дней
-cutoff_date = fields.Datetime.now() - datetime.timedelta(days=90)
-old_logs = model.search([('create_date', '&lt;', cutoff_date)])
+# Получаем настройки retention из конфигурации
+vm_config = env['vm.rental.config'].get_config()
+retention_days = vm_config.audit_retention_days if vm_config else 365
 
-if old_logs:
-    count = len(old_logs)
+# Простое решение: используем SQL для поиска старых записей
+# Находим записи старше retention_days дней
+env.cr.execute("""
+    SELECT id FROM vm_rental_audit_log
+    WHERE create_date &lt; (NOW() - INTERVAL '%s days')
+""", (retention_days,))
+
+old_log_ids = [row[0] for row in env.cr.fetchall()]
+count_to_delete = len(old_log_ids)
+
+if count_to_delete > 0:
+    old_logs = model.browse(old_log_ids)
     old_logs.unlink()
-    message = "Successfully deleted %d old audit log entries" % count
+    message = "Deleted %d audit log entries older than %d days" % (count_to_delete, retention_days)
     msg_type = 'success'
 else:
-    message = "No old audit logs found to delete"
+    message = "No audit logs older than %d days found" % retention_days
     msg_type = 'info'
 
 action = {
@@ -107,107 +199,39 @@ action = {
         </field>
     </record>
 
-    <record id="action_system_health_check" model="ir.actions.server">
-        <field name="name">VM Rental System Health Check</field>
-        <field name="model_id" ref="model_vm_rental_machine"/>
+    <!-- Server action для создания конфигурации по умолчанию -->
+    <record id="action_create_default_config" model="ir.actions.server">
+        <field name="name">Create Default VM Configuration</field>
+        <field name="model_id" eval="ref('model_vm_rental_config')"/>
         <field name="state">code</field>
         <field name="code">
-# Собираем статистику системы
-active_vms = model.search_count([('state', '=', 'active')])
-pending_vms = model.search_count([('state', '=', 'pending')])
-failed_vms = model.search_count([('state', '=', 'failed')])
-total_vms = model.search_count([])
+# Проверяем, есть ли уже активная конфигурация
+existing_config = model.search([('active', '=', True)], limit=1)
 
-# Проверяем гипервизоры
-hypervisors = env['hypervisor.server'].search([])
-connected_hypervisors = len([h for h in hypervisors if h.status == 'connected'])
-
-# Проверяем cron задачи
-cron_jobs = env['ir.cron'].search([('name', 'ilike', 'VM Rental')])
-active_crons = len([c for c in cron_jobs if c.active])
-
-# Проверяем логи ошибок (последние 100 записей)
-error_logs = env['vm_rental.audit_log'].search_count([('success', '=', False)], limit=100)
-
-# Определяем статус
-if failed_vms == 0 and error_logs &lt; 10:
-    status = 'Healthy'
-elif failed_vms &lt; 5:
-    status = 'Needs Attention'
+if existing_config:
+    message = "Active configuration '%s' already exists" % existing_config.name
+    msg_type = 'warning'
+    action_id = existing_config.id
 else:
-    status = 'Critical'
-
-health_report = """System Health Report:
-
-VM Statistics:
-• Active VMs: %d
-• Pending VMs: %d
-• Failed VMs: %d
-• Total VMs: %d
-
-Hypervisors:
-• Connected: %d/%d
-
-Automation:
-• Active Cron Jobs: %d/%d
-
-Recent Errors:
-• Error logs: %d
-
-Status: %s""" % (
-    active_vms, pending_vms, failed_vms, total_vms,
-    connected_hypervisors, len(hypervisors),
-    active_crons, len(cron_jobs),
-    error_logs,
-    status
-)
+    # Создаем новую конфигурацию
+    new_config = model.create({
+        'name': 'Default VM Rental Configuration',
+        'active': True,
+    })
+    message = "Created default configuration: %s" % new_config.name
+    msg_type = 'success'
+    action_id = new_config.id
 
 action = {
-    'type': 'ir.actions.client',
-    'tag': 'display_notification',
-    'params': {
-        'title': 'System Health Check',
-        'message': health_report,
-        'type': 'info',
-        'sticky': True,
-    }
+    'type': 'ir.actions.act_window',
+    'name': 'VM Rental Configuration',
+    'res_model': 'vm.rental.config',
+    'res_id': action_id,
+    'view_mode': 'form',
+    'target': 'current',
+    'context': {'form_view_initial_mode': 'edit'}
 }
         </field>
     </record>
-
-    <menuitem
-        id="menu_export_settings"
-        name="Export Settings"
-        parent="menu_vm_tools_submenu"
-        action="action_export_vm_settings"
-        sequence="30"/>
-
-    <menuitem
-        id="menu_test_all_hypervisors"
-        name="Test All Hypervisors"
-        parent="menu_vm_tools_submenu"
-        action="action_test_all_hypervisors"
-        sequence="40"/>
-
-    <menuitem
-        id="menu_cleanup_logs"
-        name="Cleanup Old Logs"
-        parent="menu_vm_tools_submenu"
-        action="action_cleanup_audit_logs"
-        sequence="50"/>
-
-    <menuitem
-        id="menu_health_check"
-        name="System Health Check"
-        parent="menu_vm_tools_submenu"
-        action="action_system_health_check"
-        sequence="60"/>
-
-    <menuitem
-        id="menu_quick_config_wizard"
-        name="Quick Config Wizard"
-        parent="menu_vm_tools_submenu"
-        action="action_vm_config_wizard"
-        sequence="15"/>
 
 </odoo>

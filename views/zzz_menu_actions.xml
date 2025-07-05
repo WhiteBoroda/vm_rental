@@ -319,16 +319,25 @@
         </field>
     </record>
 
-    <!-- ===== USER MANAGEMENT ACTIONS ===== -->
+    <!-- ===== VM USER MANAGEMENT ACTIONS ===== -->
+
     <!-- VM Users Dashboard action -->
     <record id="action_vm_users_dashboard" model="ir.actions.act_window">
         <field name="name">VM Users Dashboard</field>
-        <field name="res_model">vm.user.manager</field>
-        <field name="view_mode">form</field>
-        <field name="target">current</field>
+        <field name="res_model">res.users</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('share', '=', False), ('active', '=', True)]</field>
+        <field name="context">{
+            'search_default_vm_admins': 1,
+            'search_default_vm_managers': 1
+        }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Welcome to VM Users Dashboard!
+                Manage VM Rental user access
+            </p>
+            <p>
+                View and manage which users have access to VM Rental features.
+                Use the filters to see users by their VM access level.
             </p>
             <p>
                 Manage user access and permissions for VM functionality.
@@ -342,8 +351,15 @@
         <field name="name">VM Administrators</field>
         <field name="res_model">res.users</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('groups_id', 'in', [ref('vm_rental.group_vm_rental_admin')])]</field>
-        <field name="context">{'default_groups_id': [(4, ref('vm_rental.group_vm_rental_admin'))]}</field>
+        <field name="domain">[('groups_id.name', 'ilike', 'VM Rental / Administrator')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No VM Administrators found
+            </p>
+            <p>
+                VM Administrators have full access to all VM Rental features.
+            </p>
+        </field>
     </record>
 
     <!-- VM Managers action -->
@@ -351,8 +367,15 @@
         <field name="name">VM Managers</field>
         <field name="res_model">res.users</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('groups_id', 'in', [ref('vm_rental.group_vm_rental_manager')])]</field>
-        <field name="context">{'default_groups_id': [(4, ref('vm_rental.group_vm_rental_manager'))]}</field>
+        <field name="domain">[('groups_id.name', 'ilike', 'VM Rental / Manager')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No VM Managers found
+            </p>
+            <p>
+                VM Managers can create and manage VMs, pricing plans, and reports.
+            </p>
+        </field>
     </record>
 
     <!-- Users without VM Access action -->
@@ -360,14 +383,23 @@
         <field name="name">Users without VM Access</field>
         <field name="res_model">res.users</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('groups_id', 'not in', [ref('vm_rental.group_vm_rental_manager'), ref('vm_rental.group_vm_rental_admin')])]</field>
+        <field name="domain">[('share', '=', False), ('active', '=', True), ('groups_id.name', 'not ilike', 'VM Rental')]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                All users have VM access
+            </p>
+            <p>
+                Users without VM access cannot create or manage virtual machines.
+                You can assign VM roles through the Settings.
+            </p>
+        </field>
     </record>
 
     <!-- ===== TOOLS ACTIONS (Server Actions) ===== -->
     <!-- Create VM Products server action -->
     <record id="action_create_vm_products" model="ir.actions.server">
         <field name="name">Create VM Product Variants</field>
-        <field name="model_id" ref="product.model_product_template"/>
+        <field name="model_id" eval="ref('product.model_product_template')"/>
         <field name="state">code</field>
         <field name="code">
 created = model.create_vm_product_variants()
@@ -384,7 +416,7 @@ action = {
     <!-- Update All Product Prices server action -->
     <record id="action_update_all_product_prices" model="ir.actions.server">
         <field name="name">Update All Product Prices</field>
-        <field name="model_id" ref="product.model_product_template"/>
+        <field name="model_id" eval="ref('product.model_product_template')"/>
         <field name="state">code</field>
         <field name="code">
 updated_count = 0
@@ -416,7 +448,7 @@ action = {
     <!-- Create Default Pricing Plans server action -->
     <record id="action_create_default_pricing_plans" model="ir.actions.server">
         <field name="name">Create Default Pricing Plans</field>
-        <field name="model_id" ref="model_hypervisor_server"/>
+        <field name="model_id" eval="ref('model_hypervisor_server')"/>
         <field name="state">code</field>
         <field name="code">
 created_count = 0
@@ -430,17 +462,13 @@ for server in servers:
     ], limit=1)
 
     if not existing_pricing:
-        # Создаем базовый план ценообразования
-        pricing_plan = env['hypervisor.server.pricing'].create({
-            'name': 'Default Pricing - %s' % server.name,
+        # Создаем план по умолчанию
+        env['hypervisor.server.pricing'].create({
+            'name': 'Default Pricing for %s' % server.name,
             'server_id': server.id,
             'price_per_core': 5.0,
             'price_per_gb_ram': 2.0,
             'price_per_gb_disk': 0.1,
-            'os_multiplier': 1.5,  # 50% доплата за Windows
-            'bulk_discount_threshold': 10,
-            'bulk_discount_percent': 10.0,
-            'priority': 10,
             'active': True,
         })
         created_count += 1
@@ -449,7 +477,7 @@ action = {
     'type': 'ir.actions.client',
     'tag': 'display_notification',
     'params': {
-        'title': 'Default Pricing Plans Created',
+        'title': 'Pricing Plans Created',
         'message': 'Created %s default pricing plans' % created_count,
         'type': 'success',
         'sticky': False,
@@ -461,51 +489,35 @@ action = {
     <!-- Pricing Analysis Report server action -->
     <record id="action_pricing_analysis_report" model="ir.actions.server">
         <field name="name">Pricing Analysis Report</field>
-        <field name="model_id" ref="model_hypervisor_server_pricing"/>
+        <field name="model_id" eval="ref('model_hypervisor_server_pricing')"/>
         <field name="state">code</field>
         <field name="code">
-active_pricing = model.search([('active', '=', True)])
-total_servers = env['hypervisor.server'].search_count([])
-servers_with_pricing = len(set(active_pricing.mapped('server_id.id')))
-coverage_percentage = (servers_with_pricing / total_servers * 100) if total_servers > 0 else 0
+# Генерируем отчет по ценообразованию
+total_plans = model.search_count([])
+active_plans = model.search_count([('active', '=', True)])
+servers_with_pricing = len(model.search([]).mapped('server_id'))
 
-# Анализ цен
-core_prices = active_pricing.mapped('price_per_core')
-ram_prices = active_pricing.mapped('price_per_gb_ram')
-disk_prices = active_pricing.mapped('price_per_gb_disk')
-
-min_core_price = min(core_prices) if core_prices else 0
-max_core_price = max(core_prices) if core_prices else 0
-avg_core_price = sum(core_prices) / len(core_prices) if core_prices else 0
-avg_ram_price = sum(ram_prices) / len(ram_prices) if ram_prices else 0
-avg_disk_price = sum(disk_prices) / len(disk_prices) if disk_prices else 0
-
-# Продукты с автоценообразованием
-auto_price_products = env['product.template'].search_count([('auto_price_calculation', '=', True)])
-total_vm_products = env['product.template'].search_count([('hypervisor_server_id', '!=', False)])
-auto_pricing_adoption = (auto_price_products / total_vm_products * 100) if total_vm_products > 0 else 0
+# Средние цены
+avg_core_price = sum(model.search([]).mapped('price_per_core')) / max(total_plans, 1)
+avg_ram_price = sum(model.search([]).mapped('price_per_gb_ram')) / max(total_plans, 1)
+avg_disk_price = sum(model.search([]).mapped('price_per_gb_disk')) / max(total_plans, 1)
 
 report = """Pricing Analysis Report:
 
-=== SERVER COVERAGE ===
-• Servers with pricing: %d/%d (%.1f%%)
-• Active pricing plans: %d
+Plans Overview:
+• Total pricing plans: %d
+• Active plans: %d
+• Servers with pricing: %d
 
-=== PRICE ANALYSIS ===
-• CPU Core prices: $%.2f - $%.2f (avg: $%.2f)
-• RAM prices: avg $%.2f per GB
-• Disk prices: avg $%.4f per GB
-
-=== PRODUCT ADOPTION ===
-• VM products with auto-pricing: %d/%d (%.1f%%)
+Average Prices:
+• CPU Core: $%.2f/month
+• RAM (1GB): $%.2f/month
+• Disk (1GB): $%.2f/month
 
 Generated: %s
 """ % (
-    servers_with_pricing, total_servers, coverage_percentage,
-    len(active_pricing),
-    min_core_price, max_core_price, avg_core_price,
-    avg_ram_price, avg_disk_price,
-    auto_price_products, total_vm_products, auto_pricing_adoption,
+    total_plans, active_plans, servers_with_pricing,
+    avg_core_price, avg_ram_price, avg_disk_price,
     fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 )
 
@@ -524,45 +536,52 @@ action = {
 
     <!-- VM Resource Statistics server action -->
     <record id="action_vm_resource_stats" model="ir.actions.server">
-        <field name="name">Show Resource Statistics</field>
-        <field name="model_id" ref="model_vm_rental_machine"/>
+        <field name="name">VM Resource Statistics</field>
+        <field name="model_id" eval="ref('model_vm_rental_machine')"/>
         <field name="state">code</field>
         <field name="code">
-active_vms = model.search([('state', '=', 'active')])
+# Статистика ресурсов VM
+vms = model.search([])
+total_vms = len(vms)
 
-if not active_vms:
-    message = "No active VMs found in the system."
-else:
-    total_cores = sum(active_vms.mapped('cores'))
-    total_memory = sum(active_vms.mapped('memory'))
-    total_disk = sum(active_vms.mapped('disk'))
+if total_vms > 0:
+    total_cores = sum(vms.mapped('cores'))
+    total_memory = sum(vms.mapped('memory'))
+    total_disk = sum(vms.mapped('disk'))
 
-    avg_cores = total_cores / len(active_vms) if active_vms else 0
-    avg_memory = total_memory / len(active_vms) if active_vms else 0
-    avg_disk = total_disk / len(active_vms) if active_vms else 0
+    avg_cores = total_cores / total_vms
+    avg_memory = total_memory / total_vms
+    avg_disk = total_disk / total_vms
 
-    message = """VM Resource Statistics:
+    active_vms = len(vms.filtered(lambda v: v.state == 'active'))
 
-Active VMs: %d
-Total CPU Cores: %d
-Total RAM: %.1f GB
-Total Disk: %d GB
+    stats = """VM Resource Statistics:
 
-Average per VM:
-- CPU: %.1f cores
-- RAM: %.0f MB
-- Disk: %.0f GB
+VM Overview:
+• Total VMs: %d
+• Active VMs: %d
+• Utilization: %.1f%%
+
+Resource Allocation:
+• Total CPU Cores: %d (avg %.1f per VM)
+• Total Memory: %d MiB (avg %.0f MiB per VM)
+• Total Disk: %d GiB (avg %.0f GiB per VM)
+
+Generated: %s
 """ % (
-    len(active_vms), total_cores, total_memory / 1024, total_disk,
-    avg_cores, avg_memory, avg_disk
-)
+        total_vms, active_vms, (active_vms/total_vms*100),
+        total_cores, avg_cores, total_memory, avg_memory, total_disk, avg_disk,
+        fields.Datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    )
+else:
+    stats = "No VMs found in the system."
 
 action = {
     'type': 'ir.actions.client',
     'tag': 'display_notification',
     'params': {
         'title': 'VM Resource Statistics',
-        'message': message,
+        'message': stats,
         'type': 'info',
         'sticky': True,
     }
@@ -572,11 +591,16 @@ action = {
 
     <!-- VM User Settings action -->
     <record id="action_vm_user_settings" model="ir.actions.act_window">
-        <field name="name">VM User Settings</field>
+        <field name="name">VM Rental Settings</field>
+        <field name="type">ir.actions.act_window</field>
         <field name="res_model">res.config.settings</field>
         <field name="view_mode">form</field>
         <field name="target">inline</field>
-        <field name="context">{'module': 'vm_rental'}</field>
+        <field name="context">{
+            'default_module': 'vm_rental',
+            'bin_size': False,
+            'search_default_module': 'vm_rental'
+        }</field>
     </record>
 
     <!-- ===== BINDING ACTIONS TO MENUS ===== -->

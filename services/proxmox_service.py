@@ -134,92 +134,209 @@ class ProxmoxService(BaseHypervisorService):
 
     # ... остальные методы без изменений ...
     def start_vm(self, node, vm_id):
-        """Универсальный метод запуска VM/LXC"""
-        # Сначала пытаемся как QEMU VM
+        """Универсальный метод запуска VM/LXC с правильным определением типа"""
+        vm_type = self._get_vm_type(node, vm_id)
+        _logger.info(f"Starting {vm_type.upper()} {vm_id} on node {node}")
+
         try:
-            return self._execute(self.connection.nodes(node).qemu(vm_id).status.start.post)
-        except Exception:
-            # Если не получилось, пытаемся как LXC
-            try:
+            if vm_type == 'qemu':
+                return self._execute(self.connection.nodes(node).qemu(vm_id).status.start.post)
+            else:  # lxc
                 return self._execute(self.connection.nodes(node).lxc(vm_id).status.start.post)
-            except Exception as e:
-                _logger.error(f"Failed to start VM/LXC {vm_id}: {e}")
-                raise HypervisorOperationError(f"Cannot start VM/LXC {vm_id}: {e}")
+        except Exception as e:
+            _logger.error(f"Failed to start {vm_type.upper()} {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot start {vm_type.upper()} {vm_id}: {e}")
 
     def stop_vm(self, node, vm_id):
-        """Универсальный метод остановки VM/LXC"""
+        """Универсальный метод остановки VM/LXC с правильным определением типа"""
+        vm_type = self._get_vm_type(node, vm_id)
+        _logger.info(f"Stopping {vm_type.upper()} {vm_id} on node {node}")
+
         try:
-            return self._execute(self.connection.nodes(node).qemu(vm_id).status.stop.post)
-        except Exception:
-            try:
+            if vm_type == 'qemu':
+                return self._execute(self.connection.nodes(node).qemu(vm_id).status.stop.post)
+            else:  # lxc
                 return self._execute(self.connection.nodes(node).lxc(vm_id).status.stop.post)
-            except Exception as e:
-                _logger.error(f"Failed to stop VM/LXC {vm_id}: {e}")
-                raise HypervisorOperationError(f"Cannot stop VM/LXC {vm_id}: {e}")
+        except Exception as e:
+            _logger.error(f"Failed to stop {vm_type.upper()} {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot stop {vm_type.upper()} {vm_id}: {e}")
 
     def reboot_vm(self, node, vm_id):
-        return self._execute(self.connection.nodes(node).qemu(vm_id).status.reboot.post)
+        """Перезагрузка VM/LXC с правильным определением типа"""
+        vm_type = self._get_vm_type(node, vm_id)
+        _logger.info(f"Rebooting {vm_type.upper()} {vm_id} on node {node}")
+
+        try:
+            if vm_type == 'qemu':
+                return self._execute(self.connection.nodes(node).qemu(vm_id).status.reboot.post)
+            else:  # lxc
+                return self._execute(self.connection.nodes(node).lxc(vm_id).status.reboot.post)
+        except Exception as e:
+            _logger.error(f"Failed to reboot {vm_type.upper()} {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot reboot {vm_type.upper()} {vm_id}: {e}")
 
     def suspend_vm(self, node, vm_id):
         return self._execute(self.connection.nodes(node).qemu(vm_id).status.suspend.post)
-    
+
     def list_all_vms(self, node):
-        return self._execute(self.connection.nodes(node).qemu.get)
+        """Получает список всех VM и LXC контейнеров с отладкой"""
+        all_vms = []
+
+        # 1. Получаем QEMU VM
+        try:
+            qemu_vms = self._execute(self.connection.nodes(node).qemu.get) or []
+            _logger.info(f"Found {len(qemu_vms)} QEMU VMs on node {node}")
+            for vm in qemu_vms:
+                _logger.debug(f"QEMU VM: {vm}")
+            all_vms.extend(qemu_vms)
+        except Exception as e:
+            _logger.error(f"Failed to get QEMU VMs on node {node}: {e}")
+
+        # 2. Получаем LXC контейнеры
+        try:
+            lxc_containers = self._execute(self.connection.nodes(node).lxc.get) or []
+            _logger.info(f"Found {len(lxc_containers)} LXC containers on node {node}")
+            for container in lxc_containers:
+                _logger.debug(f"LXC container: {container}")
+                # Убеждаемся, что структура данных совпадает с QEMU
+                if 'name' not in container and 'hostname' in container:
+                    container['name'] = container['hostname']
+            all_vms.extend(lxc_containers)
+        except Exception as e:
+            _logger.error(f"Failed to get LXC containers on node {node}: {e}")
+
+        _logger.info(f"Total VMs/containers found on node {node}: {len(all_vms)}")
+        return all_vms
 
     def create_snapshot(self, node, vm_id, snap_name, description):
+        """Создание снапшота (только для QEMU VM)"""
+        vm_type = self._get_vm_type(node, vm_id)
+
+        if vm_type != 'qemu':
+            raise HypervisorOperationError(f"Snapshots are not supported for LXC containers (ID: {vm_id})")
+
+        _logger.info(f"Creating snapshot '{snap_name}' for QEMU VM {vm_id}")
         params = {'snapname': snap_name, 'description': description}
-        return self._execute(self.connection.nodes(node).qemu(vm_id).snapshot.post, **params)
+
+        try:
+            return self._execute(self.connection.nodes(node).qemu(vm_id).snapshot.post, **params)
+        except Exception as e:
+            _logger.error(f"Failed to create snapshot for VM {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot create snapshot for VM {vm_id}: {e}")
 
     def rollback_snapshot(self, node, vm_id, snap_name):
-        return self._execute(self.connection.nodes(node).qemu(vm_id).snapshot(snap_name).rollback.post)
+        """Откат к снапшоту (только для QEMU VM)"""
+        vm_type = self._get_vm_type(node, vm_id)
+
+        if vm_type != 'qemu':
+            raise HypervisorOperationError(f"Snapshots are not supported for LXC containers (ID: {vm_id})")
+
+        _logger.info(f"Rolling back to snapshot '{snap_name}' for QEMU VM {vm_id}")
+
+        try:
+            return self._execute(self.connection.nodes(node).qemu(vm_id).snapshot(snap_name).rollback.post)
+        except Exception as e:
+            _logger.error(f"Failed to rollback snapshot for VM {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot rollback snapshot for VM {vm_id}: {e}")
 
     def delete_snapshot(self, node, vm_id, snap_name):
-        return self._execute(self.connection.nodes(node).qemu(vm_id).snapshot(snap_name).delete)
+        """Удаление снапшота (только для QEMU VM)"""
+        vm_type = self._get_vm_type(node, vm_id)
+
+        if vm_type != 'qemu':
+            raise HypervisorOperationError(f"Snapshots are not supported for LXC containers (ID: {vm_id})")
+
+        _logger.info(f"Deleting snapshot '{snap_name}' for QEMU VM {vm_id}")
+
+        try:
+            return self._execute(self.connection.nodes(node).qemu(vm_id).snapshot(snap_name).delete)
+        except Exception as e:
+            _logger.error(f"Failed to delete snapshot for VM {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot delete snapshot for VM {vm_id}: {e}")
 
     def get_console_url(self, node, vm_id):
-        console_info = self._execute(self.connection.nodes(node).qemu(vm_id).vncproxy.post)
-        if not console_info:
-            raise ConnectionError("Could not get VNC proxy info from Proxmox.")
-        host = self.server.host
-        ticket = console_info['ticket']
-        port = console_info['port']
-        return f"https://{host}:8006/?console=kvm&vmid={vm_id}&node={node}&vnc_ticket={ticket}"
+        """Генерация URL консоли с правильным определением типа"""
+        vm_type = self._get_vm_type(node, vm_id)
+
+        try:
+            if vm_type == 'qemu':
+                console_info = self._execute(self.connection.nodes(node).qemu(vm_id).vncproxy.post)
+                console_type = 'kvm'
+            else:  # lxc
+                console_info = self._execute(self.connection.nodes(node).lxc(vm_id).vncproxy.post)
+                console_type = 'lxc'
+
+            if not console_info:
+                raise ConnectionError(f"Could not get VNC proxy info for {vm_type.upper()} {vm_id}")
+
+            host = self.server.host
+            ticket = console_info['ticket']
+            port = console_info['port']
+            return f"https://{host}:8006/?console={console_type}&vmid={vm_id}&node={node}&vnc_ticket={ticket}"
+
+        except Exception as e:
+            _logger.error(f"Failed to get console URL for {vm_type.upper()} {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot get console URL for {vm_type.upper()} {vm_id}: {e}")
 
     def delete_vm(self, node, vm_id):
-        """
-        Deletes a QEMU virtual machine.
-        """
-        # Proxmox API for deletion returns the task ID
-        return self._execute(self.connection.nodes(node).qemu(vm_id).delete)
-
-    def get_vm_config(self, node, vm_id):
-        """Получает конфигурацию существующей VM"""
-        try:
-            # Пытаемся получить конфигурацию QEMU VM
-            config = self._execute(self.connection.nodes(node).qemu(vm_id).config.get)
-            if config:
-                return {
-                    'cores': int(config.get('cores', 1)),
-                    'memory': int(config.get('memory', 1024)),
-                    'disk': self._extract_disk_size(config),
-                    'vm_type': 'qemu'
-                }
-        except Exception:
-            pass
+        """Удаление VM/LXC с правильным определением типа"""
+        vm_type = self._get_vm_type(node, vm_id)
+        _logger.info(f"Deleting {vm_type.upper()} {vm_id} on node {node}")
 
         try:
-            # Пытаемся получить конфигурацию LXC контейнера
-            config = self._execute(self.connection.nodes(node).lxc(vm_id).config.get)
-            if config:
-                return {
-                    'cores': int(config.get('cores', 1)),
-                    'memory': int(config.get('memory', 512)),
-                    'disk': self._extract_lxc_disk_size(config),
-                    'vm_type': 'lxc'
-                }
+            if vm_type == 'qemu':
+                return self._execute(self.connection.nodes(node).qemu(vm_id).delete)
+            else:  # lxc
+                return self._execute(self.connection.nodes(node).lxc(vm_id).delete)
         except Exception as e:
-            _logger.error(f"Failed to get VM config for {vm_id}: {e}")
-            raise HypervisorOperationError(f"Cannot get VM {vm_id} configuration: {e}")
+            _logger.error(f"Failed to delete {vm_type.upper()} {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot delete {vm_type.upper()} {vm_id}: {e}")
+
+    def get_vm_config(self, node, vm_id, vm_type=None):
+        """Получает конфигурацию существующей VM с опциональным типом"""
+
+        # Если тип не передан, определяем его
+        if vm_type is None:
+            vm_type = self._get_vm_type(node, vm_id)
+
+        _logger.info(f"Getting config for {vm_type.upper()} {vm_id} on node {node}")
+
+        try:
+            if vm_type == 'qemu':
+                # Получаем конфигурацию QEMU VM
+                config = self._execute(self.connection.nodes(node).qemu(vm_id).config.get)
+                if config:
+                    return {
+                        'cores': int(config.get('cores', 1)),
+                        'memory': int(config.get('memory', 1024)),
+                        'disk': self._extract_disk_size(config),
+                        'vm_type': 'qemu'
+                    }
+            elif vm_type == 'lxc':
+                # Получаем конфигурацию LXC контейнера
+                config = self._execute(self.connection.nodes(node).lxc(vm_id).config.get)
+                if config:
+                    return {
+                        'cores': int(config.get('cores', 1)),
+                        'memory': int(config.get('memory', 512)),
+                        'disk': self._extract_lxc_disk_size(config),
+                        'vm_type': 'lxc'
+                    }
+            else:
+                raise HypervisorOperationError(f"Unsupported VM type: {vm_type}")
+
+        except Exception as e:
+            _logger.error(f"Failed to get {vm_type.upper()} config for {vm_id}: {e}")
+            raise HypervisorOperationError(f"Cannot get {vm_type.upper()} {vm_id} configuration: {e}")
+
+        # Fallback - возвращаем значения по умолчанию
+        _logger.warning(f"Could not get config for {vm_type.upper()} {vm_id}, using defaults")
+        return {
+            'cores': 1,
+            'memory': 1024 if vm_type == 'qemu' else 512,
+            'disk': 10 if vm_type == 'qemu' else 8,
+            'vm_type': vm_type
+        }
 
     def _extract_disk_size(self, config):
         """Извлекает размер диска из конфигурации QEMU VM"""
@@ -244,3 +361,29 @@ class ProxmoxService(BaseHypervisorService):
             if size_part.endswith('G'):
                 return int(size_part[:-1])
         return 8  # Значение по умолчанию для LXC
+
+
+    def _get_vm_type(self, node, vm_id):
+        """Определяет тип VM (qemu или lxc) по VMID"""
+        try:
+            # Получаем список QEMU VM
+            qemu_vms = self._execute(self.connection.nodes(node).qemu.get) or []
+            for vm in qemu_vms:
+                if str(vm.get('vmid')) == str(vm_id):
+                    return 'qemu'
+        except Exception:
+            pass
+
+        try:
+            # Получаем список LXC контейнеров
+            lxc_containers = self._execute(self.connection.nodes(node).lxc.get) or []
+            for container in lxc_containers:
+                if str(container.get('vmid')) == str(vm_id):
+                    return 'lxc'
+        except Exception:
+            pass
+
+        # По умолчанию считаем QEMU VM
+        return 'qemu'
+
+

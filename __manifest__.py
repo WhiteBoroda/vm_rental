@@ -2,7 +2,7 @@
 
 {
     'name': 'VM Rental',
-    'version': '1.4.2',
+    'version': '1.4.3',
     'summary': 'Advanced VM rental system with composition-based traits architecture',
     'description': """
 VM Rental Module with Advanced Traits Architecture
@@ -107,7 +107,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
         'views/vm_pricing_views.xml',
 
         # Settings and menus
-        'views/res_config_settings_views.xml',     # ДОБАВЛЕНО - было пропущено
+        'views/vm_rental_config_views.xml',     # ДОБАВЛЕНО - было пропущено
         'views/vm_settings_actions.xml',
         'views/vm_user_manager_views.xml',
 
@@ -147,7 +147,7 @@ unprecedented flexibility while maintaining high performance and code clarity.
     'version_info': {
         'major': 1,
         'minor': 4,
-        'patch': 2,
+        'patch': 3,
         'stage': 'stable',
     },
 

@@ -21,5 +21,8 @@
     <!-- Подгруппы для User Management -->
     <menuitem id="menu_vm_user_management_submenu" name="VM Users" parent="menu_vm_user_management" sequence="10"/>
 
+    <!-- ДОБАВЛЕНО: Подгруппы для Configuration -->
+    <menuitem id="menu_vm_configuration_submenu" name="Settings" parent="menu_vm_configuration" sequence="10"/>
+    <menuitem id="menu_vm_system_submenu" name="System" parent="menu_vm_configuration" sequence="20"/>
 
 </odoo>

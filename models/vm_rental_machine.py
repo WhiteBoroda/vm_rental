@@ -79,6 +79,13 @@ class VmInstance(models.Model):
     vm_resource_category = fields.Char(string="Resource Category", compute='_compute_vm_resource_category', store=True)
     vm_estimated_boot_time = fields.Integer(string="Estimated Boot Time (sec)",
                                             compute='_compute_vm_estimated_boot_time')
+    vm_type = fields.Selection([
+        ('qemu', 'QEMU VM'),
+        ('lxc', 'LXC Container'),
+        ('vm', 'Virtual Machine'),
+        ('unknown', 'Unknown')
+    ], string="VM Type", default='unknown', readonly=True,
+        help="Type of virtual machine or container")
 
     @api.depends('cores', 'memory', 'disk')
     def _compute_vm_resource_summary(self):

@@ -29,7 +29,9 @@
                     <group>
                         <group string="Configuration">
                             <field name="hypervisor_server_id" required="1"/>
-                            <field name="partner_id" required="1"/>
+                            <!-- ИСПРАВЛЕНИЕ: Убираем required="1" -->
+                            <field name="partner_id"
+                                   placeholder="Select customer before linking VMs"/>
                         </group>
                     </group>
 
@@ -42,6 +44,8 @@
                                     <field name="vmid" readonly="1"/>
                                     <field name="node" readonly="1"/>
                                     <field name="status" readonly="1"/>
+                                    <!-- НОВОЕ: Показываем тип VM/LXC -->
+                                    <field name="vm_type" readonly="1"/>
                                 </tree>
                             </field>
                         </page>
@@ -65,6 +69,5 @@
             </tree>
         </field>
     </record>
-
 
 </odoo>

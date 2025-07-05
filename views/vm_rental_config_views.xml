@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- Form view для конфигурации VM Rental -->
+    <record id="view_vm_rental_config_form" model="ir.ui.view">
+        <field name="name">vm.rental.config.form</field>
+        <field name="model">vm.rental.config</field>
+        <field name="arch" type="xml">
+            <form string="VM Rental Configuration">
+                <header>
+                    <button name="action_reset_to_defaults" type="object"
+                            string="Reset to Defaults"
+                            class="btn-warning"
+                            confirm="Reset all settings to default values?"/>
+                    <button name="action_export_config" type="object"
+                            string="Export Configuration"
+                            class="btn-secondary"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Configuration Name"/>
+                        </h1>
+                        <div class="o_row">
+                            <field name="active" widget="boolean_toggle"/>
+                            <label for="active" string="Active Configuration"/>
+                        </div>
+                    </div>
+
+                    <!-- Configuration Tabs -->
+                    <notebook>
+                        <!-- General Settings -->
+                        <page string="General Settings" name="general">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <group string="Default Values">
+                                        <field name="default_trial_days"
+                                               widget="integer"
+                                               options="{'step': 1}"/>
+                                        <field name="auto_suspend_expired"/>
+                                        <field name="send_notifications"/>
+                                        <field name="notification_template_id"
+                                               attrs="{'invisible': [('send_notifications', '=', False)]}"/>
+                                    </group>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="alert alert-info">
+                                        <h6><i class="fa fa-info-circle mr-2"></i>General Settings</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>Trial Period:</strong> Default trial duration for new customers</li>
+                                            <li><strong>Auto-suspend:</strong> Automatically suspend expired VMs</li>
+                                            <li><strong>Notifications:</strong> Send email alerts for VM events</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+
+                        <!-- Resource Limits -->
+                        <page string="Resource Limits" name="resources">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="alert alert-warning mb-3">
+                                        <i class="fa fa-exclamation-triangle mr-2"></i>
+                                        <strong>Resource Limits:</strong> These limits apply to all VM configurations and help prevent resource abuse.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <!-- CPU Cores -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="card bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <div class="mb-3">
+                                                <i class="fa fa-microchip fa-3x text-primary"></i>
+                                            </div>
+                                            <h6 class="card-title font-weight-bold">CPU Cores</h6>
+                                            <div class="form-group">
+                                                <field name="max_cores_per_vm"
+                                                       class="form-control form-control-lg text-center font-weight-bold"
+                                                       style="max-width: 100px; margin: 0 auto; font-size: 1.5rem;"/>
+                                            </div>
+                                            <small class="text-muted">Maximum cores per VM</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Memory -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="card bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <div class="mb-3">
+                                                <i class="fa fa-memory fa-3x text-success"></i>
+                                            </div>
+                                            <h6 class="card-title font-weight-bold">Memory</h6>
+                                            <div class="form-group">
+                                                <div class="input-group justify-content-center">
+                                                    <field name="max_memory_per_vm"
+                                                           class="form-control form-control-lg text-center font-weight-bold"
+                                                           style="max-width: 140px; font-size: 1.5rem;"/>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text bg-success text-white">MiB</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Maximum memory per VM</small>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Disk Space -->
+                                <div class="col-md-4 mb-4">
+                                    <div class="card bg-light h-100">
+                                        <div class="card-body text-center">
+                                            <div class="mb-3">
+                                                <i class="fa fa-hdd-o fa-3x text-warning"></i>
+                                            </div>
+                                            <h6 class="card-title font-weight-bold">Disk Space</h6>
+                                            <div class="form-group">
+                                                <div class="input-group justify-content-center">
+                                                    <field name="max_disk_per_vm"
+                                                           class="form-control form-control-lg text-center font-weight-bold"
+                                                           style="max-width: 120px; font-size: 1.5rem;"/>
+                                                    <div class="input-group-append">
+                                                        <span class="input-group-text bg-warning text-dark">GiB</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <small class="text-muted">Maximum disk per VM</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+
+                        <!-- Backup &amp; Audit -->
+                        <page string="Backup &amp; Audit" name="backup_audit">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <group string="Backup Settings">
+                                        <field name="enable_auto_backup"/>
+                                        <field name="backup_retention_days"
+                                               attrs="{'invisible': [('enable_auto_backup', '=', False)]}"/>
+                                    </group>
+                                </div>
+                                <div class="col-md-6">
+                                    <group string="Audit Settings">
+                                        <field name="enable_audit_logging"/>
+                                        <field name="audit_retention_days"
+                                               attrs="{'invisible': [('enable_audit_logging', '=', False)]}"/>
+                                    </group>
+                                </div>
+                            </div>
+
+                            <div class="row mt-3">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <h6><i class="fa fa-archive mr-2"></i>Backup &amp; Audit Information</h6>
+                                        <ul class="mb-0">
+                                            <li><strong>Auto Backup:</strong> Automatically create configuration backups</li>
+                                            <li><strong>Audit Logging:</strong> Track all VM operations for security</li>
+                                            <li><strong>Retention:</strong> How long to keep backup and audit files</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+
+                        <!-- System Info -->
+                        <page string="System Info" name="system_info">
+                            <group string="Record Information">
+                                <field name="create_date" readonly="1"/>
+                                <field name="write_date" readonly="1"/>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Tree view для конфигурации -->
+    <record id="view_vm_rental_config_tree" model="ir.ui.view">
+        <field name="name">vm.rental.config.tree</field>
+        <field name="model">vm.rental.config</field>
+        <field name="arch" type="xml">
+            <tree string="VM Rental Configurations">
+                <field name="name"/>
+                <field name="active" widget="boolean_toggle"/>
+                <field name="default_trial_days"/>
+                <field name="auto_suspend_expired"/>
+                <field name="max_cores_per_vm"/>
+                <field name="max_memory_per_vm"/>
+                <field name="max_disk_per_vm"/>
+                <field name="write_date"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- Action для VM Rental Configuration -->
+    <record id="action_vm_rental_config" model="ir.actions.act_window">
+        <field name="name">VM Rental Configuration</field>
+        <field name="res_model">vm.rental.config</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Configure VM Rental Settings
+            </p>
+            <p>
+                Create and manage VM Rental configurations including resource limits,
+                trial periods, and backup settings.
+            </p>
+        </field>
+    </record>
+
+    <!-- Action для быстрого доступа к настройкам -->
+    <record id="action_vm_rental_settings_quick" model="ir.actions.act_window">
+        <field name="name">VM Rental Settings</field>
+        <field name="res_model">vm.rental.config</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'form_view_initial_mode': 'edit'}</field>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No Active Configuration Found
+            </p>
+            <p>
+                Create your first VM Rental configuration to get started.
+            </p>
+        </field>
+    </record>
+
+    <!-- Меню для настроек в разделе Configuration → Settings -->
+    <menuitem
+        id="menu_vm_rental_config"
+        name="VM Rental Settings"
+        parent="menu_vm_configuration_submenu"
+        action="action_vm_rental_settings_quick"
+        sequence="10"/>
+
+    <!-- Меню для управления конфигурациями в разделе Configuration → System -->
+    <menuitem
+        id="menu_vm_rental_config_management"
+        name="Configuration Management"
+        parent="menu_vm_system_submenu"
+        action="action_vm_rental_config"
+        sequence="10"/>
+
+</odoo>

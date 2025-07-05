@@ -127,15 +127,30 @@ class BaseHypervisorService:
 
     # --- НОВЫЕ АБСТРАКТНЫЕ МЕТОДЫ ---":
 
-    def get_vm_config(self, node_or_uuid, vm_id=None):
+    def get_vm_config(self, node_or_uuid, vm_id=None, vm_type=None):
         """
         Получает конфигурацию существующей VM
 
         Args:
             node_or_uuid: Для Proxmox - имя ноды, для VMware - UUID VM
             vm_id: Для Proxmox - ID VM, для VMware не используется
+            vm_type: Опциональный тип VM ('qemu', 'lxc' для Proxmox)
 
         Returns:
             dict: Словарь с ключами cores, memory, disk, vm_type
         """
         raise NotImplementedError()
+
+    def _get_vm_type(self, node, vm_id):
+        """
+        Определяет тип VM (для гипервизоров, где это актуально)
+
+        Args:
+            node: Имя ноды
+            vm_id: ID виртуальной машины
+
+        Returns:
+            str: Тип VM ('qemu', 'lxc', 'vm' и т.д.)
+        """
+        # По умолчанию для большинства гипервизоров
+        return 'vm'
