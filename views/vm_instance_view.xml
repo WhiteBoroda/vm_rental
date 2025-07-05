@@ -1,25 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
-    <!-- Server Action для удаления VM из Odoo (без удаления с гипервизора) -->
-    <record id="action_server_forget_vm" model="ir.actions.server">
-        <field name="name">Forget VM from Odoo</field>
-        <field name="model_id" ref="model_vm_rental_machine"/>
-        <field name="binding_model_id" ref="model_vm_rental_machine"/>
-        <field name="state">code</field>
-        <field name="code">
-if records:
-    records.unlink()
-    action = {
-        'type': 'ir.actions.act_window',
-        'name': 'VM Instances',
-        'res_model': 'vm_rental.machine',
-        'view_mode': 'tree,form',
-        'target': 'main',
-    }
-        </field>
-    </record>
-
     <!-- Основной список VM -->
     <record id="view_vm_instance_tree" model="ir.ui.view">
         <field name="name">vm_rental.machine.tree</field>
